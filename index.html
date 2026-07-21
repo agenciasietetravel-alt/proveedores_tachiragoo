@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal de Proveedores — Táchira GOO!!!</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap');
+
+:root{
+  --blue:#0052CC; --blue-dark:#00307A; --blue-mid:#1F6FE5; --blue-light:#EEF3FF;
+  --orange:#FF6B00; --orange-light:#FFF2E8;
+  --ink:#101828; --ink-soft:#344054; --gray:#667085; --gray-light:#98A2B3;
+  --border:#E4E7EC; --border-soft:#EEF1F5; --bg:#F7F9FC;
+  --green:#12805C; --green-bg:#E6F7F0; --red:#C0122D; --red-bg:#FCEBEC;
+  --radius:14px; --radius-sm:9px;
+  --shadow-sm:0 1px 2px rgba(16,24,40,.05);
+  --shadow-md:0 4px 16px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.06);
+  --mono:'SF Mono',ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.num{font-family:'Fraunces',serif;font-variant-numeric:tabular-nums}
+button{font-family:inherit;cursor:pointer}
+a{color:inherit;text-decoration:none}
+input{font-family:inherit}
+
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 20% 20%, #0A3AA6 0%, var(--blue-dark) 55%, #001C4D 100%);position:relative;overflow:hidden}
+#login::before{content:'';position:absolute;inset:0;
+  background-image:radial-gradient(circle,rgba(255,255,255,.06) 1px,transparent 1px);
+  background-size:26px 26px}
+.login-card{background:#fff;border-radius:20px;padding:44px 40px;width:400px;
+  box-shadow:0 30px 80px rgba(0,10,40,.4);position:relative;z-index:1}
+.logo{font-weight:800;font-size:21px;margin-bottom:2px;letter-spacing:-.02em}
+.logo span{color:var(--orange)}
+.login-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;
+  color:var(--green);background:var(--green-bg);padding:4px 10px;border-radius:20px;margin:10px 0 22px}
+.login-badge::before{content:'●';font-size:8px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:12.5px;font-weight:600;margin-bottom:6px;color:var(--ink-soft)}
+.field input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;transition:.15s}
+.field input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-light)}
+.btn-primary{background:var(--blue);color:#fff;border:none;border-radius:9px;padding:13px;width:100%;font-weight:700;font-size:14px;box-shadow:var(--shadow-md)}
+.btn-primary:hover{background:var(--blue-dark)}
+.login-foot{margin-top:20px;font-size:12.5px;color:var(--gray);text-align:center;line-height:1.6}
+.login-security{display:flex;align-items:center;gap:8px;margin-top:22px;padding-top:18px;border-top:1px solid var(--border-soft);font-size:11.5px;color:var(--gray-light)}
+.select-demo{width:100%;padding:10px 12px;border:1.5px dashed var(--border);border-radius:9px;font-size:12.5px;color:var(--gray);margin-bottom:18px;background:var(--bg)}
+
+#app{display:none;min-height:100vh}
+.shell{display:flex;min-height:100vh}
+.sidebar{width:252px;background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.sb-logo{padding:22px 22px 18px;font-weight:800;font-size:18px;letter-spacing:-.02em}
+.sb-logo span{color:var(--orange)}
+.sb-group-label{padding:16px 22px 6px;font-size:10.5px;font-weight:700;color:var(--gray-light);letter-spacing:.06em;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:11px;padding:10px 22px;font-size:13.5px;font-weight:600;color:var(--ink-soft);border-left:3px solid transparent;margin:1px 0}
+.nav-item:hover{background:var(--bg)}
+.nav-item.active{color:var(--blue);background:var(--blue-light);border-left-color:var(--blue)}
+.nav-ico{width:18px;text-align:center;opacity:.85}
+.sb-foot{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border-soft)}
+.provider-chip{display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px}
+.provider-chip:hover{background:var(--bg)}
+.avatar{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--orange),#E85A00);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13.5px;flex-shrink:0}
+.verified-tag{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;color:var(--green);font-weight:700}
+
+.main{flex:1;overflow-x:hidden}
+.header-top{background:#fff;border-bottom:1px solid var(--border);padding:14px 36px;display:flex;justify-content:space-between;align-items:center}
+.sync-status{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--gray)}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px var(--green-bg)}
+.header-right{display:flex;align-items:center;gap:18px}
+.icon-btn{width:34px;height:34px;border-radius:8px;border:1px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--gray)}
+.content{padding:32px 36px}
+
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:26px}
+.page-title{font-size:23px;font-weight:800;margin:0;letter-spacing:-.01em}
+.page-sub{color:var(--gray);font-size:13.5px;margin-top:3px}
+.breadcrumb{font-size:12px;color:var(--gray-light);margin-bottom:6px;font-weight:600}
+
+.grid{display:grid;gap:16px}
+.grid-4{grid-template-columns:repeat(4,1fr)}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+.grid-2{grid-template-columns:1.6fr 1fr}
+
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow-sm)}
+.kpi-card{position:relative;overflow:hidden}
+.kpi-label{font-size:12.5px;color:var(--gray);font-weight:600;display:flex;align-items:center;gap:6px}
+.kpi-value{font-size:30px;font-weight:700;margin:8px 0 5px;letter-spacing:-.02em}
+.kpi-trend{font-size:11.5px;font-weight:700;display:inline-flex;align-items:center;gap:4px}
+.up{color:var(--green)} .warn{color:var(--orange)}
+.kpi-accent{position:absolute;top:0;left:0;width:3px;height:100%}
+
+.section-title{font-size:15px;font-weight:700;margin:0 0 16px;display:flex;align-items:center;justify-content:space-between}
+.section-hint{font-size:11.5px;color:var(--gray-light);font-weight:500}
+
+.btn{border:none;border-radius:9px;padding:10px 18px;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px}
+.btn-blue{background:var(--blue);color:#fff;box-shadow:0 1px 2px rgba(0,82,204,.3)}
+.btn-blue:hover{background:var(--blue-dark)}
+.btn-outline{background:#fff;border:1.5px solid var(--border);color:var(--ink-soft)}
+.btn-outline:hover{border-color:var(--gray-light)}
+.btn-orange{background:var(--orange);color:#fff}
+.btn-ghost{background:transparent;color:var(--blue);font-weight:700;padding:8px 4px}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:7px}
+
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-green{background:var(--green-bg);color:var(--green)}
+.badge-orange{background:var(--orange-light);color:var(--orange)}
+.badge-gray{background:#F2F4F7;color:var(--gray)}
+.badge-red{background:var(--red-bg);color:var(--red)}
+.badge::before{content:'●';font-size:7px}
+
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11px;color:var(--gray-light);font-weight:700;padding:10px 14px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.04em}
+td{padding:15px 14px;border-bottom:1px solid var(--border-soft);font-size:13.5px}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#FBFCFE}
+.tx-id{font-family:var(--mono);font-size:11px;color:var(--gray-light)}
+
+.trust-strip{display:flex;gap:22px;padding:14px 20px;background:var(--blue-light);border-radius:var(--radius-sm);margin-bottom:24px;font-size:12px;color:var(--blue-dark);font-weight:600}
+.trust-item{display:flex;align-items:center;gap:7px}
+
+.listing-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm);transition:.15s}
+.listing-card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.listing-img{height:128px;background:linear-gradient(135deg,var(--blue-light),var(--orange-light));display:flex;align-items:center;justify-content:center;color:var(--gray);font-size:12.5px;position:relative}
+.listing-body{padding:16px}
+.listing-title{font-weight:700;font-size:14.5px;margin-bottom:4px}
+.listing-meta{font-size:12px;color:var(--gray);margin-bottom:12px}
+.listing-actions{display:flex;gap:8px;margin-top:8px}
+.new-listing-card{border:2px dashed var(--border);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-direction:column;color:var(--gray);min-height:224px;font-weight:700;gap:6px}
+.new-listing-card:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-light)}
+
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:24px}
+.tab{padding:11px 18px;font-size:13px;font-weight:700;color:var(--gray);border-bottom:2px solid transparent}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+
+.gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.gallery-item{aspect-ratio:1;background:var(--bg);border:1px solid var(--border);border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--gray);font-size:11px;position:relative}
+.gallery-item.cover::after{content:'Portada';position:absolute;top:6px;left:6px;background:var(--orange);color:#fff;font-size:9.5px;padding:2px 7px;border-radius:5px;font-weight:700}
+.upload-box{aspect-ratio:1;border:2px dashed var(--border);border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--blue);font-weight:700;font-size:22px}
+
+.map-box{height:220px;background:repeating-linear-gradient(45deg,#EDF1F7,#EDF1F7 10px,#E4E9F1 10px,#E4E9F1 20px);border-radius:9px;display:flex;align-items:center;justify-content:center;position:relative;border:1px solid var(--border)}
+.pin{width:26px;height:26px;background:var(--orange);border-radius:50% 50% 50% 0;transform:rotate(-45deg);position:absolute;box-shadow:0 2px 6px rgba(255,107,0,.5)}
+
+.itin-step{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--border-soft)}
+.itin-step:last-child{border-bottom:none}
+.itin-time{width:72px;font-weight:700;color:var(--blue);font-size:13px}
+.itin-content{flex:1;font-size:13.5px}
+.itin-remove{color:var(--red);font-size:11.5px;font-weight:700}
+
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-day{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:#fff}
+.cal-day.open{background:var(--green-bg);color:var(--green);border-color:#BEE8D6}
+.cal-day.closed{background:var(--red-bg);color:var(--red);border-color:#F3C1C7}
+.cal-day.muted{color:#CBD2DE;background:#FAFBFC;cursor:default}
+
+.toggle{width:40px;height:23px;background:var(--border);border-radius:20px;position:relative;cursor:pointer;flex-shrink:0}
+.toggle.on{background:var(--green)}
+.toggle-dot{width:17px;height:17px;background:#fff;border-radius:50%;position:absolute;top:3px;left:3px;transition:.2s}
+.toggle.on .toggle-dot{left:20px}
+
+.preview-frame{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:#fff;box-shadow:var(--shadow-md)}
+.preview-hero{height:120px;background:linear-gradient(135deg,var(--blue),var(--blue-dark));display:flex;align-items:end;padding:16px;color:#fff;font-weight:800;font-size:16px}
+.preview-body{padding:18px;font-size:13px;color:var(--gray);line-height:1.7}
+
+.disp-row{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid var(--border-soft)}
+.disp-row:last-child{border-bottom:none}
+
+.info-note{background:var(--blue-light);border-radius:9px;padding:13px 16px;font-size:12.5px;color:var(--blue-dark);margin-top:12px;display:flex;gap:10px;align-items:flex-start}
+
+@media(max-width:900px){
+  .sidebar{display:none}
+  .grid-4{grid-template-columns:repeat(2,1fr)}
+  .grid-2{grid-template-columns:1fr}
+  .content{padding:20px}
+  .header-top{padding:14px 20px}
+}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div class="login-card">
+    <div class="logo">TÁCHIRA <span>GOO!!!</span></div>
+    <div class="login-badge">Conexión cifrada · Portal de Proveedores</div>
+
+    <div id="loginForm">
+      <div class="field"><label>Correo electrónico</label><input type="email" id="loginEmail" placeholder="tu@correo.com"></div>
+      <div class="field"><label>Contraseña</label><input type="password" id="loginPassword" placeholder="Contraseña"></div>
+      <div id="loginError" style="display:none;color:var(--red);font-size:12.5px;margin-bottom:14px"></div>
+      <button class="btn-primary" id="loginBtn" onclick="enterApp()">Ingresar al panel</button>
+      <div class="login-foot">¿Aún no tienes cuenta? <a href="#" id="goSignup" style="color:var(--blue);font-weight:700">Únete como proveedor</a></div>
+    </div>
+
+    <div id="signupForm" style="display:none">
+      <div class="field"><label>Nombre del negocio</label><input type="text" id="signupBusiness" placeholder="Ej. Posada El Páramo"></div>
+      <div class="field"><label>Municipio</label><input type="text" id="signupMunicipio" placeholder="Ej. San Cristóbal"></div>
+      <div class="field"><label>Correo electrónico</label><input type="email" id="signupEmail" placeholder="tu@correo.com"></div>
+      <div class="field"><label>Contraseña</label><input type="password" id="signupPassword" placeholder="Mínimo 6 caracteres"></div>
+      <div id="signupError" style="display:none;color:var(--red);font-size:12.5px;margin-bottom:14px"></div>
+      <div id="signupSuccess" style="display:none;color:var(--green);font-size:12.5px;margin-bottom:14px"></div>
+      <button class="btn-primary" id="signupBtn" onclick="signUpProvider()">Crear cuenta de proveedor</button>
+      <div class="login-foot">¿Ya tienes cuenta? <a href="#" id="goLogin" style="color:var(--blue);font-weight:700">Ingresar</a></div>
+    </div>
+
+    <div class="login-security">🔒 Cada proveedor accede únicamente a su propia información. Los datos se transmiten cifrados a Supabase.</div>
+  </div>
+</div>
+
+<div id="app">
+<div class="shell">
+  <div class="sidebar">
+    <div class="sb-logo">TÁCHIRA <span>GOO!!!</span></div>
+
+    <div class="sb-group-label">Operación</div>
+    <div class="nav-item active" onclick="showView('dashboard',this)"><span class="nav-ico">▦</span> Panel general</div>
+    <div class="nav-item" onclick="showView('listings',this)"><span class="nav-ico">▤</span> Mis listados</div>
+    <div class="nav-item" onclick="showView('bookings',this)"><span class="nav-ico">▥</span> Reservas</div>
+
+    <div class="sb-group-label">Finanzas</div>
+    <div class="nav-item" onclick="showView('billing',this)"><span class="nav-ico">$</span> Facturación</div>
+
+    <div class="sb-group-label">Presencia</div>
+    <div class="nav-item" onclick="showView('microsite',this)"><span class="nav-ico">◈</span> Mi microsite</div>
+    <div class="nav-item" onclick="showView('account',this)"><span class="nav-ico">⚙</span> Cuenta y seguridad</div>
+
+    <div class="sb-foot">
+      <div class="provider-chip">
+        <div class="avatar" id="avatarInit">PE</div>
+        <div>
+          <div style="font-weight:700;font-size:13px" id="providerNameChip">Posada El Páramo</div>
+          <div class="verified-tag">✓ Verificado</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="header-top">
+      <div class="sync-status"><span class="sync-dot"></span> Sincronizado con el repositorio central · hace 12 segundos</div>
+      <div class="header-right">
+        <div class="icon-btn">🔔</div>
+        <div class="icon-btn">↩</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+    <div class="view" id="v-dashboard">
+      <div class="topbar">
+        <div><div class="breadcrumb">PANEL GENERAL</div><h1 class="page-title" id="greetName">Hola, Posada El Páramo</h1><div class="page-sub">Resumen de tu actividad y estado de cuenta</div></div>
+        <button class="btn btn-blue" onclick="showView('editor')">+ Nuevo listado</button>
+      </div>
+
+      <div class="trust-strip">
+        <div class="trust-item">🔒 Datos protegidos con cifrado en tránsito</div>
+        <div class="trust-item">🧾 ID de proveedor: <span class="tx-id" style="color:var(--blue-dark)">PRV-TCH-00412</span></div>
+        <div class="trust-item">✓ Cuenta verificada</div>
+      </div>
+
+      <div class="grid grid-4" style="margin-bottom:24px">
+        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--blue)"></div><div class="kpi-label">Reservas hoy</div><div class="kpi-value num">3</div><div class="kpi-trend up">↑ 2 nuevas desde ayer</div></div>
+        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--orange)"></div><div class="kpi-label">Saldo por liberar</div><div class="kpi-value num">$610</div><div class="kpi-trend warn">Próximo pago: 15 jul</div></div>
+        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--green)"></div><div class="kpi-label">Calificación</div><div class="kpi-value num">4.8 ★</div><div class="kpi-trend up">32 reseñas verificadas</div></div>
+        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--gray-light)"></div><div class="kpi-label">Listados activos</div><div class="kpi-value num" id="kpiListingsCount">–</div><div class="kpi-trend" style="color:var(--gray)" id="kpiListingsSub"></div></div>
+      </div>
+
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="section-title">Reservas recientes <span class="section-hint">Actualizado en tiempo real</span></div>
+          <table>
+            <tbody><tr><th>Ref.</th><th>Cliente</th><th>Listado</th><th>Fecha</th><th>Monto</th><th>Estado</th></tr>
+            <tr><td class="tx-id">RSV-8821</td><td>María G.</td><td>Cabaña Doble</td><td>08 jul</td><td class="num">$85</td><td><span class="badge badge-orange">Pendiente</span></td></tr>
+            <tr><td class="tx-id">RSV-8819</td><td>Carlos R.</td><td>Cabaña Familiar</td><td>10 jul</td><td class="num">$140</td><td><span class="badge badge-green">Confirmada</span></td></tr>
+            <tr><td class="tx-id">RSV-8804</td><td>Andrea T.</td><td>Cabaña Doble</td><td>05 jul</td><td class="num">$85</td><td><span class="badge badge-gray">Completada</span></td></tr>
+          </tbody></table>
+        </div>
+        <div class="card">
+          <div class="section-title">Alertas</div>
+          <div style="font-size:13px;line-height:2.1">
+            🟠 1 listado en borrador sin publicar<br>
+            🔵 Ciclo de pago se liquida en 6 días<br>
+            🟢 Nueva reseña de 5★ de Carlos R.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="v-listings" style="display:none">
+      <div class="topbar">
+        <div><div class="breadcrumb">MIS LISTADOS</div><h1 class="page-title">Gestión de listados</h1><div class="page-sub">Los cambios se sincronizan automáticamente con el sitio público</div></div>
+        <button class="btn btn-blue" onclick="showView('editor')">+ Nuevo listado</button>
+      </div>
+      <div class="grid grid-3" id="listingsGrid">
+        <div class="new-listing-card" onclick="openNewListing()">
+          <div style="font-size:26px">＋</div>
+          <div style="font-size:13px">Crear nuevo listado</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="v-editor" style="display:none">
+      <div class="topbar">
+        <div><div class="breadcrumb">EDITOR DE LISTADO</div><h1 class="page-title">Cabaña Doble — Posada El Páramo</h1><div class="page-sub">Los cambios se publican en el repositorio central al guardar</div></div>
+        <div style="display:flex;gap:10px"><button class="btn btn-outline" onclick="showView('listings')">Cancelar</button><button class="btn btn-blue" onclick="saveEdit()">Guardar cambios</button></div>
+      </div>
+      <div class="tabs">
+        <div class="tab active" onclick="showTab('info',this)">Información</div>
+        <div class="tab" onclick="showTab('fotos',this)">Fotos</div>
+        <div class="tab" onclick="showTab('ubicacion',this)">Ubicación</div>
+        <div class="tab" onclick="showTab('itinerario',this)">Itinerario</div>
+        <div class="tab" onclick="showTab('precios',this)">Precios</div>
+        <div class="tab" onclick="showTab('disponibilidad',this)">Disponibilidad</div>
+      </div>
+
+      <div class="tabcontent" id="t-info">
+        <div class="card">
+          <div class="field"><label>Título del listado</label><input type="text" id="fTitle" placeholder="Ej. Cabaña Doble — Posada El Páramo"></div>
+          <div class="field"><label>Categoría</label>
+            <select id="fCategory" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:9px;font-size:14px">
+              <option value="alojamiento">Alojamiento</option>
+              <option value="tour">Tour</option>
+              <option value="actividad">Actividad</option>
+            </select>
+          </div>
+          <div class="field"><label>Municipio</label><input type="text" id="fMunicipio" placeholder="Ej. San Cristóbal"></div>
+          <div class="field"><label>Descripción</label><input type="text" id="fDescription" placeholder="Descripción del listado"></div>
+          <div class="field"><label>Política de cancelación</label><input type="text" id="fCancellation" placeholder="Ej. Reembolso 100% hasta 48h antes"></div>
+        </div>
+      </div>
+
+      <div class="tabcontent" id="t-fotos" style="display:none">
+        <div class="card">
+          <div class="section-title">Galería de imágenes</div>
+          <input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="handlePhotoSelect(event)">
+          <div class="gallery" id="photoGallery"></div>
+          <div id="photoUploadError" style="display:none;color:var(--red);font-size:12.5px;margin-top:10px"></div>
+          <div style="font-size:12px;color:var(--gray);margin-top:12px">La primera foto sube como portada. Formatos JPG/PNG, máx. 5MB.</div>
+        </div>
+      </div>
+
+      <div class="tabcontent" id="t-ubicacion" style="display:none">
+        <div class="card">
+          <div class="section-title">Ubicación en el mapa</div>
+          <div class="map-box"><div class="pin" style="top:45%;left:48%"></div></div>
+          <div class="field" style="margin-top:16px"><label>Dirección</label><input type="text" value="Vía Páramo, El Cobre, San Cristóbal, Táchira"></div>
+        </div>
+      </div>
+
+      <div class="tabcontent" id="t-itinerario" style="display:none">
+        <div class="card">
+          <div class="section-title">Itinerario / experiencia</div>
+          <div class="itin-step"><div class="itin-time">3:00 PM</div><div class="itin-content">Check-in y bienvenida con café de la zona</div><div class="itin-remove">Quitar</div></div>
+          <div class="itin-step"><div class="itin-time">6:00 PM</div><div class="itin-content">Cena opcional con productos locales</div><div class="itin-remove">Quitar</div></div>
+          <div class="itin-step"><div class="itin-time">11:00 AM</div><div class="itin-content">Check-out</div><div class="itin-remove">Quitar</div></div>
+          <button class="btn btn-ghost" style="margin-top:6px">+ Agregar paso</button>
+        </div>
+      </div>
+
+      <div class="tabcontent" id="t-precios" style="display:none">
+        <div class="card">
+          <div class="field"><label>Precio base por noche (USD)</label><input type="text" id="fBasePrice" placeholder="Ej. 85"></div>
+          <div class="field"><label>Precio fin de semana / feriado (USD)</label><input type="text" id="fWeekendPrice" placeholder="Ej. 105"></div>
+          <div class="field"><label>Cupo máximo</label><input type="text" id="fCapacity" placeholder="Ej. 4"></div>
+          <div class="info-note">💡 Este precio se transmite automáticamente al repositorio central y se refleja en la página pública al guardar.</div>
+        </div>
+      </div>
+
+      <div class="tabcontent" id="t-disponibilidad" style="display:none">
+        <div class="card">
+          <div class="section-title">Julio 2026</div>
+          <div class="cal-grid">
+            <div class="cal-day muted">L</div><div class="cal-day muted">M</div><div class="cal-day muted">M</div><div class="cal-day muted">J</div><div class="cal-day muted">V</div><div class="cal-day muted">S</div><div class="cal-day muted">D</div>
+            <div class="cal-day open">1</div><div class="cal-day open">2</div><div class="cal-day open">3</div><div class="cal-day closed">4</div><div class="cal-day open">5</div><div class="cal-day open">6</div><div class="cal-day open">7</div>
+            <div class="cal-day open">8</div><div class="cal-day open">9</div><div class="cal-day open">10</div><div class="cal-day open">11</div><div class="cal-day closed">12</div><div class="cal-day open">13</div><div class="cal-day open">14</div>
+          </div>
+          <div style="display:flex;gap:16px;margin-top:14px;font-size:12px">
+            <div>🟢 Disponible</div><div>🔴 Bloqueado</div>
+          </div>
+          <div style="font-size:12px;color:var(--gray);margin-top:8px">Haz clic en un día para abrir/cerrar disponibilidad</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="v-bookings" style="display:none">
+      <div class="topbar"><div><div class="breadcrumb">RESERVAS</div><h1 class="page-title">Reservas</h1><div class="page-sub">Solicitudes reales enviadas desde el Portal Cliente</div></div></div>
+      <div class="card">
+        <table>
+          <tbody id="bookingsTableBody"><tr><th>Ref.</th><th>Cliente</th><th>Listado</th><th>Fecha</th><th>Monto</th><th>Estado</th><th></th></tr>
+          <tr><td colspan="7" style="text-align:center;color:var(--gray);padding:24px">Cargando...</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+
+    <div class="view" id="v-billing" style="display:none">
+      <div class="topbar"><div><div class="breadcrumb">FACTURACIÓN</div><h1 class="page-title">Facturación</h1><div class="page-sub">Ciclo de pago: quincenal</div></div></div>
+      <div class="grid grid-3" style="margin-bottom:24px">
+        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--orange)"></div><div class="kpi-label">Pendiente por liberar</div><div class="kpi-value num">$610</div></div>
+        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--green)"></div><div class="kpi-label">Liberado este mes</div><div class="kpi-value num">$1,240</div></div>
+        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--blue)"></div><div class="kpi-label">Próximo pago</div><div class="kpi-value num" style="font-size:24px">15 jul</div></div>
+      </div>
+      <div class="card" style="margin-bottom:20px">
+        <div class="section-title">Método de cobro</div>
+        <div class="disp-row"><div>Binance / USDT (TRC20) <span class="tx-id" style="margin-left:8px">TXn...9F3A</span></div><span class="badge badge-green">Verificado</span></div>
+      </div>
+      <div class="card">
+        <div class="section-title">Historial de liquidaciones</div>
+        <table>
+          <tbody><tr><th>Período</th><th>Reservas</th><th>Monto liquidado</th><th>Ref. de pago</th><th>Estado</th></tr>
+          <tr><td>16–30 jun 2026</td><td>8</td><td class="num">$680</td><td class="tx-id">PAY-3391</td><td><span class="badge badge-green">Pagado</span></td></tr>
+          <tr><td>01–15 jun 2026</td><td>6</td><td class="num">$510</td><td class="tx-id">PAY-3287</td><td><span class="badge badge-green">Pagado</span></td></tr>
+          <tr><td>16–31 may 2026</td><td>9</td><td class="num">$720</td><td class="tx-id">PAY-3159</td><td><span class="badge badge-green">Pagado</span></td></tr>
+        </tbody></table>
+      </div>
+    </div>
+
+    <div class="view" id="v-microsite" style="display:none">
+      <div class="topbar"><div><div class="breadcrumb">MI MICROSITE</div><h1 class="page-title">Mi microsite</h1><div class="page-sub">Tu página pública de marca</div></div><button class="btn btn-blue">Publicar cambios</button></div>
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="field"><label>Título de portada</label><input type="text" value="Posada El Páramo"></div>
+          <div class="field"><label>Frase destacada</label><input type="text" value="Tu refugio en las montañas de Táchira"></div>
+          <div class="field"><label>Sobre nosotros</label><input type="text" value="Familia local ofreciendo hospedaje auténtico desde 2015."></div>
+          <div class="field"><label>WhatsApp de contacto</label><input type="text" value="+58 424-000-0000"></div>
+          <div style="margin-top:8px"><label style="font-size:13px;font-weight:600">Tours destacados</label>
+            <div style="display:flex;gap:10px;margin-top:10px;align-items:center">
+              <div class="toggle on"><div class="toggle-dot"></div></div><span style="font-size:13px">Cabaña Doble</span>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:10px;align-items:center">
+              <div class="toggle on"><div class="toggle-dot"></div></div><span style="font-size:13px">Cabaña Familiar</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="section-title">Vista previa en vivo</div>
+          <div class="preview-frame">
+            <div class="preview-hero">Posada El Páramo</div>
+            <div class="preview-body">
+              Tu refugio en las montañas de Táchira<br><br>
+              Familia local ofreciendo hospedaje auténtico desde 2015.<br><br>
+              📞 +58 424-000-0000
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="v-account" style="display:none">
+      <div class="topbar"><div><div class="breadcrumb">CUENTA Y SEGURIDAD</div><h1 class="page-title">Cuenta</h1><div class="page-sub">Datos, verificación y control de acceso</div></div></div>
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="field"><label>Nombre del negocio</label><input type="text" value="Posada El Páramo"></div>
+          <div class="field"><label>RIF / Cédula</label><input type="text" value="J-40123456-7"></div>
+          <div class="field"><label>Municipio</label><input type="text" value="San Cristóbal"></div>
+          <div class="field"><label>Correo</label><input type="text" value="posada.elparamo@gmail.com"></div>
+          <div class="info-note">🔒 Tu información fiscal está cifrada y solo es visible para ti y el equipo de verificación de Táchira GOO!!!</div>
+        </div>
+        <div class="card">
+          <div class="section-title">Estado de verificación</div>
+          <div class="disp-row"><div>Documento de identidad</div><span class="badge badge-green">Aprobado</span></div>
+          <div class="disp-row"><div>Comprobante de negocio</div><span class="badge badge-green">Aprobado</span></div>
+          <div class="disp-row"><div>Wallet de cobro (Binance)</div><span class="badge badge-orange">En revisión</span></div>
+          <div class="disp-row"><div>Último acceso</div><span class="tx-id">10 jul 2026, 14:32</span></div>
+        </div>
+      </div>
+    </div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://vkgxvckooykxfulclodj.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_LVIRh3oSFP7gGSkQuCnBdg_eZ2SAB8g';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentProvider = null;
+let authFlowInProgress = false;
+
+document.getElementById('goSignup').addEventListener('click', (e)=>{
+  e.preventDefault();
+  document.getElementById('loginForm').style.display = 'none';
+  document.getElementById('signupForm').style.display = 'block';
+});
+document.getElementById('goLogin').addEventListener('click', (e)=>{
+  e.preventDefault();
+  document.getElementById('signupForm').style.display = 'none';
+  document.getElementById('loginForm').style.display = 'block';
+});
+
+async function signUpProvider(){
+  const businessName = document.getElementById('signupBusiness').value.trim();
+  const municipio = document.getElementById('signupMunicipio').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  const password = document.getElementById('signupPassword').value;
+  const errEl = document.getElementById('signupError');
+  const okEl = document.getElementById('signupSuccess');
+  const btn = document.getElementById('signupBtn');
+  errEl.style.display = 'none';
+  okEl.style.display = 'none';
+
+  if(!businessName || !municipio || !email || !password){
+    errEl.textContent = 'Completa todos los campos.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if(password.length < 6){
+    errEl.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  authFlowInProgress = true;
+  btn.textContent = 'Creando cuenta...';
+  const { data, error } = await sb.auth.signUp({ email, password });
+  btn.textContent = 'Crear cuenta de proveedor';
+
+  if(error){
+    errEl.textContent = error.message;
+    errEl.style.display = 'block';
+    authFlowInProgress = false;
+    return;
+  }
+
+  if(!data.session){
+    okEl.textContent = 'Cuenta creada. Revisa tu correo para confirmar la cuenta y luego inicia sesión.';
+    okEl.style.display = 'block';
+    authFlowInProgress = false;
+    return;
+  }
+
+  await sb.from('profiles').upsert({ id: data.user.id, role: 'proveedor' });
+  const { data: newProvider, error: provErr } = await sb.from('providers')
+    .upsert({ owner_id: data.user.id, business_name: businessName, municipio }, { onConflict: 'owner_id' })
+    .select().single();
+  authFlowInProgress = false;
+  if(provErr){
+    errEl.textContent = 'Cuenta creada pero hubo un error creando el perfil de negocio: ' + provErr.message;
+    errEl.style.display = 'block';
+    return;
+  }
+  currentProvider = newProvider;
+  document.getElementById('providerNameChip').textContent = newProvider.business_name;
+  document.getElementById('greetName').textContent = 'Hola, ' + newProvider.business_name;
+  document.getElementById('avatarInit').textContent = newProvider.business_name.slice(0,2).toUpperCase();
+  await refreshListings();
+  document.getElementById('login').style.display='none';
+  document.getElementById('app').style.display='block';
+}
+
+async function enterApp(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+  errEl.style.display = 'none';
+  if(!email || !password){
+    errEl.textContent = 'Ingresa correo y contraseña.';
+    errEl.style.display = 'block';
+    return;
+  }
+  btn.textContent = 'Ingresando...';
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  if(error){
+    errEl.textContent = error.message === 'Invalid login credentials'
+      ? 'Correo o contraseña incorrectos, o la cuenta aún no existe.'
+      : error.message;
+    errEl.style.display = 'block';
+    btn.textContent = 'Ingresar al panel';
+    return;
+  }
+  btn.textContent = 'Ingresar al panel';
+  await loadProviderContext(data.user.id);
+  document.getElementById('login').style.display='none';
+  document.getElementById('app').style.display='block';
+}
+
+async function loadProviderContext(userId){
+  let { data: provider } = await sb.from('providers').select('*').eq('owner_id', userId).maybeSingle();
+  if(!provider){
+    const { data: newProvider, error } = await sb.from('providers')
+      .upsert({ owner_id: userId, business_name: 'Mi negocio', municipio: 'San Cristóbal' }, { onConflict: 'owner_id' })
+      .select().single();
+    if(error){ console.error(error); return; }
+    provider = newProvider;
+  }
+  currentProvider = provider;
+  document.getElementById('providerNameChip').textContent = provider.business_name;
+  document.getElementById('greetName').textContent = 'Hola, ' + provider.business_name;
+  document.getElementById('avatarInit').textContent = provider.business_name.slice(0,2).toUpperCase();
+  await refreshListings();
+}
+
+async function refreshListings(){
+  if(!currentProvider) return;
+  const { data: listings, error } = await sb.from('listings')
+    .select('*').eq('provider_id', currentProvider.id).order('created_at', { ascending: false });
+  if(error){ console.error(error); return; }
+  renderListings(listings || []);
+  document.getElementById('kpiListingsCount').textContent = listings.length;
+  const drafts = listings.filter(l => l.status === 'draft').length;
+  document.getElementById('kpiListingsSub').textContent = drafts + ' en borrador';
+  await refreshBookings();
+}
+
+const BOOKING_STATUS_LABEL = { pending: 'Pendiente', confirmed: 'Confirmada', completed: 'Completada', cancelled: 'Cancelada' };
+const BOOKING_STATUS_BADGE = { pending: 'badge-orange', confirmed: 'badge-green', completed: 'badge-gray', cancelled: 'badge-red' };
+
+async function refreshBookings(){
+  if(!currentProvider) return;
+  const tbody = document.getElementById('bookingsTableBody');
+  const { data: bookings, error } = await sb.from('bookings')
+    .select('*, listings(title), profiles(full_name)')
+    .eq('provider_id', currentProvider.id)
+    .order('created_at', { ascending: false });
+  if(error){ console.error(error); return; }
+  if(!bookings || bookings.length === 0){
+    tbody.innerHTML = '<tr><th>Ref.</th><th>Cliente</th><th>Listado</th><th>Fecha</th><th>Monto</th><th>Estado</th><th></th></tr><tr><td colspan="7" style="text-align:center;color:var(--gray);padding:24px">Todavía no tienes solicitudes de reserva.</td></tr>';
+    return;
+  }
+  const rows = bookings.map(b => `
+    <tr>
+      <td class="tx-id">${b.ref}</td>
+      <td>${b.profiles?.full_name || 'Viajero'}</td>
+      <td>${b.listings?.title || ''}</td>
+      <td>${b.booking_date}</td>
+      <td class="num">$${b.amount}</td>
+      <td><span class="badge ${BOOKING_STATUS_BADGE[b.status] || 'badge-gray'}">${BOOKING_STATUS_LABEL[b.status] || b.status}</span></td>
+      <td>${b.status === 'pending' ? `<button class="btn btn-blue btn-sm" onclick="confirmBooking('${b.id}')">Confirmar</button>` : ''}</td>
+    </tr>`).join('');
+  tbody.innerHTML = '<tr><th>Ref.</th><th>Cliente</th><th>Listado</th><th>Fecha</th><th>Monto</th><th>Estado</th><th></th></tr>' + rows;
+}
+
+async function confirmBooking(id){
+  const { error } = await sb.from('bookings').update({ status: 'confirmed' }).eq('id', id);
+  if(error){ alert('Error al confirmar: ' + error.message); return; }
+  await refreshBookings();
+}
+
+function renderListings(listings){
+  const grid = document.getElementById('listingsGrid');
+  const cards = listings.map(l => `
+    <div class="listing-card">
+      <div class="listing-img">🏔️ Foto de portada
+        <span class="badge ${l.status==='published'?'badge-green':'badge-gray'}" style="position:absolute;top:10px;right:10px">${l.status==='published'?'Publicado':'Borrador'}</span></div>
+      <div class="listing-body">
+        <div class="listing-title">${l.title}</div>
+        <div class="listing-meta">${l.municipio} · desde $${l.base_price}/noche</div>
+      </div>
+    </div>`).join('');
+  grid.innerHTML = cards + `
+    <div class="new-listing-card" onclick="openNewListing()">
+      <div style="font-size:26px">＋</div>
+      <div style="font-size:13px">Crear nuevo listado</div>
+    </div>`;
+}
+
+let currentListingPhotos = [];
+
+function renderGallery(){
+  const gallery = document.getElementById('photoGallery');
+  const items = currentListingPhotos.map((p, i) => `
+    <div class="gallery-item ${i===0?'cover':''}">
+      <img src="${p.url}" style="width:100%;height:100%;object-fit:cover;border-radius:9px" alt="Foto ${i+1}">
+      <button onclick="removePhoto(${i})" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:6px;width:20px;height:20px;font-size:12px;line-height:1;cursor:pointer">✕</button>
+    </div>`).join('');
+  gallery.innerHTML = items + '<div class="upload-box" onclick="document.getElementById(\'photoInput\').click()">＋</div>';
+}
+
+function removePhoto(index){
+  currentListingPhotos.splice(index, 1);
+  renderGallery();
+}
+
+async function handlePhotoSelect(event){
+  const files = Array.from(event.target.files || []);
+  const errEl = document.getElementById('photoUploadError');
+  errEl.style.display = 'none';
+  for(const file of files){
+    if(file.size > 5 * 1024 * 1024){
+      errEl.textContent = `"${file.name}" supera 5MB y no se subió.`;
+      errEl.style.display = 'block';
+      continue;
+    }
+    const path = `${currentProvider.id}/${Date.now()}-${file.name}`;
+    const { error: upErr } = await sb.storage.from('listing-photos').upload(path, file);
+    if(upErr){
+      errEl.textContent = 'Error subiendo "' + file.name + '": ' + upErr.message;
+      errEl.style.display = 'block';
+      continue;
+    }
+    const { data: pub } = sb.storage.from('listing-photos').getPublicUrl(path);
+    currentListingPhotos.push({ url: pub.publicUrl, path });
+  }
+  event.target.value = '';
+  renderGallery();
+}
+
+function openNewListing(){
+  ['fTitle','fMunicipio','fDescription','fCancellation','fBasePrice','fWeekendPrice','fCapacity'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  currentListingPhotos = [];
+  renderGallery();
+  showView('editor');
+}
+
+function showView(id, el){
+  document.querySelectorAll('.view').forEach(v=>v.style.display='none');
+  document.getElementById('v-'+id).style.display='block';
+  if(el){
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    el.classList.add('active');
+  }
+}
+function showTab(id, el){
+  document.querySelectorAll('.tabcontent').forEach(t=>t.style.display='none');
+  document.getElementById('t-'+id).style.display='block';
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+async function saveEdit(){
+  if(!currentProvider){ alert('Sesión no válida, vuelve a ingresar.'); return; }
+  const title = document.getElementById('fTitle').value.trim();
+  const municipio = document.getElementById('fMunicipio').value.trim();
+  const basePrice = parseFloat(document.getElementById('fBasePrice').value);
+  if(!title || !municipio || isNaN(basePrice)){
+    alert('Completa al menos título, municipio y precio base.');
+    return;
+  }
+  const payload = {
+    provider_id: currentProvider.id,
+    category: document.getElementById('fCategory').value,
+    title,
+    municipio,
+    description: document.getElementById('fDescription').value.trim() || null,
+    cancellation_policy: document.getElementById('fCancellation').value.trim() || null,
+    base_price: basePrice,
+    weekend_price: parseFloat(document.getElementById('fWeekendPrice').value) || null,
+    max_capacity: parseInt(document.getElementById('fCapacity').value) || null,
+    status: 'published',
+    cover_image_url: currentListingPhotos[0]?.url || null
+  };
+  const { data: savedListing, error } = await sb.from('listings').insert(payload).select().single();
+  if(error){ alert('Error al guardar: ' + error.message); return; }
+  if(currentListingPhotos.length > 1){
+    const extraImages = currentListingPhotos.slice(1).map((p, i) => ({
+      listing_id: savedListing.id, url: p.url, position: i + 1
+    }));
+    await sb.from('listing_images').insert(extraImages);
+  }
+  await refreshListings();
+  alert('Listado guardado y publicado.');
+  showView('listings');
+  document.querySelectorAll('.nav-item')[1].classList.add('active');
+}
+
+document.querySelectorAll('.cal-day.open, .cal-day.closed').forEach(d=>{
+  d.addEventListener('click', ()=>{
+    d.classList.toggle('open'); d.classList.toggle('closed');
+  });
+});
+document.querySelectorAll('.toggle').forEach(t=>t.addEventListener('click',()=>t.classList.toggle('on')));
+
+sb.auth.onAuthStateChange((event, session) => {
+  if(event === 'SIGNED_IN' && session && !currentProvider && !authFlowInProgress){
+    loadProviderContext(session.user.id).then(()=>{
+      document.getElementById('login').style.display='none';
+      document.getElementById('app').style.display='block';
+    });
+  }
+});
+</script>
+
+
+</body></html>
