@@ -248,8 +248,7 @@ tr:hover td{background:#FBFCFE}
     <div class="header-top">
       <div class="sync-status"><span class="sync-dot"></span> <span id="syncStatusText">Conectando con el repositorio central…</span></div>
       <div class="header-right">
-        <div class="icon-btn">🔔</div>
-        <div class="icon-btn">↩</div>
+        <div class="icon-btn" title="Cerrar sesión" style="cursor:pointer" onclick="logout()">↩</div>
       </div>
     </div>
 
@@ -258,7 +257,7 @@ tr:hover td{background:#FBFCFE}
     <div class="view" id="v-dashboard">
       <div class="topbar">
         <div><div class="breadcrumb">PANEL GENERAL</div><h1 class="page-title" id="greetName">Hola, Posada El Páramo</h1><div class="page-sub">Resumen de tu actividad y estado de cuenta</div></div>
-        <button class="btn btn-blue" onclick="showView('editor')">+ Nuevo listado</button>
+        <button class="btn btn-blue" onclick="openNewListing()">+ Nuevo listado</button>
       </div>
 
       <div class="trust-strip">
@@ -294,7 +293,7 @@ tr:hover td{background:#FBFCFE}
     <div class="view" id="v-listings" style="display:none">
       <div class="topbar">
         <div><div class="breadcrumb">MIS LISTADOS</div><h1 class="page-title">Gestión de listados</h1><div class="page-sub">Los cambios se sincronizan automáticamente con el sitio público</div></div>
-        <button class="btn btn-blue" onclick="showView('editor')">+ Nuevo listado</button>
+        <button class="btn btn-blue" onclick="openNewListing()">+ Nuevo listado</button>
       </div>
       <div class="grid grid-3" id="listingsGrid">
         <div class="new-listing-card" onclick="openNewListing()">
@@ -559,6 +558,18 @@ async function signUpProvider(){
   await refreshAll();
   document.getElementById('login').style.display='none';
   document.getElementById('app').style.display='block';
+}
+
+async function logout(){
+  await sb.auth.signOut();
+  currentProvider = null;
+  providerListings = [];
+  providerBookings = [];
+  editingListingId = null;
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginPassword').value = '';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login').style.display = 'flex';
 }
 
 function applyProviderIdentity(provider){
@@ -1315,6 +1326,38 @@ async function saveEdit(){
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.querySelectorAll('.nav-item')[1].classList.add('active');
 }
+
+// Un proveedor que se registra desde el Portal Cliente llega aquí con su sesión
+// en el fragmento de la URL (los dos portales viven en dominios distintos, así
+// que no comparten almacenamiento). La consumimos y la borramos de la barra.
+(async function adoptIncomingSession(){
+  if(!location.hash.startsWith('#tg=')) return;
+  const raw = location.hash.slice(4);
+  // Este script corre mientras el documento aún se parsea, y un replaceState
+  // de esa etapa lo pisa la navegación al confirmarse. Por eso se reintenta
+  // hasta que la barra de direcciones quede realmente sin el token.
+  const stripHash = () => {
+    if(location.hash) history.replaceState(null, '', location.pathname + location.search);
+  };
+  stripHash();
+  document.addEventListener('DOMContentLoaded', stripHash);
+  window.addEventListener('load', stripHash);
+  setTimeout(stripHash, 0);
+  try {
+    const tokens = JSON.parse(atob(decodeURIComponent(raw)));
+    authFlowInProgress = true;
+    const { data, error } = await sb.auth.setSession(tokens);
+    authFlowInProgress = false;
+    if(error || !data.session) return;
+    await loadProviderContext(data.session.user.id);
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    stripHash();
+  } catch(e){
+    authFlowInProgress = false;
+    console.error('No se pudo adoptar la sesión entrante:', e);
+  }
+})();
 
 sb.auth.onAuthStateChange((event, session) => {
   if(event === 'SIGNED_IN' && session && !currentProvider && !authFlowInProgress){
