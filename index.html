@@ -3,6 +3,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Portal de Proveedores — Táchira GOO!!!</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap');
 
@@ -136,20 +137,31 @@ tr:hover td{background:#FBFCFE}
 .gallery-item.cover::after{content:'Portada';position:absolute;top:6px;left:6px;background:var(--orange);color:#fff;font-size:9.5px;padding:2px 7px;border-radius:5px;font-weight:700}
 .upload-box{aspect-ratio:1;border:2px dashed var(--border);border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--blue);font-weight:700;font-size:22px}
 
-.map-box{height:220px;background:repeating-linear-gradient(45deg,#EDF1F7,#EDF1F7 10px,#E4E9F1 10px,#E4E9F1 20px);border-radius:9px;display:flex;align-items:center;justify-content:center;position:relative;border:1px solid var(--border)}
+.map-box{height:300px;border-radius:9px;border:1px solid var(--border);overflow:hidden}
 .pin{width:26px;height:26px;background:var(--orange);border-radius:50% 50% 50% 0;transform:rotate(-45deg);position:absolute;box-shadow:0 2px 6px rgba(255,107,0,.5)}
 
-.itin-step{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--border-soft)}
+.itin-step{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--border-soft);align-items:center}
 .itin-step:last-child{border-bottom:none}
-.itin-time{width:72px;font-weight:700;color:var(--blue);font-size:13px}
-.itin-content{flex:1;font-size:13.5px}
-.itin-remove{color:var(--red);font-size:11.5px;font-weight:700}
+.itin-time{width:96px;flex-shrink:0}
+.itin-time input,.itin-content input{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13.5px;font-family:inherit}
+.itin-time input{font-weight:700;color:var(--blue)}
+.itin-content{flex:1}
+.itin-remove{color:var(--red);font-size:11.5px;font-weight:700;cursor:pointer;background:none;border:none;padding:6px}
 
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
 .cal-day{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:#fff}
 .cal-day.open{background:var(--green-bg);color:var(--green);border-color:#BEE8D6}
 .cal-day.closed{background:var(--red-bg);color:var(--red);border-color:#F3C1C7}
-.cal-day.muted{color:#CBD2DE;background:#FAFBFC;cursor:default}
+.cal-day.muted{color:#CBD2DE;background:#FAFBFC;cursor:default;border-color:var(--border-soft)}
+.cal-day.past{color:#CBD2DE;background:#FAFBFC;cursor:not-allowed;border-color:var(--border-soft)}
+.cal-day.empty{border:none;background:none;cursor:default}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal-nav{background:#fff;border:1.5px solid var(--border);border-radius:8px;width:32px;height:32px;font-size:15px;font-weight:700;color:var(--blue);cursor:pointer}
+.cal-nav:hover{background:var(--blue-light)}
+
+.locked-panel{text-align:center;padding:52px 32px}
+.locked-icon{font-size:38px;margin-bottom:14px}
+.empty-state{text-align:center;color:var(--gray);font-size:13px;padding:28px 16px}
 
 .toggle{width:40px;height:23px;background:var(--border);border-radius:20px;position:relative;cursor:pointer;flex-shrink:0}
 .toggle.on{background:var(--green)}
@@ -234,7 +246,7 @@ tr:hover td{background:#FBFCFE}
 
   <div class="main">
     <div class="header-top">
-      <div class="sync-status"><span class="sync-dot"></span> Sincronizado con el repositorio central · hace 12 segundos</div>
+      <div class="sync-status"><span class="sync-dot"></span> <span id="syncStatusText">Conectando con el repositorio central…</span></div>
       <div class="header-right">
         <div class="icon-btn">🔔</div>
         <div class="icon-btn">↩</div>
@@ -251,33 +263,29 @@ tr:hover td{background:#FBFCFE}
 
       <div class="trust-strip">
         <div class="trust-item">🔒 Datos protegidos con cifrado en tránsito</div>
-        <div class="trust-item">🧾 ID de proveedor: <span class="tx-id" style="color:var(--blue-dark)">PRV-TCH-00412</span></div>
-        <div class="trust-item">✓ Cuenta verificada</div>
+        <div class="trust-item">🧾 ID de proveedor: <span class="tx-id" style="color:var(--blue-dark)" id="trustProviderId">—</span></div>
+        <div class="trust-item" id="trustVerification">Verificación pendiente</div>
       </div>
 
       <div class="grid grid-4" style="margin-bottom:24px">
-        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--blue)"></div><div class="kpi-label">Reservas hoy</div><div class="kpi-value num">3</div><div class="kpi-trend up">↑ 2 nuevas desde ayer</div></div>
-        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--orange)"></div><div class="kpi-label">Saldo por liberar</div><div class="kpi-value num">$610</div><div class="kpi-trend warn">Próximo pago: 15 jul</div></div>
-        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--green)"></div><div class="kpi-label">Calificación</div><div class="kpi-value num">4.8 ★</div><div class="kpi-trend up">32 reseñas verificadas</div></div>
-        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--gray-light)"></div><div class="kpi-label">Listados activos</div><div class="kpi-value num" id="kpiListingsCount">–</div><div class="kpi-trend" style="color:var(--gray)" id="kpiListingsSub"></div></div>
+        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--blue)"></div><div class="kpi-label">Reservas hoy</div><div class="kpi-value num" id="kpiToday">0</div><div class="kpi-trend" style="color:var(--gray)" id="kpiTodaySub">Sin reservas para hoy</div></div>
+        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--orange)"></div><div class="kpi-label">Saldo por liberar</div><div class="kpi-value num" id="kpiBalance">$0</div><div class="kpi-trend" style="color:var(--gray)" id="kpiBalanceSub">Sin reservas confirmadas</div></div>
+        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--green)"></div><div class="kpi-label">Calificación</div><div class="kpi-value num" id="kpiRating">—</div><div class="kpi-trend" style="color:var(--gray)" id="kpiRatingSub">Sin reseñas aún</div></div>
+        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--gray-light)"></div><div class="kpi-label">Listados activos</div><div class="kpi-value num" id="kpiListingsCount">0</div><div class="kpi-trend" style="color:var(--gray)" id="kpiListingsSub"></div></div>
       </div>
 
       <div class="grid grid-2">
         <div class="card">
           <div class="section-title">Reservas recientes <span class="section-hint">Actualizado en tiempo real</span></div>
           <table>
-            <tbody><tr><th>Ref.</th><th>Cliente</th><th>Listado</th><th>Fecha</th><th>Monto</th><th>Estado</th></tr>
-            <tr><td class="tx-id">RSV-8821</td><td>María G.</td><td>Cabaña Doble</td><td>08 jul</td><td class="num">$85</td><td><span class="badge badge-orange">Pendiente</span></td></tr>
-            <tr><td class="tx-id">RSV-8819</td><td>Carlos R.</td><td>Cabaña Familiar</td><td>10 jul</td><td class="num">$140</td><td><span class="badge badge-green">Confirmada</span></td></tr>
-            <tr><td class="tx-id">RSV-8804</td><td>Andrea T.</td><td>Cabaña Doble</td><td>05 jul</td><td class="num">$85</td><td><span class="badge badge-gray">Completada</span></td></tr>
+            <tbody id="recentBookingsBody"><tr><th>Ref.</th><th>Cliente</th><th>Listado</th><th>Fecha</th><th>Monto</th><th>Estado</th></tr>
+            <tr><td colspan="6" class="empty-state">Todavía no tienes reservas.</td></tr>
           </tbody></table>
         </div>
         <div class="card">
           <div class="section-title">Alertas</div>
-          <div style="font-size:13px;line-height:2.1">
-            🟠 1 listado en borrador sin publicar<br>
-            🔵 Ciclo de pago se liquida en 6 días<br>
-            🟢 Nueva reseña de 5★ de Carlos R.
+          <div style="font-size:13px;line-height:2.1" id="alertsBody">
+            <span style="color:var(--gray)">Sin alertas por ahora.</span>
           </div>
         </div>
       </div>
@@ -298,8 +306,8 @@ tr:hover td{background:#FBFCFE}
 
     <div class="view" id="v-editor" style="display:none">
       <div class="topbar">
-        <div><div class="breadcrumb">EDITOR DE LISTADO</div><h1 class="page-title">Cabaña Doble — Posada El Páramo</h1><div class="page-sub">Los cambios se publican en el repositorio central al guardar</div></div>
-        <div style="display:flex;gap:10px"><button class="btn btn-outline" onclick="showView('listings')">Cancelar</button><button class="btn btn-blue" onclick="saveEdit()">Guardar cambios</button></div>
+        <div><div class="breadcrumb" id="editorCrumb">NUEVO LISTADO</div><h1 class="page-title" id="editorTitle">Crear nuevo listado</h1><div class="page-sub">Los cambios se publican en el repositorio central al guardar</div></div>
+        <div style="display:flex;gap:10px"><button class="btn btn-outline" onclick="showView('listings')">Cancelar</button><button class="btn btn-blue" id="saveEditBtn" onclick="saveEdit()">Guardar cambios</button></div>
       </div>
       <div class="tabs">
         <div class="tab active" onclick="showTab('info',this)">Información</div>
@@ -322,7 +330,13 @@ tr:hover td{background:#FBFCFE}
           </div>
           <div class="field"><label>Municipio</label><input type="text" id="fMunicipio" placeholder="Ej. San Cristóbal"></div>
           <div class="field"><label>Descripción</label><input type="text" id="fDescription" placeholder="Descripción del listado"></div>
-          <div class="field"><label>Política de cancelación</label><input type="text" id="fCancellation" placeholder="Ej. Reembolso 100% hasta 48h antes"></div>
+          <div class="field"><label>Condiciones de reembolso</label>
+            <select id="fCancellation" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;font-family:inherit">
+              <option value="full">100% reembolsable (hasta 48h antes)</option>
+              <option value="partial">Reembolsable parcialmente (50% hasta 48h antes)</option>
+              <option value="no_refund">Sin reembolso</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -338,19 +352,19 @@ tr:hover td{background:#FBFCFE}
 
       <div class="tabcontent" id="t-ubicacion" style="display:none">
         <div class="card">
-          <div class="section-title">Ubicación en el mapa</div>
-          <div class="map-box"><div class="pin" style="top:45%;left:48%"></div></div>
-          <div class="field" style="margin-top:16px"><label>Dirección</label><input type="text" value="Vía Páramo, El Cobre, San Cristóbal, Táchira"></div>
+          <div class="section-title">Punto de encuentro / ubicación de la actividad</div>
+          <div style="font-size:12.5px;color:var(--gray);margin-bottom:12px">Haz clic en el mapa para colocar el pin donde recoges a los clientes o donde se desarrolla la actividad. Esta ubicación se le muestra al viajero al reservar.</div>
+          <div class="map-box" id="mapBox"></div>
+          <div class="field" style="margin-top:16px"><label>Dirección o referencia</label><input type="text" id="fAddress" placeholder="Ej. Plaza Bolívar, frente a la catedral, San Cristóbal"></div>
+          <div style="font-size:12px;color:var(--gray)" id="pinCoords">Sin pin colocado todavía.</div>
         </div>
       </div>
 
       <div class="tabcontent" id="t-itinerario" style="display:none">
         <div class="card">
           <div class="section-title">Itinerario / experiencia</div>
-          <div class="itin-step"><div class="itin-time">3:00 PM</div><div class="itin-content">Check-in y bienvenida con café de la zona</div><div class="itin-remove">Quitar</div></div>
-          <div class="itin-step"><div class="itin-time">6:00 PM</div><div class="itin-content">Cena opcional con productos locales</div><div class="itin-remove">Quitar</div></div>
-          <div class="itin-step"><div class="itin-time">11:00 AM</div><div class="itin-content">Check-out</div><div class="itin-remove">Quitar</div></div>
-          <button class="btn btn-ghost" style="margin-top:6px">+ Agregar paso</button>
+          <div id="itineraryList"></div>
+          <button class="btn btn-ghost" style="margin-top:6px" onclick="addItineraryStep()">+ Agregar paso</button>
         </div>
       </div>
 
@@ -365,16 +379,16 @@ tr:hover td{background:#FBFCFE}
 
       <div class="tabcontent" id="t-disponibilidad" style="display:none">
         <div class="card">
-          <div class="section-title">Julio 2026</div>
-          <div class="cal-grid">
-            <div class="cal-day muted">L</div><div class="cal-day muted">M</div><div class="cal-day muted">M</div><div class="cal-day muted">J</div><div class="cal-day muted">V</div><div class="cal-day muted">S</div><div class="cal-day muted">D</div>
-            <div class="cal-day open">1</div><div class="cal-day open">2</div><div class="cal-day open">3</div><div class="cal-day closed">4</div><div class="cal-day open">5</div><div class="cal-day open">6</div><div class="cal-day open">7</div>
-            <div class="cal-day open">8</div><div class="cal-day open">9</div><div class="cal-day open">10</div><div class="cal-day open">11</div><div class="cal-day closed">12</div><div class="cal-day open">13</div><div class="cal-day open">14</div>
+          <div class="cal-head">
+            <button class="cal-nav" onclick="shiftCalendar(-1)" title="Mes anterior">‹</button>
+            <div class="section-title" style="margin:0" id="calTitle">—</div>
+            <button class="cal-nav" onclick="shiftCalendar(1)" title="Mes siguiente">›</button>
           </div>
+          <div class="cal-grid" id="calGrid"></div>
           <div style="display:flex;gap:16px;margin-top:14px;font-size:12px">
             <div>🟢 Disponible</div><div>🔴 Bloqueado</div>
           </div>
-          <div style="font-size:12px;color:var(--gray);margin-top:8px">Haz clic en un día para abrir/cerrar disponibilidad</div>
+          <div style="font-size:12px;color:var(--gray);margin-top:8px">Haz clic en un día para abrirlo o cerrarlo. Los días que no marques quedan como no disponibles.</div>
         </div>
       </div>
     </div>
@@ -392,51 +406,51 @@ tr:hover td{background:#FBFCFE}
     <div class="view" id="v-billing" style="display:none">
       <div class="topbar"><div><div class="breadcrumb">FACTURACIÓN</div><h1 class="page-title">Facturación</h1><div class="page-sub">Ciclo de pago: quincenal</div></div></div>
       <div class="grid grid-3" style="margin-bottom:24px">
-        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--orange)"></div><div class="kpi-label">Pendiente por liberar</div><div class="kpi-value num">$610</div></div>
-        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--green)"></div><div class="kpi-label">Liberado este mes</div><div class="kpi-value num">$1,240</div></div>
-        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--blue)"></div><div class="kpi-label">Próximo pago</div><div class="kpi-value num" style="font-size:24px">15 jul</div></div>
+        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--orange)"></div><div class="kpi-label">Pendiente por liberar</div><div class="kpi-value num" id="billPending">$0</div></div>
+        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--green)"></div><div class="kpi-label">Liquidado hasta hoy</div><div class="kpi-value num" id="billPaid">$0</div></div>
+        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--blue)"></div><div class="kpi-label">Reservas confirmadas</div><div class="kpi-value num" id="billBookings">0</div></div>
       </div>
       <div class="card" style="margin-bottom:20px">
         <div class="section-title">Método de cobro</div>
-        <div class="disp-row"><div>Binance / USDT (TRC20) <span class="tx-id" style="margin-left:8px">TXn...9F3A</span></div><span class="badge badge-green">Verificado</span></div>
+        <div class="disp-row" id="payoutMethodRow"><div style="color:var(--gray);font-size:13px">Todavía no has registrado un método de cobro.</div><span class="badge badge-gray">Sin configurar</span></div>
       </div>
       <div class="card">
         <div class="section-title">Historial de liquidaciones</div>
         <table>
-          <tbody><tr><th>Período</th><th>Reservas</th><th>Monto liquidado</th><th>Ref. de pago</th><th>Estado</th></tr>
-          <tr><td>16–30 jun 2026</td><td>8</td><td class="num">$680</td><td class="tx-id">PAY-3391</td><td><span class="badge badge-green">Pagado</span></td></tr>
-          <tr><td>01–15 jun 2026</td><td>6</td><td class="num">$510</td><td class="tx-id">PAY-3287</td><td><span class="badge badge-green">Pagado</span></td></tr>
-          <tr><td>16–31 may 2026</td><td>9</td><td class="num">$720</td><td class="tx-id">PAY-3159</td><td><span class="badge badge-green">Pagado</span></td></tr>
+          <tbody id="payoutsBody"><tr><th>Período</th><th>Reservas</th><th>Monto liquidado</th><th>Ref. de pago</th><th>Estado</th></tr>
+          <tr><td colspan="5" class="empty-state">Aún no hay liquidaciones. La primera se genera al cerrar tu primer ciclo de pago.</td></tr>
         </tbody></table>
       </div>
     </div>
 
     <div class="view" id="v-microsite" style="display:none">
-      <div class="topbar"><div><div class="breadcrumb">MI MICROSITE</div><h1 class="page-title">Mi microsite</h1><div class="page-sub">Tu página pública de marca</div></div><button class="btn btn-blue">Publicar cambios</button></div>
-      <div class="grid grid-2">
-        <div class="card">
-          <div class="field"><label>Título de portada</label><input type="text" value="Posada El Páramo"></div>
-          <div class="field"><label>Frase destacada</label><input type="text" value="Tu refugio en las montañas de Táchira"></div>
-          <div class="field"><label>Sobre nosotros</label><input type="text" value="Familia local ofreciendo hospedaje auténtico desde 2015."></div>
-          <div class="field"><label>WhatsApp de contacto</label><input type="text" value="+58 424-000-0000"></div>
-          <div style="margin-top:8px"><label style="font-size:13px;font-weight:600">Tours destacados</label>
-            <div style="display:flex;gap:10px;margin-top:10px;align-items:center">
-              <div class="toggle on"><div class="toggle-dot"></div></div><span style="font-size:13px">Cabaña Doble</span>
-            </div>
-            <div style="display:flex;gap:10px;margin-top:10px;align-items:center">
-              <div class="toggle on"><div class="toggle-dot"></div></div><span style="font-size:13px">Cabaña Familiar</span>
-            </div>
+      <div class="topbar"><div><div class="breadcrumb">MI MICROSITE</div><h1 class="page-title">Mi microsite</h1><div class="page-sub">Tu página pública de marca</div></div><button class="btn btn-blue" id="micrositeSaveBtn" onclick="saveMicrosite()" style="display:none">Publicar cambios</button></div>
+
+      <div class="card" id="micrositeLocked">
+        <div class="locked-panel">
+          <div class="locked-icon">🔒</div>
+          <div style="font-weight:800;font-size:17px;margin-bottom:8px">Micrositio bloqueado</div>
+          <div style="font-size:13.5px;color:var(--gray);max-width:460px;margin:0 auto;line-height:1.8">
+            Tu página pública de marca se habilita únicamente con autorización previa del administrador de Táchira GOO!!!
+            Mientras tanto puedes cargar y publicar tus listados con normalidad — ya son visibles para los viajeros.
           </div>
+          <div style="margin-top:20px"><span class="badge badge-orange" id="micrositeStatusBadge">Verificación pendiente</span></div>
+        </div>
+      </div>
+
+      <div class="grid grid-2" id="micrositeEditor" style="display:none">
+        <div class="card">
+          <div class="field"><label>Título de portada</label><input type="text" id="mTitle" oninput="renderMicrositePreview()"></div>
+          <div class="field"><label>Frase destacada</label><input type="text" id="mTagline" oninput="renderMicrositePreview()"></div>
+          <div class="field"><label>Sobre nosotros</label><input type="text" id="mAbout" oninput="renderMicrositePreview()"></div>
+          <div class="field"><label>WhatsApp de contacto</label><input type="text" id="mWhatsapp" oninput="renderMicrositePreview()"></div>
+          <div id="micrositeMsg" style="display:none;font-size:12.5px;margin-top:6px"></div>
         </div>
         <div>
           <div class="section-title">Vista previa en vivo</div>
           <div class="preview-frame">
-            <div class="preview-hero">Posada El Páramo</div>
-            <div class="preview-body">
-              Tu refugio en las montañas de Táchira<br><br>
-              Familia local ofreciendo hospedaje auténtico desde 2015.<br><br>
-              📞 +58 424-000-0000
-            </div>
+            <div class="preview-hero" id="pvHero">Mi negocio</div>
+            <div class="preview-body" id="pvBody"></div>
           </div>
         </div>
       </div>
@@ -446,18 +460,19 @@ tr:hover td{background:#FBFCFE}
       <div class="topbar"><div><div class="breadcrumb">CUENTA Y SEGURIDAD</div><h1 class="page-title">Cuenta</h1><div class="page-sub">Datos, verificación y control de acceso</div></div></div>
       <div class="grid grid-2">
         <div class="card">
-          <div class="field"><label>Nombre del negocio</label><input type="text" value="Posada El Páramo"></div>
-          <div class="field"><label>RIF / Cédula</label><input type="text" value="J-40123456-7"></div>
-          <div class="field"><label>Municipio</label><input type="text" value="San Cristóbal"></div>
-          <div class="field"><label>Correo</label><input type="text" value="posada.elparamo@gmail.com"></div>
+          <div class="field"><label>Nombre del negocio</label><input type="text" id="aBusinessName"></div>
+          <div class="field"><label>RIF / Cédula</label><input type="text" id="aRif" placeholder="Ej. J-40123456-7"></div>
+          <div class="field"><label>Municipio</label><input type="text" id="aMunicipio"></div>
+          <div class="field"><label>Correo</label><input type="text" id="aEmail" disabled style="background:var(--bg);color:var(--gray)"></div>
+          <div id="accountMsg" style="display:none;font-size:12.5px;margin:8px 0"></div>
+          <button class="btn btn-blue" onclick="saveAccount()">Guardar cambios</button>
           <div class="info-note">🔒 Tu información fiscal está cifrada y solo es visible para ti y el equipo de verificación de Táchira GOO!!!</div>
         </div>
         <div class="card">
           <div class="section-title">Estado de verificación</div>
-          <div class="disp-row"><div>Documento de identidad</div><span class="badge badge-green">Aprobado</span></div>
-          <div class="disp-row"><div>Comprobante de negocio</div><span class="badge badge-green">Aprobado</span></div>
-          <div class="disp-row"><div>Wallet de cobro (Binance)</div><span class="badge badge-orange">En revisión</span></div>
-          <div class="disp-row"><div>Último acceso</div><span class="tx-id">10 jul 2026, 14:32</span></div>
+          <div class="disp-row"><div>Estado de la cuenta</div><span class="badge badge-orange" id="accVerifBadge">Pendiente</span></div>
+          <div class="disp-row"><div>Micrositio público</div><span class="badge badge-gray" id="accMicrositeBadge">Bloqueado</span></div>
+          <div class="disp-row"><div>Miembro desde</div><span class="tx-id" id="accCreatedAt">—</span></div>
         </div>
       </div>
     </div>
@@ -468,6 +483,7 @@ tr:hover td{background:#FBFCFE}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const SUPABASE_URL = 'https://vkgxvckooykxfulclodj.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_LVIRh3oSFP7gGSkQuCnBdg_eZ2SAB8g';
@@ -539,12 +555,23 @@ async function signUpProvider(){
     return;
   }
   currentProvider = newProvider;
-  document.getElementById('providerNameChip').textContent = newProvider.business_name;
-  document.getElementById('greetName').textContent = 'Hola, ' + newProvider.business_name;
-  document.getElementById('avatarInit').textContent = newProvider.business_name.slice(0,2).toUpperCase();
-  await refreshListings();
+  applyProviderIdentity(newProvider);
+  await refreshAll();
   document.getElementById('login').style.display='none';
   document.getElementById('app').style.display='block';
+}
+
+function applyProviderIdentity(provider){
+  const name = provider.business_name || 'Mi negocio';
+  document.getElementById('providerNameChip').textContent = name;
+  document.getElementById('greetName').textContent = 'Hola, ' + name;
+  document.getElementById('avatarInit').textContent = name.slice(0,2).toUpperCase();
+  const tag = document.querySelector('.verified-tag');
+  if(tag){
+    const approved = provider.verification_status === 'approved';
+    tag.textContent = approved ? '✓ Verificado' : 'Verificación pendiente';
+    tag.style.color = approved ? '' : 'var(--gray)';
+  }
 }
 
 async function enterApp(){
@@ -584,10 +611,49 @@ async function loadProviderContext(userId){
     provider = newProvider;
   }
   currentProvider = provider;
-  document.getElementById('providerNameChip').textContent = provider.business_name;
-  document.getElementById('greetName').textContent = 'Hola, ' + provider.business_name;
-  document.getElementById('avatarInit').textContent = provider.business_name.slice(0,2).toUpperCase();
+  applyProviderIdentity(provider);
+  await refreshAll();
+}
+
+// ============================================================
+// Estado del editor de listado
+// ============================================================
+let editingListingId = null;
+let currentListingPhotos = [];   // [{url, path}]
+let currentItinerary = [];       // [{step_time, description}]
+let availabilityOpen = new Set();// claves 'YYYY-MM-DD' marcadas como disponibles
+let calCursor = new Date();      // mes visible en el calendario
+let pinLat = null, pinLng = null;
+let leafletMap = null, leafletMarker = null;
+
+const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const CANCELLATION_LABEL = { full: '100% reembolsable', partial: 'Reembolsable parcialmente', no_refund: 'Sin reembolso' };
+const BOOKING_STATUS_LABEL = { pending: 'Pendiente', confirmed: 'Confirmada', completed: 'Completada', cancelled: 'Cancelada', disputed: 'En disputa' };
+const BOOKING_STATUS_BADGE = { pending: 'badge-orange', confirmed: 'badge-green', completed: 'badge-gray', cancelled: 'badge-red', disputed: 'badge-red' };
+
+function esc(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function dateKey(d){
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function money(n){
+  return '$' + Number(n || 0).toLocaleString('en-US', { maximumFractionDigits: 0 });
+}
+
+// ============================================================
+// Carga general del proveedor
+// ============================================================
+async function refreshAll(){
   await refreshListings();
+  await refreshBookings();
+  await refreshDashboard();
+  await refreshBilling();
+  await refreshAccount();
+  refreshMicrosite();
+  const now = new Date();
+  document.getElementById('syncStatusText').textContent =
+    'Sincronizado con el repositorio central · ' + now.toLocaleTimeString('es-VE', { hour:'2-digit', minute:'2-digit' });
 }
 
 async function refreshListings(){
@@ -595,56 +661,289 @@ async function refreshListings(){
   const { data: listings, error } = await sb.from('listings')
     .select('*').eq('provider_id', currentProvider.id).order('created_at', { ascending: false });
   if(error){ console.error(error); return; }
-  renderListings(listings || []);
-  document.getElementById('kpiListingsCount').textContent = listings.length;
-  const drafts = listings.filter(l => l.status === 'draft').length;
-  document.getElementById('kpiListingsSub').textContent = drafts + ' en borrador';
-  await refreshBookings();
+  providerListings = listings || [];
+  renderListings(providerListings);
+  const published = providerListings.filter(l => l.status === 'published').length;
+  const drafts = providerListings.filter(l => l.status === 'draft').length;
+  document.getElementById('kpiListingsCount').textContent = published;
+  document.getElementById('kpiListingsSub').textContent =
+    drafts > 0 ? drafts + ' en borrador' : (published === 0 ? 'Aún no has publicado nada' : 'Todos publicados');
 }
 
-const BOOKING_STATUS_LABEL = { pending: 'Pendiente', confirmed: 'Confirmada', completed: 'Completada', cancelled: 'Cancelada' };
-const BOOKING_STATUS_BADGE = { pending: 'badge-orange', confirmed: 'badge-green', completed: 'badge-gray', cancelled: 'badge-red' };
+let providerListings = [];
+let providerBookings = [];
 
 async function refreshBookings(){
   if(!currentProvider) return;
   const tbody = document.getElementById('bookingsTableBody');
+  const header = '<tr><th>Ref.</th><th>Cliente</th><th>Listado</th><th>Fecha</th><th>Monto</th><th>Estado</th><th></th></tr>';
   const { data: bookings, error } = await sb.from('bookings')
     .select('*, listings(title), profiles(full_name)')
     .eq('provider_id', currentProvider.id)
     .order('created_at', { ascending: false });
-  if(error){ console.error(error); return; }
-  if(!bookings || bookings.length === 0){
-    tbody.innerHTML = '<tr><th>Ref.</th><th>Cliente</th><th>Listado</th><th>Fecha</th><th>Monto</th><th>Estado</th><th></th></tr><tr><td colspan="7" style="text-align:center;color:var(--gray);padding:24px">Todavía no tienes solicitudes de reserva.</td></tr>';
+  if(error){
+    console.error(error);
+    tbody.innerHTML = header + '<tr><td colspan="7" class="empty-state">No se pudieron cargar las reservas.</td></tr>';
     return;
   }
-  const rows = bookings.map(b => `
+  providerBookings = bookings || [];
+  if(providerBookings.length === 0){
+    tbody.innerHTML = header + '<tr><td colspan="7" class="empty-state">Todavía no tienes solicitudes de reserva.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = header + providerBookings.map(b => `
     <tr>
-      <td class="tx-id">${b.ref}</td>
-      <td>${b.profiles?.full_name || 'Viajero'}</td>
-      <td>${b.listings?.title || ''}</td>
-      <td>${b.booking_date}</td>
-      <td class="num">$${b.amount}</td>
-      <td><span class="badge ${BOOKING_STATUS_BADGE[b.status] || 'badge-gray'}">${BOOKING_STATUS_LABEL[b.status] || b.status}</span></td>
+      <td class="tx-id">${esc(b.ref)}</td>
+      <td>${esc(b.profiles?.full_name || 'Viajero')}</td>
+      <td>${esc(b.listings?.title || '')}</td>
+      <td>${esc(b.booking_date)}</td>
+      <td class="num">${money(b.amount)}</td>
+      <td><span class="badge ${BOOKING_STATUS_BADGE[b.status] || 'badge-gray'}">${esc(BOOKING_STATUS_LABEL[b.status] || b.status)}</span></td>
       <td>${b.status === 'pending' ? `<button class="btn btn-blue btn-sm" onclick="confirmBooking('${b.id}')">Confirmar</button>` : ''}</td>
     </tr>`).join('');
-  tbody.innerHTML = '<tr><th>Ref.</th><th>Cliente</th><th>Listado</th><th>Fecha</th><th>Monto</th><th>Estado</th><th></th></tr>' + rows;
 }
 
 async function confirmBooking(id){
   const { error } = await sb.from('bookings').update({ status: 'confirmed' }).eq('id', id);
   if(error){ alert('Error al confirmar: ' + error.message); return; }
   await refreshBookings();
+  await refreshDashboard();
+  await refreshBilling();
 }
 
+// ============================================================
+// Panel general — todo derivado de datos reales
+// ============================================================
+async function refreshDashboard(){
+  if(!currentProvider) return;
+  const today = dateKey(new Date());
+
+  const todayCount = providerBookings.filter(b => b.booking_date === today && b.status !== 'cancelled').length;
+  document.getElementById('kpiToday').textContent = todayCount;
+  document.getElementById('kpiTodaySub').textContent =
+    todayCount === 0 ? 'Sin reservas para hoy' : (todayCount === 1 ? '1 reserva agendada hoy' : todayCount + ' reservas agendadas hoy');
+
+  const balance = providerBookings
+    .filter(b => b.status === 'confirmed')
+    .reduce((sum, b) => sum + Number(b.amount || 0), 0);
+  document.getElementById('kpiBalance').textContent = money(balance);
+  document.getElementById('kpiBalanceSub').textContent =
+    balance === 0 ? 'Sin reservas confirmadas' : 'De reservas confirmadas por completar';
+
+  // Calificación real
+  const ratingEl = document.getElementById('kpiRating');
+  const ratingSubEl = document.getElementById('kpiRatingSub');
+  const listingIds = providerListings.map(l => l.id);
+  if(listingIds.length > 0){
+    const { data: reviews } = await sb.from('reviews').select('rating').in('listing_id', listingIds);
+    if(reviews && reviews.length > 0){
+      const avg = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length;
+      ratingEl.textContent = avg.toFixed(1) + ' ★';
+      ratingSubEl.textContent = reviews.length + (reviews.length === 1 ? ' reseña verificada' : ' reseñas verificadas');
+    } else {
+      ratingEl.textContent = '—';
+      ratingSubEl.textContent = 'Sin reseñas aún';
+    }
+  } else {
+    ratingEl.textContent = '—';
+    ratingSubEl.textContent = 'Sin reseñas aún';
+  }
+
+  // Franja de confianza
+  document.getElementById('trustProviderId').textContent = 'PRV-' + currentProvider.id.slice(0, 8).toUpperCase();
+  const verifEl = document.getElementById('trustVerification');
+  verifEl.textContent = currentProvider.verification_status === 'approved'
+    ? '✓ Cuenta verificada'
+    : (currentProvider.verification_status === 'rejected' ? '✕ Verificación rechazada' : '⏳ Verificación pendiente');
+
+  // Reservas recientes
+  const recentBody = document.getElementById('recentBookingsBody');
+  const recentHeader = '<tr><th>Ref.</th><th>Cliente</th><th>Listado</th><th>Fecha</th><th>Monto</th><th>Estado</th></tr>';
+  const recent = providerBookings.slice(0, 3);
+  recentBody.innerHTML = recentHeader + (recent.length === 0
+    ? '<tr><td colspan="6" class="empty-state">Todavía no tienes reservas.</td></tr>'
+    : recent.map(b => `
+      <tr>
+        <td class="tx-id">${esc(b.ref)}</td>
+        <td>${esc(b.profiles?.full_name || 'Viajero')}</td>
+        <td>${esc(b.listings?.title || '')}</td>
+        <td>${esc(b.booking_date)}</td>
+        <td class="num">${money(b.amount)}</td>
+        <td><span class="badge ${BOOKING_STATUS_BADGE[b.status] || 'badge-gray'}">${esc(BOOKING_STATUS_LABEL[b.status] || b.status)}</span></td>
+      </tr>`).join(''));
+
+  // Alertas derivadas
+  const alerts = [];
+  const drafts = providerListings.filter(l => l.status === 'draft').length;
+  if(drafts > 0) alerts.push('🟠 ' + drafts + (drafts === 1 ? ' listado en borrador sin publicar' : ' listados en borrador sin publicar'));
+  const pending = providerBookings.filter(b => b.status === 'pending').length;
+  if(pending > 0) alerts.push('🔵 ' + pending + (pending === 1 ? ' reserva esperando tu confirmación' : ' reservas esperando tu confirmación'));
+  if(providerListings.length === 0) alerts.push('🟠 Aún no has creado tu primer listado');
+  if(currentProvider.verification_status !== 'approved') alerts.push('⏳ Tu micrositio se habilita cuando el administrador verifique tu cuenta');
+  document.getElementById('alertsBody').innerHTML = alerts.length
+    ? alerts.map(esc).join('<br>')
+    : '<span style="color:var(--gray)">Sin alertas por ahora.</span>';
+}
+
+async function refreshBilling(){
+  if(!currentProvider) return;
+  const confirmed = providerBookings.filter(b => b.status === 'confirmed');
+  document.getElementById('billPending').textContent = money(confirmed.reduce((s, b) => s + Number(b.amount || 0), 0));
+  document.getElementById('billBookings').textContent = confirmed.length;
+
+  const { data: payouts } = await sb.from('payouts').select('*')
+    .eq('provider_id', currentProvider.id).order('period_end', { ascending: false });
+  const paid = (payouts || []).filter(p => p.status === 'paid');
+  document.getElementById('billPaid').textContent = money(paid.reduce((s, p) => s + Number(p.amount || 0), 0));
+
+  const body = document.getElementById('payoutsBody');
+  const header = '<tr><th>Período</th><th>Reservas</th><th>Monto liquidado</th><th>Ref. de pago</th><th>Estado</th></tr>';
+  const PAYOUT_LABEL = { pending: 'Pendiente', paid: 'Pagado', failed: 'Fallido' };
+  const PAYOUT_BADGE = { pending: 'badge-orange', paid: 'badge-green', failed: 'badge-red' };
+  body.innerHTML = header + (!payouts || payouts.length === 0
+    ? '<tr><td colspan="5" class="empty-state">Aún no hay liquidaciones. La primera se genera al cerrar tu primer ciclo de pago.</td></tr>'
+    : payouts.map(p => `
+      <tr>
+        <td>${esc(p.period_start)} — ${esc(p.period_end)}</td>
+        <td>${p.bookings_count}</td>
+        <td class="num">${money(p.amount)}</td>
+        <td class="tx-id">${esc(p.payment_ref || '—')}</td>
+        <td><span class="badge ${PAYOUT_BADGE[p.status] || 'badge-gray'}">${esc(PAYOUT_LABEL[p.status] || p.status)}</span></td>
+      </tr>`).join(''));
+
+  const methodRow = document.getElementById('payoutMethodRow');
+  methodRow.innerHTML = currentProvider.payout_method
+    ? `<div>${esc(currentProvider.payout_method)} <span class="tx-id" style="margin-left:8px">${esc(currentProvider.payout_ref || '')}</span></div><span class="badge badge-green">Registrado</span>`
+    : '<div style="color:var(--gray);font-size:13px">Todavía no has registrado un método de cobro.</div><span class="badge badge-gray">Sin configurar</span>';
+}
+
+// ============================================================
+// Cuenta y seguridad
+// ============================================================
+async function refreshAccount(){
+  if(!currentProvider) return;
+  document.getElementById('aBusinessName').value = currentProvider.business_name || '';
+  document.getElementById('aRif').value = currentProvider.rif_cedula || '';
+  document.getElementById('aMunicipio').value = currentProvider.municipio || '';
+  const { data: userData } = await sb.auth.getUser();
+  document.getElementById('aEmail').value = userData?.user?.email || '';
+
+  const approved = currentProvider.verification_status === 'approved';
+  const vb = document.getElementById('accVerifBadge');
+  vb.textContent = approved ? 'Aprobado' : (currentProvider.verification_status === 'rejected' ? 'Rechazado' : 'Pendiente');
+  vb.className = 'badge ' + (approved ? 'badge-green' : (currentProvider.verification_status === 'rejected' ? 'badge-red' : 'badge-orange'));
+  const mb = document.getElementById('accMicrositeBadge');
+  mb.textContent = approved ? 'Habilitado' : 'Bloqueado';
+  mb.className = 'badge ' + (approved ? 'badge-green' : 'badge-gray');
+  document.getElementById('accCreatedAt').textContent = currentProvider.created_at
+    ? new Date(currentProvider.created_at).toLocaleDateString('es-VE', { day:'2-digit', month:'short', year:'numeric' })
+    : '—';
+}
+
+async function saveAccount(){
+  if(!currentProvider) return;
+  const msg = document.getElementById('accountMsg');
+  const businessName = document.getElementById('aBusinessName').value.trim();
+  const municipio = document.getElementById('aMunicipio').value.trim();
+  if(!businessName || !municipio){
+    msg.textContent = 'El nombre del negocio y el municipio son obligatorios.';
+    msg.style.color = 'var(--red)'; msg.style.display = 'block';
+    return;
+  }
+  const { data, error } = await sb.from('providers').update({
+    business_name: businessName,
+    municipio,
+    rif_cedula: document.getElementById('aRif').value.trim() || null
+  }).eq('id', currentProvider.id).select().single();
+  if(error){
+    msg.textContent = 'Error al guardar: ' + error.message;
+    msg.style.color = 'var(--red)'; msg.style.display = 'block';
+    return;
+  }
+  currentProvider = data;
+  applyProviderIdentity(data);
+  msg.textContent = 'Cambios guardados.';
+  msg.style.color = 'var(--green)'; msg.style.display = 'block';
+}
+
+// ============================================================
+// Micrositio — bloqueado hasta que el administrador apruebe
+// ============================================================
+function refreshMicrosite(){
+  if(!currentProvider) return;
+  const approved = currentProvider.verification_status === 'approved';
+  document.getElementById('micrositeLocked').style.display = approved ? 'none' : 'block';
+  document.getElementById('micrositeEditor').style.display = approved ? 'grid' : 'none';
+  document.getElementById('micrositeSaveBtn').style.display = approved ? 'inline-flex' : 'none';
+
+  const badge = document.getElementById('micrositeStatusBadge');
+  if(currentProvider.verification_status === 'rejected'){
+    badge.textContent = 'Verificación rechazada — contacta al administrador';
+    badge.className = 'badge badge-red';
+  } else if(currentProvider.verification_status === 'in_review'){
+    badge.textContent = 'En revisión por el administrador';
+    badge.className = 'badge badge-orange';
+  } else {
+    badge.textContent = 'Verificación pendiente';
+    badge.className = 'badge badge-orange';
+  }
+
+  if(approved){
+    document.getElementById('mTitle').value = currentProvider.cover_title || currentProvider.business_name || '';
+    document.getElementById('mTagline').value = currentProvider.cover_tagline || '';
+    document.getElementById('mAbout').value = currentProvider.about || '';
+    document.getElementById('mWhatsapp').value = currentProvider.whatsapp || '';
+    renderMicrositePreview();
+  }
+}
+
+function renderMicrositePreview(){
+  const title = document.getElementById('mTitle').value.trim();
+  const tagline = document.getElementById('mTagline').value.trim();
+  const about = document.getElementById('mAbout').value.trim();
+  const wa = document.getElementById('mWhatsapp').value.trim();
+  document.getElementById('pvHero').textContent = title || (currentProvider?.business_name || 'Mi negocio');
+  document.getElementById('pvBody').innerHTML = [
+    tagline ? esc(tagline) : '',
+    about ? esc(about) : '',
+    wa ? '📞 ' + esc(wa) : ''
+  ].filter(Boolean).join('<br><br>') || '<span style="color:var(--gray-light)">Completa los campos para ver tu vista previa.</span>';
+}
+
+async function saveMicrosite(){
+  if(!currentProvider) return;
+  const msg = document.getElementById('micrositeMsg');
+  const { data, error } = await sb.from('providers').update({
+    cover_title: document.getElementById('mTitle').value.trim() || null,
+    cover_tagline: document.getElementById('mTagline').value.trim() || null,
+    about: document.getElementById('mAbout').value.trim() || null,
+    whatsapp: document.getElementById('mWhatsapp').value.trim() || null
+  }).eq('id', currentProvider.id).select().single();
+  if(error){
+    msg.textContent = 'Error al publicar: ' + error.message;
+    msg.style.color = 'var(--red)'; msg.style.display = 'block';
+    return;
+  }
+  currentProvider = data;
+  msg.textContent = 'Micrositio publicado.';
+  msg.style.color = 'var(--green)'; msg.style.display = 'block';
+}
+
+// ============================================================
+// Listados
+// ============================================================
 function renderListings(listings){
   const grid = document.getElementById('listingsGrid');
   const cards = listings.map(l => `
     <div class="listing-card">
-      <div class="listing-img">🏔️ Foto de portada
-        <span class="badge ${l.status==='published'?'badge-green':'badge-gray'}" style="position:absolute;top:10px;right:10px">${l.status==='published'?'Publicado':'Borrador'}</span></div>
+      <div class="listing-img" style="${l.cover_image_url ? `background-image:url('${esc(l.cover_image_url)}');background-size:cover;background-position:center;color:transparent` : ''}">
+        ${l.cover_image_url ? '' : 'Sin foto de portada'}
+        <span class="badge ${l.status==='published'?'badge-green':'badge-gray'}" style="position:absolute;top:10px;right:10px">${l.status==='published'?'Publicado':'Borrador'}</span>
+      </div>
       <div class="listing-body">
-        <div class="listing-title">${l.title}</div>
-        <div class="listing-meta">${l.municipio} · desde $${l.base_price}/noche</div>
+        <div class="listing-title">${esc(l.title)}</div>
+        <div class="listing-meta">${esc(l.municipio)} · desde ${money(l.base_price)}</div>
+        <button class="btn btn-outline btn-sm" style="margin-top:12px" onclick="openEditListing('${l.id}')">Editar</button>
       </div>
     </div>`).join('');
   grid.innerHTML = cards + `
@@ -654,13 +953,14 @@ function renderListings(listings){
     </div>`;
 }
 
-let currentListingPhotos = [];
-
+// ============================================================
+// Fotos
+// ============================================================
 function renderGallery(){
   const gallery = document.getElementById('photoGallery');
   const items = currentListingPhotos.map((p, i) => `
     <div class="gallery-item ${i===0?'cover':''}">
-      <img src="${p.url}" style="width:100%;height:100%;object-fit:cover;border-radius:9px" alt="Foto ${i+1}">
+      <img src="${esc(p.url)}" style="width:100%;height:100%;object-fit:cover;border-radius:9px" alt="Foto ${i+1}">
       <button onclick="removePhoto(${i})" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:6px;width:20px;height:20px;font-size:12px;line-height:1;cursor:pointer">✕</button>
     </div>`).join('');
   gallery.innerHTML = items + '<div class="upload-box" onclick="document.getElementById(\'photoInput\').click()">＋</div>';
@@ -675,13 +975,19 @@ async function handlePhotoSelect(event){
   const files = Array.from(event.target.files || []);
   const errEl = document.getElementById('photoUploadError');
   errEl.style.display = 'none';
+  if(!currentProvider){
+    errEl.textContent = 'Sesión no válida, vuelve a ingresar.';
+    errEl.style.display = 'block';
+    return;
+  }
   for(const file of files){
     if(file.size > 5 * 1024 * 1024){
       errEl.textContent = `"${file.name}" supera 5MB y no se subió.`;
       errEl.style.display = 'block';
       continue;
     }
-    const path = `${currentProvider.id}/${Date.now()}-${file.name}`;
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const path = `${currentProvider.id}/${Date.now()}-${safeName}`;
     const { error: upErr } = await sb.storage.from('listing-photos').upload(path, file);
     if(upErr){
       errEl.textContent = 'Error subiendo "' + file.name + '": ' + upErr.message;
@@ -695,33 +1001,227 @@ async function handlePhotoSelect(event){
   renderGallery();
 }
 
-function openNewListing(){
-  ['fTitle','fMunicipio','fDescription','fCancellation','fBasePrice','fWeekendPrice','fCapacity'].forEach(id=>{
-    const el = document.getElementById(id);
-    if(el) el.value = '';
-  });
-  currentListingPhotos = [];
-  renderGallery();
-  showView('editor');
+// ============================================================
+// Itinerario
+// ============================================================
+function renderItinerary(){
+  const list = document.getElementById('itineraryList');
+  if(currentItinerary.length === 0){
+    list.innerHTML = '<div class="empty-state">Aún no has agregado pasos. Usa "+ Agregar paso" para describir cómo se desarrolla la experiencia.</div>';
+    return;
+  }
+  list.innerHTML = currentItinerary.map((s, i) => `
+    <div class="itin-step">
+      <div class="itin-time"><input type="text" value="${esc(s.step_time)}" placeholder="8:00 AM" oninput="updateItinerary(${i},'step_time',this.value)"></div>
+      <div class="itin-content"><input type="text" value="${esc(s.description)}" placeholder="Qué ocurre en este momento" oninput="updateItinerary(${i},'description',this.value)"></div>
+      <button class="itin-remove" onclick="removeItineraryStep(${i})">Quitar</button>
+    </div>`).join('');
+}
+function addItineraryStep(){
+  currentItinerary.push({ step_time: '', description: '' });
+  renderItinerary();
+}
+function removeItineraryStep(i){
+  currentItinerary.splice(i, 1);
+  renderItinerary();
+}
+function updateItinerary(i, field, value){
+  if(currentItinerary[i]) currentItinerary[i][field] = value;
 }
 
+// ============================================================
+// Mapa (Leaflet + OpenStreetMap, sin API key)
+// ============================================================
+const TACHIRA_CENTER = [7.7669, -72.2250]; // San Cristóbal
+
+function ensureMap(){
+  if(!window.L){ return; }
+  if(!leafletMap){
+    leafletMap = L.map('mapBox').setView(TACHIRA_CENTER, 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19, attribution: '© OpenStreetMap'
+    }).addTo(leafletMap);
+    leafletMap.on('click', e => setPin(e.latlng.lat, e.latlng.lng));
+  }
+  // El contenedor estaba oculto: Leaflet necesita recalcular su tamaño.
+  setTimeout(() => {
+    leafletMap.invalidateSize();
+    if(pinLat != null && pinLng != null) leafletMap.setView([pinLat, pinLng], 15);
+  }, 60);
+}
+
+function setPin(lat, lng){
+  pinLat = lat; pinLng = lng;
+  if(!leafletMap) return;
+  if(leafletMarker){
+    leafletMarker.setLatLng([lat, lng]);
+  } else {
+    leafletMarker = L.marker([lat, lng], { draggable: true }).addTo(leafletMap);
+    leafletMarker.on('dragend', ev => {
+      const p = ev.target.getLatLng();
+      pinLat = p.lat; pinLng = p.lng;
+      updatePinLabel();
+    });
+  }
+  updatePinLabel();
+}
+
+function clearPin(){
+  pinLat = null; pinLng = null;
+  if(leafletMarker && leafletMap){ leafletMap.removeLayer(leafletMarker); }
+  leafletMarker = null;
+  updatePinLabel();
+}
+
+function updatePinLabel(){
+  const el = document.getElementById('pinCoords');
+  el.textContent = (pinLat == null)
+    ? 'Sin pin colocado todavía.'
+    : `📍 Pin colocado en ${pinLat.toFixed(5)}, ${pinLng.toFixed(5)} — arrástralo para ajustarlo.`;
+}
+
+// ============================================================
+// Calendario de disponibilidad — mes completo
+// ============================================================
+function shiftCalendar(delta){
+  calCursor = new Date(calCursor.getFullYear(), calCursor.getMonth() + delta, 1);
+  renderCalendar();
+}
+
+function renderCalendar(){
+  const grid = document.getElementById('calGrid');
+  const year = calCursor.getFullYear(), month = calCursor.getMonth();
+  document.getElementById('calTitle').textContent = MONTH_NAMES[month] + ' ' + year;
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const first = new Date(year, month, 1);
+  // getDay(): 0=domingo. La semana arranca en lunes.
+  const leading = (first.getDay() + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  let html = ['L','M','M','J','V','S','D'].map(d => `<div class="cal-day muted">${d}</div>`).join('');
+  for(let i = 0; i < leading; i++) html += '<div class="cal-day empty"></div>';
+  for(let d = 1; d <= daysInMonth; d++){
+    const date = new Date(year, month, d);
+    const key = dateKey(date);
+    if(date < today){
+      html += `<div class="cal-day past" title="Fecha pasada">${d}</div>`;
+    } else {
+      const open = availabilityOpen.has(key);
+      html += `<div class="cal-day ${open ? 'open' : 'closed'}" onclick="toggleDay('${key}')">${d}</div>`;
+    }
+  }
+  grid.innerHTML = html;
+}
+
+function toggleDay(key){
+  if(availabilityOpen.has(key)) availabilityOpen.delete(key);
+  else availabilityOpen.add(key);
+  renderCalendar();
+}
+
+// ============================================================
+// Navegación
+// ============================================================
 function showView(id, el){
-  document.querySelectorAll('.view').forEach(v=>v.style.display='none');
-  document.getElementById('v-'+id).style.display='block';
+  document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
+  document.getElementById('v-'+id).style.display = 'block';
   if(el){
-    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     el.classList.add('active');
   }
 }
 function showTab(id, el){
-  document.querySelectorAll('.tabcontent').forEach(t=>t.style.display='none');
-  document.getElementById('t-'+id).style.display='block';
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
+  document.querySelectorAll('.tabcontent').forEach(t => t.style.display = 'none');
+  document.getElementById('t-'+id).style.display = 'block';
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  if(id === 'ubicacion') ensureMap();
+  if(id === 'disponibilidad') renderCalendar();
+}
+
+// ============================================================
+// Editor: crear y editar
+// ============================================================
+function resetEditorState(){
+  ['fTitle','fMunicipio','fDescription','fBasePrice','fWeekendPrice','fCapacity','fAddress'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  document.getElementById('fCategory').value = 'alojamiento';
+  document.getElementById('fCancellation').value = 'full';
+  document.getElementById('photoUploadError').style.display = 'none';
+  currentListingPhotos = [];
+  currentItinerary = [];
+  availabilityOpen = new Set();
+  calCursor = new Date();
+  clearPin();
+  renderGallery();
+  renderItinerary();
+  renderCalendar();
+  // Volver siempre a la primera pestaña
+  showTab('info', document.querySelector('.tabs .tab'));
+}
+
+function openNewListing(){
+  editingListingId = null;
+  resetEditorState();
+  document.getElementById('editorCrumb').textContent = 'NUEVO LISTADO';
+  document.getElementById('editorTitle').textContent = 'Crear nuevo listado';
+  document.getElementById('saveEditBtn').textContent = 'Publicar listado';
+  showView('editor');
+}
+
+async function openEditListing(id){
+  const listing = providerListings.find(l => l.id === id);
+  if(!listing){ alert('No se encontró el listado.'); return; }
+
+  editingListingId = id;
+  resetEditorState();
+  document.getElementById('editorCrumb').textContent = 'EDITOR DE LISTADO';
+  document.getElementById('editorTitle').textContent = 'Editando: ' + listing.title;
+  document.getElementById('saveEditBtn').textContent = 'Guardar cambios';
+
+  document.getElementById('fTitle').value = listing.title || '';
+  document.getElementById('fCategory').value = listing.category || 'alojamiento';
+  document.getElementById('fMunicipio').value = listing.municipio || '';
+  document.getElementById('fDescription').value = listing.description || '';
+  document.getElementById('fCancellation').value = listing.cancellation_policy || 'full';
+  document.getElementById('fBasePrice').value = listing.base_price ?? '';
+  document.getElementById('fWeekendPrice').value = listing.weekend_price ?? '';
+  document.getElementById('fCapacity').value = listing.max_capacity ?? '';
+  document.getElementById('fAddress').value = listing.address || '';
+
+  showView('editor');
+
+  // Fotos: la portada primero, luego las adicionales por posición
+  currentListingPhotos = listing.cover_image_url ? [{ url: listing.cover_image_url, path: null }] : [];
+  const { data: images } = await sb.from('listing_images').select('*')
+    .eq('listing_id', id).order('position', { ascending: true });
+  (images || []).forEach(img => {
+    if(!currentListingPhotos.some(p => p.url === img.url)) currentListingPhotos.push({ url: img.url, path: null });
+  });
+  renderGallery();
+
+  const { data: steps } = await sb.from('listing_itinerary').select('*')
+    .eq('listing_id', id).order('position', { ascending: true });
+  currentItinerary = (steps || []).map(s => ({ step_time: s.step_time || '', description: s.description || '' }));
+  renderItinerary();
+
+  const { data: avail } = await sb.from('listing_availability').select('date, is_open').eq('listing_id', id);
+  availabilityOpen = new Set((avail || []).filter(a => a.is_open).map(a => a.date));
+  renderCalendar();
+
+  if(listing.lat != null && listing.lng != null){
+    pinLat = listing.lat; pinLng = listing.lng;
+    updatePinLabel();
+    if(leafletMap) setPin(listing.lat, listing.lng);
+  }
 }
 
 async function saveEdit(){
   if(!currentProvider){ alert('Sesión no válida, vuelve a ingresar.'); return; }
+  const btn = document.getElementById('saveEditBtn');
   const title = document.getElementById('fTitle').value.trim();
   const municipio = document.getElementById('fMunicipio').value.trim();
   const basePrice = parseFloat(document.getElementById('fBasePrice').value);
@@ -729,45 +1229,98 @@ async function saveEdit(){
     alert('Completa al menos título, municipio y precio base.');
     return;
   }
+
+  const weekend = parseFloat(document.getElementById('fWeekendPrice').value);
+  const capacity = parseInt(document.getElementById('fCapacity').value, 10);
   const payload = {
     provider_id: currentProvider.id,
     category: document.getElementById('fCategory').value,
     title,
     municipio,
     description: document.getElementById('fDescription').value.trim() || null,
-    cancellation_policy: document.getElementById('fCancellation').value.trim() || null,
+    cancellation_policy: document.getElementById('fCancellation').value,
     base_price: basePrice,
-    weekend_price: parseFloat(document.getElementById('fWeekendPrice').value) || null,
-    max_capacity: parseInt(document.getElementById('fCapacity').value) || null,
+    weekend_price: isNaN(weekend) ? null : weekend,
+    max_capacity: isNaN(capacity) ? null : capacity,
+    address: document.getElementById('fAddress').value.trim() || null,
+    lat: pinLat,
+    lng: pinLng,
     status: 'published',
     cover_image_url: currentListingPhotos[0]?.url || null
   };
-  const { data: savedListing, error } = await sb.from('listings').insert(payload).select().single();
-  if(error){ alert('Error al guardar: ' + error.message); return; }
-  if(currentListingPhotos.length > 1){
-    const extraImages = currentListingPhotos.slice(1).map((p, i) => ({
-      listing_id: savedListing.id, url: p.url, position: i + 1
-    }));
-    await sb.from('listing_images').insert(extraImages);
+
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  let savedListing, error;
+  if(editingListingId){
+    payload.updated_at = new Date().toISOString();
+    ({ data: savedListing, error } = await sb.from('listings')
+      .update(payload).eq('id', editingListingId).select().single());
+  } else {
+    ({ data: savedListing, error } = await sb.from('listings')
+      .insert(payload).select().single());
   }
+
+  if(error){
+    btn.disabled = false; btn.textContent = originalLabel;
+    alert('Error al guardar: ' + error.message);
+    return;
+  }
+
+  const listingId = savedListing.id;
+  const childErrors = [];
+
+  // Fotos adicionales (la primera es la portada, ya guardada en el listado)
+  await sb.from('listing_images').delete().eq('listing_id', listingId);
+  if(currentListingPhotos.length > 1){
+    const extra = currentListingPhotos.slice(1).map((p, i) => ({ listing_id: listingId, url: p.url, position: i + 1 }));
+    const { error: imgErr } = await sb.from('listing_images').insert(extra);
+    if(imgErr) childErrors.push('fotos adicionales: ' + imgErr.message);
+  }
+
+  // Itinerario
+  await sb.from('listing_itinerary').delete().eq('listing_id', listingId);
+  const steps = currentItinerary
+    .filter(s => (s.step_time || '').trim() || (s.description || '').trim())
+    .map((s, i) => ({ listing_id: listingId, step_time: s.step_time.trim() || null, description: s.description.trim() || null, position: i }));
+  if(steps.length > 0){
+    const { error: itinErr } = await sb.from('listing_itinerary').insert(steps);
+    if(itinErr) childErrors.push('itinerario: ' + itinErr.message);
+  }
+
+  // Disponibilidad
+  await sb.from('listing_availability').delete().eq('listing_id', listingId);
+  const days = Array.from(availabilityOpen).map(d => ({ listing_id: listingId, date: d, is_open: true }));
+  if(days.length > 0){
+    const { error: availErr } = await sb.from('listing_availability').insert(days);
+    if(availErr) childErrors.push('disponibilidad: ' + availErr.message);
+  }
+
+  btn.disabled = false;
+  btn.textContent = originalLabel;
+
   await refreshListings();
-  alert('Listado guardado y publicado.');
+  await refreshDashboard();
+
+  if(childErrors.length > 0){
+    alert('El listado se guardó, pero hubo problemas con: ' + childErrors.join('; '));
+  } else {
+    alert(editingListingId ? 'Cambios guardados y publicados.' : 'Listado guardado y publicado.');
+  }
+
+  editingListingId = null;
   showView('listings');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.querySelectorAll('.nav-item')[1].classList.add('active');
 }
 
-document.querySelectorAll('.cal-day.open, .cal-day.closed').forEach(d=>{
-  d.addEventListener('click', ()=>{
-    d.classList.toggle('open'); d.classList.toggle('closed');
-  });
-});
-document.querySelectorAll('.toggle').forEach(t=>t.addEventListener('click',()=>t.classList.toggle('on')));
-
 sb.auth.onAuthStateChange((event, session) => {
   if(event === 'SIGNED_IN' && session && !currentProvider && !authFlowInProgress){
-    loadProviderContext(session.user.id).then(()=>{
-      document.getElementById('login').style.display='none';
-      document.getElementById('app').style.display='block';
+    loadProviderContext(session.user.id).then(() => {
+      document.getElementById('login').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
     });
   }
 });
