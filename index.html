@@ -159,6 +159,21 @@ tr:hover td{background:#FBFCFE}
 .cal-nav{background:#fff;border:1.5px solid var(--border);border-radius:8px;width:32px;height:32px;font-size:15px;font-weight:700;color:var(--blue);cursor:pointer}
 .cal-nav:hover{background:var(--blue-light)}
 
+.sel{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;font-family:inherit;background:#fff}
+.veh-card{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.veh-img{height:148px;background:var(--bg);display:flex;align-items:center;justify-content:center;color:var(--gray);font-size:12px;position:relative}
+.veh-body{padding:14px 16px}
+.review-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.review-pill{font-size:11px;font-weight:700;padding:4px 9px;border-radius:20px;border:1px solid}
+.rp-pending{background:var(--orange-light);color:#8A4B00;border-color:#F5D5B8}
+.rp-ok{background:var(--green-bg);color:var(--green);border-color:#BEE8D6}
+.rp-bad{background:var(--red-bg);color:var(--red);border-color:#F3C1C7}
+.doc-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--border-soft);font-size:13px}
+.doc-row:last-child{border-bottom:none}
+.banner{border-radius:10px;padding:14px 18px;font-size:13px;margin-bottom:20px;line-height:1.7}
+.banner-warn{background:var(--orange-light);color:#7A4300;border:1px solid #F5D5B8}
+.banner-ok{background:var(--green-bg);color:var(--green);border:1px solid #BEE8D6}
+.banner-bad{background:var(--red-bg);color:var(--red);border:1px solid #F3C1C7}
 .locked-panel{text-align:center;padding:52px 32px}
 .locked-icon{font-size:38px;margin-bottom:14px}
 .empty-state{text-align:center;color:var(--gray);font-size:13px;padding:28px 16px}
@@ -225,6 +240,9 @@ tr:hover td{background:#FBFCFE}
     <div class="nav-item active" onclick="showView('dashboard',this)"><span class="nav-ico">▦</span> Panel general</div>
     <div class="nav-item" onclick="showView('listings',this)"><span class="nav-ico">▤</span> Mis listados</div>
     <div class="nav-item" onclick="showView('bookings',this)"><span class="nav-ico">▥</span> Reservas</div>
+
+    <div class="sb-group-label">Alquiler de vehículos</div>
+    <div class="nav-item" onclick="showView('vehicles',this)"><span class="nav-ico">⛟</span> Mis vehículos</div>
 
     <div class="sb-group-label">Finanzas</div>
     <div class="nav-item" onclick="showView('billing',this)"><span class="nav-ico">$</span> Facturación</div>
@@ -388,6 +406,140 @@ tr:hover td{background:#FBFCFE}
             <div>🟢 Disponible</div><div>🔴 Bloqueado</div>
           </div>
           <div style="font-size:12px;color:var(--gray);margin-top:8px">Haz clic en un día para abrirlo o cerrarlo. Los días que no marques quedan como no disponibles.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== Alquiler de vehículos: vertical propia, separada de los listados ====== -->
+    <div class="view" id="v-vehicles" style="display:none">
+      <div class="topbar">
+        <div><div class="breadcrumb">MIS VEHÍCULOS</div><h1 class="page-title">Alquiler de vehículos</h1><div class="page-sub">Cada vehículo necesita aprobar una revisión legal y una revisión física antes de ser visible</div></div>
+        <button class="btn btn-blue" onclick="openNewVehicle()">+ Publicar vehículo</button>
+      </div>
+      <div class="grid grid-3" id="vehiclesGrid"></div>
+    </div>
+
+    <div class="view" id="v-vehicle-editor" style="display:none">
+      <div class="topbar">
+        <div><div class="breadcrumb" id="vehEditorCrumb">NUEVO VEHÍCULO</div><h1 class="page-title" id="vehEditorTitle">Publicar un vehículo</h1><div class="page-sub">Mientras más completo esté, más rápido pasa la revisión</div></div>
+        <div style="display:flex;gap:10px"><button class="btn btn-outline" onclick="showView('vehicles')">Cancelar</button><button class="btn btn-blue" id="vehSaveBtn" onclick="saveVehicle()">Guardar vehículo</button></div>
+      </div>
+
+      <div id="vehReviewBanner"></div>
+
+      <div class="tabs">
+        <div class="tab active" onclick="showVehTab('datos',this)">Datos del vehículo</div>
+        <div class="tab" onclick="showVehTab('fotos',this)">Fotos</div>
+        <div class="tab" onclick="showVehTab('documentos',this)">Documentos</div>
+        <div class="tab" onclick="showVehTab('entrega',this)">Entrega</div>
+        <div class="tab" onclick="showVehTab('precio',this)">Precio</div>
+        <div class="tab" onclick="showVehTab('disponibilidad',this)">Disponibilidad</div>
+      </div>
+
+      <div class="tabcontent" id="vt-datos">
+        <div class="card">
+          <div class="grid grid-2" style="gap:0 18px">
+            <div class="field"><label>Marca</label><input type="text" id="vBrand" placeholder="Ej. Toyota"></div>
+            <div class="field"><label>Modelo</label><input type="text" id="vModel" placeholder="Ej. Fortuner"></div>
+          </div>
+          <div class="field"><label>Título que verá el viajero</label><input type="text" id="vTitle" placeholder="Ej. Toyota Fortuner 2020 · 4x4 automática"></div>
+          <div class="grid grid-2" style="gap:0 18px">
+            <div class="field"><label>Año</label><input type="text" id="vYear" placeholder="Ej. 2020"></div>
+            <div class="field"><label>Tipo</label>
+              <select id="vCategory" class="sel">
+                <option value="sedan">Sedán</option><option value="suv">SUV</option>
+                <option value="pickup">Pick-up</option><option value="camioneta">Camioneta</option>
+                <option value="van">Van</option><option value="4x4">4x4</option><option value="moto">Moto</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-2" style="gap:0 18px">
+            <div class="field"><label>Transmisión</label>
+              <select id="vTransmission" class="sel"><option value="manual">Manual</option><option value="automatica">Automática</option></select>
+            </div>
+            <div class="field"><label>Combustible</label>
+              <select id="vFuel" class="sel">
+                <option value="gasolina">Gasolina</option><option value="diesel">Diésel</option>
+                <option value="gas">Gas</option><option value="hibrido">Híbrido</option><option value="electrico">Eléctrico</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-2" style="gap:0 18px">
+            <div class="field"><label>Puestos</label><input type="text" id="vSeats" placeholder="Ej. 5"></div>
+            <div class="field"><label>Puertas</label><input type="text" id="vDoors" placeholder="Ej. 4"></div>
+          </div>
+          <div class="field"><label>Municipio</label><input type="text" id="vMunicipio" placeholder="Ej. San Cristóbal"></div>
+          <div class="field"><label>Descripción</label><input type="text" id="vDescription" placeholder="Estado del vehículo, extras, condiciones de uso"></div>
+        </div>
+      </div>
+
+      <div class="tabcontent" id="vt-fotos" style="display:none">
+        <div class="card">
+          <div class="section-title">Fotos del vehículo</div>
+          <input type="file" id="vPhotoInput" accept="image/*" multiple style="display:none" onchange="handleVehiclePhoto(event)">
+          <div class="gallery" id="vehiclePhotoGallery"></div>
+          <div id="vPhotoError" style="display:none;color:var(--red);font-size:12.5px;margin-top:10px"></div>
+          <div style="font-size:12px;color:var(--gray);margin-top:12px">La primera foto es la portada. Sube exterior, interior y tablero — la revisión física es más rápida así. Máx. 5MB por foto.</div>
+        </div>
+      </div>
+
+      <div class="tabcontent" id="vt-documentos" style="display:none">
+        <div class="card">
+          <div class="section-title">Documentos para la revisión legal</div>
+          <div class="info-note">🔒 Estos documentos y la placa son privados: solo los ve el equipo de verificación de Táchira GOO!!!. Nunca se muestran al viajero.</div>
+          <div class="field" style="margin-top:16px"><label>Placa</label><input type="text" id="vPlate" placeholder="Ej. AB123CD"></div>
+          <input type="file" id="vDocInput" accept="image/*,application/pdf" style="display:none" onchange="handleVehicleDoc(event)">
+          <div id="vehicleDocsList"></div>
+          <div style="display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap">
+            <select id="vDocKind" class="sel" style="max-width:230px">
+              <option value="titulo">Título de propiedad</option>
+              <option value="seguro">Póliza de seguro</option>
+              <option value="rcv">RCV</option>
+              <option value="cedula_propietario">Cédula del propietario</option>
+              <option value="inspeccion_tecnica">Inspección técnica</option>
+              <option value="otro">Otro</option>
+            </select>
+            <button class="btn btn-ghost" onclick="document.getElementById('vDocInput').click()">+ Subir documento</button>
+          </div>
+          <div id="vDocError" style="display:none;color:var(--red);font-size:12.5px;margin-top:10px"></div>
+        </div>
+      </div>
+
+      <div class="tabcontent" id="vt-entrega" style="display:none">
+        <div class="card">
+          <div class="section-title">¿Dónde entregas el vehículo?</div>
+          <div style="font-size:12.5px;color:var(--gray);margin-bottom:12px">Coloca el pin donde el viajero recoge el vehículo. Se le muestra al confirmar la reserva.</div>
+          <div class="map-box" id="vehMapBox"></div>
+          <div class="field" style="margin-top:16px"><label>Dirección o referencia</label><input type="text" id="vAddress" placeholder="Ej. Terminal de San Cristóbal, puerta principal"></div>
+          <div style="font-size:12px;color:var(--gray)" id="vehPinCoords">Sin pin colocado todavía.</div>
+        </div>
+      </div>
+
+      <div class="tabcontent" id="vt-precio" style="display:none">
+        <div class="card">
+          <div class="field"><label>Precio por día (USD)</label><input type="text" id="vPrice" placeholder="Ej. 45"></div>
+          <div class="field"><label>Depósito de garantía (USD)</label><input type="text" id="vDeposit" placeholder="Ej. 150"></div>
+          <div class="field"><label>Mínimo de días por alquiler</label><input type="text" id="vMinDays" placeholder="Ej. 2"></div>
+          <div class="field"><label>Condiciones de reembolso</label>
+            <select id="vCancellation" class="sel">
+              <option value="full">100% reembolsable (hasta 48h antes)</option>
+              <option value="partial">Reembolsable parcialmente (50% hasta 48h antes)</option>
+              <option value="no_refund">Sin reembolso</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="tabcontent" id="vt-disponibilidad" style="display:none">
+        <div class="card">
+          <div class="cal-head">
+            <button class="cal-nav" onclick="shiftVehCalendar(-1)" title="Mes anterior">‹</button>
+            <div class="section-title" style="margin:0" id="vehCalTitle">—</div>
+            <button class="cal-nav" onclick="shiftVehCalendar(1)" title="Mes siguiente">›</button>
+          </div>
+          <div class="cal-grid" id="vehCalGrid"></div>
+          <div style="display:flex;gap:16px;margin-top:14px;font-size:12px"><div>🟢 Libre para alquilar</div><div>🔴 No disponible</div></div>
+          <div style="font-size:12px;color:var(--gray);margin-top:8px">Marca los días en que tu vehículo está libre. Los que no marques no se podrán reservar.</div>
         </div>
       </div>
     </div>
@@ -662,6 +814,7 @@ async function refreshAll(){
   await refreshBilling();
   await refreshAccount();
   refreshMicrosite();
+  await refreshVehicles();
   const now = new Date();
   document.getElementById('syncStatusText').textContent =
     'Sincronizado con el repositorio central · ' + now.toLocaleTimeString('es-VE', { hour:'2-digit', minute:'2-digit' });
@@ -1323,8 +1476,402 @@ async function saveEdit(){
 
   editingListingId = null;
   showView('listings');
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.querySelectorAll('.nav-item')[1].classList.add('active');
+  activateNav('listings');
+}
+
+// ============================================================
+// ALQUILER DE VEHÍCULOS
+// Vertical aparte: no comparte estado ni listas con los listados de tours.
+// Un vehículo solo se hace visible cuando pasa DOS revisiones: legal y física.
+// ============================================================
+let providerVehicles = [];
+let editingVehicleId = null;
+let vehiclePhotos = [];          // [{url, path}]
+let vehicleDocs = [];            // [{kind, url, path, id?}]
+let vehicleAvailability = new Set();
+let vehCalCursor = new Date();
+let vehPinLat = null, vehPinLng = null;
+let vehMap = null, vehMarker = null;
+
+const VEH_CATEGORY_LABEL = { sedan:'Sedán', suv:'SUV', pickup:'Pick-up', camioneta:'Camioneta', van:'Van', moto:'Moto', '4x4':'4x4' };
+const VEH_DOC_LABEL = { titulo:'Título de propiedad', seguro:'Póliza de seguro', rcv:'RCV', cedula_propietario:'Cédula del propietario', inspeccion_tecnica:'Inspección técnica', otro:'Otro' };
+const REVIEW_LABEL = { pending:'Pendiente', in_review:'En revisión', approved:'Aprobada', rejected:'Rechazada' };
+const REVIEW_CLASS = { pending:'rp-pending', in_review:'rp-pending', approved:'rp-ok', rejected:'rp-bad' };
+
+async function refreshVehicles(){
+  if(!currentProvider) return;
+  const { data: userData } = await sb.auth.getUser();
+  const uid = userData?.user?.id;
+  if(!uid) return;
+  const { data, error } = await sb.from('vehicles').select('*')
+    .eq('owner_id', uid).order('created_at', { ascending:false });
+  if(error){
+    document.getElementById('vehiclesGrid').innerHTML =
+      '<div class="card"><div class="empty-state">No se pudieron cargar tus vehículos: ' + esc(error.message) + '</div></div>';
+    return;
+  }
+  providerVehicles = data || [];
+  renderVehicles();
+}
+
+function reviewPill(label, status){
+  return '<span class="review-pill ' + (REVIEW_CLASS[status]||'rp-pending') + '">' +
+         label + ': ' + (REVIEW_LABEL[status]||status) + '</span>';
+}
+
+function renderVehicles(){
+  const grid = document.getElementById('vehiclesGrid');
+  const cards = providerVehicles.map(v => {
+    const visible = v.is_approved && v.status === 'published';
+    return `
+    <div class="veh-card">
+      <div class="veh-img" style="${v.cover_image_url ? `background-image:url('${esc(v.cover_image_url)}');background-size:cover;background-position:center;color:transparent` : ''}">
+        ${v.cover_image_url ? '' : 'Sin foto'}
+        <span class="badge ${visible?'badge-green':'badge-gray'}" style="position:absolute;top:10px;right:10px">${visible?'Visible':'Oculto'}</span>
+      </div>
+      <div class="veh-body">
+        <div class="listing-title">${esc(v.title)}</div>
+        <div class="listing-meta">${esc(VEH_CATEGORY_LABEL[v.category]||v.category)} · ${esc(v.municipio)} · ${money(v.price_per_day)}/día</div>
+        <div class="review-row">
+          ${reviewPill('Legal', v.legal_review_status)}
+          ${reviewPill('Física', v.physical_review_status)}
+        </div>
+        <button class="btn btn-outline btn-sm" style="margin-top:12px" onclick="openEditVehicle('${v.id}')">Editar</button>
+      </div>
+    </div>`;
+  }).join('');
+  grid.innerHTML = cards + `
+    <div class="new-listing-card" onclick="openNewVehicle()">
+      <div style="font-size:26px">＋</div>
+      <div style="font-size:13px">Publicar vehículo</div>
+    </div>`;
+}
+
+function renderVehicleBanner(v){
+  const el = document.getElementById('vehReviewBanner');
+  if(!v){
+    el.innerHTML = '<div class="banner banner-warn">Este vehículo no será visible para los viajeros hasta que apruebe <strong>la revisión legal</strong> (documentos en regla) y <strong>la revisión física</strong> (estado del vehículo). Guárdalo con sus fotos y documentos para que el equipo lo revise.</div>';
+    return;
+  }
+  if(v.is_approved){
+    el.innerHTML = '<div class="banner banner-ok">✓ Vehículo aprobado en las dos revisiones. Ya es visible en la sección de alquiler.</div>';
+    return;
+  }
+  const falta = [];
+  if(v.legal_review_status !== 'approved') falta.push('la revisión legal (' + (REVIEW_LABEL[v.legal_review_status]||'') .toLowerCase() + ')');
+  if(v.physical_review_status !== 'approved') falta.push('la revisión física (' + (REVIEW_LABEL[v.physical_review_status]||'').toLowerCase() + ')');
+  const rechazado = v.legal_review_status === 'rejected' || v.physical_review_status === 'rejected';
+  const notas = [v.legal_review_notes, v.physical_review_notes].filter(Boolean).map(esc).join(' · ');
+  el.innerHTML = '<div class="banner ' + (rechazado?'banner-bad':'banner-warn') + '">' +
+    'Todavía no es visible: falta ' + falta.join(' y ') + '.' +
+    (notas ? '<br><strong>Notas del revisor:</strong> ' + notas : '') + '</div>';
+}
+
+function resetVehicleEditor(){
+  ['vBrand','vModel','vTitle','vYear','vSeats','vDoors','vMunicipio','vDescription','vPlate','vAddress','vPrice','vDeposit','vMinDays']
+    .forEach(id => { const e = document.getElementById(id); if(e) e.value = ''; });
+  document.getElementById('vCategory').value = 'sedan';
+  document.getElementById('vTransmission').value = 'manual';
+  document.getElementById('vFuel').value = 'gasolina';
+  document.getElementById('vCancellation').value = 'partial';
+  document.getElementById('vPhotoError').style.display = 'none';
+  document.getElementById('vDocError').style.display = 'none';
+  vehiclePhotos = []; vehicleDocs = [];
+  vehicleAvailability = new Set();
+  vehCalCursor = new Date();
+  vehPinLat = null; vehPinLng = null;
+  if(vehMarker && vehMap){ vehMap.removeLayer(vehMarker); }
+  vehMarker = null;
+  updateVehPinLabel();
+  renderVehicleGallery();
+  renderVehicleDocs();
+  renderVehCalendar();
+  showVehTab('datos', document.querySelector('#v-vehicle-editor .tab'));
+}
+
+function openNewVehicle(){
+  editingVehicleId = null;
+  resetVehicleEditor();
+  document.getElementById('vehEditorCrumb').textContent = 'NUEVO VEHÍCULO';
+  document.getElementById('vehEditorTitle').textContent = 'Publicar un vehículo';
+  document.getElementById('vehSaveBtn').textContent = 'Guardar vehículo';
+  renderVehicleBanner(null);
+  showView('vehicle-editor');
+}
+
+async function openEditVehicle(id){
+  const v = providerVehicles.find(x => x.id === id);
+  if(!v){ alert('No se encontró el vehículo.'); return; }
+  editingVehicleId = id;
+  resetVehicleEditor();
+  document.getElementById('vehEditorCrumb').textContent = 'EDITAR VEHÍCULO';
+  document.getElementById('vehEditorTitle').textContent = 'Editando: ' + v.title;
+  document.getElementById('vehSaveBtn').textContent = 'Guardar cambios';
+  renderVehicleBanner(v);
+
+  const set = (id2, val) => { const e = document.getElementById(id2); if(e) e.value = (val ?? ''); };
+  set('vBrand', v.brand); set('vModel', v.model); set('vTitle', v.title); set('vYear', v.year);
+  set('vSeats', v.seats); set('vDoors', v.doors); set('vMunicipio', v.municipio);
+  set('vDescription', v.description); set('vAddress', v.pickup_address);
+  set('vPrice', v.price_per_day); set('vDeposit', v.deposit); set('vMinDays', v.min_days);
+  document.getElementById('vCategory').value = v.category || 'sedan';
+  document.getElementById('vTransmission').value = v.transmission || 'manual';
+  document.getElementById('vFuel').value = v.fuel || 'gasolina';
+  document.getElementById('vCancellation').value = v.cancellation_policy || 'partial';
+
+  showView('vehicle-editor');
+
+  vehiclePhotos = v.cover_image_url ? [{ url: v.cover_image_url, path: null }] : [];
+  const { data: imgs } = await sb.from('vehicle_images').select('*').eq('vehicle_id', id).order('position');
+  (imgs || []).forEach(i => { if(!vehiclePhotos.some(p => p.url === i.url)) vehiclePhotos.push({ url:i.url, path:null }); });
+  renderVehicleGallery();
+
+  const { data: docs } = await sb.from('vehicle_documents').select('*').eq('vehicle_id', id);
+  vehicleDocs = (docs || []).map(d => ({ id:d.id, kind:d.kind, url:d.url, path:null }));
+  if(docs && docs.length && docs[0].plate) document.getElementById('vPlate').value = docs[0].plate;
+  renderVehicleDocs();
+
+  const { data: av } = await sb.from('vehicle_availability').select('date,is_open').eq('vehicle_id', id);
+  vehicleAvailability = new Set((av || []).filter(a => a.is_open).map(a => a.date));
+  renderVehCalendar();
+
+  if(v.lat != null && v.lng != null){
+    vehPinLat = v.lat; vehPinLng = v.lng;
+    updateVehPinLabel();
+    if(vehMap) setVehPin(v.lat, v.lng);
+  }
+}
+
+// ---------- Fotos ----------
+function renderVehicleGallery(){
+  const g = document.getElementById('vehiclePhotoGallery');
+  g.innerHTML = vehiclePhotos.map((p,i) => `
+    <div class="gallery-item ${i===0?'cover':''}">
+      <img src="${esc(p.url)}" style="width:100%;height:100%;object-fit:cover;border-radius:9px" alt="Foto ${i+1}">
+      <button onclick="removeVehiclePhoto(${i})" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:6px;width:20px;height:20px;font-size:12px;line-height:1;cursor:pointer">✕</button>
+    </div>`).join('') +
+    '<div class="upload-box" onclick="document.getElementById(\'vPhotoInput\').click()">＋</div>';
+}
+function removeVehiclePhoto(i){ vehiclePhotos.splice(i,1); renderVehicleGallery(); }
+
+async function handleVehiclePhoto(event){
+  const files = Array.from(event.target.files || []);
+  const err = document.getElementById('vPhotoError');
+  err.style.display = 'none';
+  const { data: u } = await sb.auth.getUser();
+  const uid = u?.user?.id;
+  if(!uid){ err.textContent='Sesión no válida.'; err.style.display='block'; return; }
+  for(const f of files){
+    if(f.size > 5*1024*1024){ err.textContent = `"${f.name}" supera 5MB.`; err.style.display='block'; continue; }
+    const safe = f.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+    const path = `${uid}/${Date.now()}-${safe}`;
+    const { error } = await sb.storage.from('vehicle-photos').upload(path, f);
+    if(error){ err.textContent = 'Error subiendo "'+f.name+'": '+error.message; err.style.display='block'; continue; }
+    const { data: pub } = sb.storage.from('vehicle-photos').getPublicUrl(path);
+    vehiclePhotos.push({ url: pub.publicUrl, path });
+  }
+  event.target.value = '';
+  renderVehicleGallery();
+}
+
+// ---------- Documentos (privados) ----------
+function renderVehicleDocs(){
+  const el = document.getElementById('vehicleDocsList');
+  if(vehicleDocs.length === 0){
+    el.innerHTML = '<div class="empty-state">Aún no has subido documentos. La revisión legal no puede avanzar sin ellos.</div>';
+    return;
+  }
+  el.innerHTML = vehicleDocs.map((d,i) => `
+    <div class="doc-row">
+      <div>📄 ${esc(VEH_DOC_LABEL[d.kind]||d.kind)}</div>
+      <button class="itin-remove" onclick="removeVehicleDoc(${i})">Quitar</button>
+    </div>`).join('');
+}
+function removeVehicleDoc(i){ vehicleDocs.splice(i,1); renderVehicleDocs(); }
+
+async function handleVehicleDoc(event){
+  const file = (event.target.files || [])[0];
+  const err = document.getElementById('vDocError');
+  err.style.display = 'none';
+  event.target.value = '';
+  if(!file) return;
+  if(file.size > 10*1024*1024){ err.textContent = 'El documento supera 10MB.'; err.style.display='block'; return; }
+  const { data: u } = await sb.auth.getUser();
+  const uid = u?.user?.id;
+  if(!uid){ err.textContent='Sesión no válida.'; err.style.display='block'; return; }
+  const kind = document.getElementById('vDocKind').value;
+  const safe = file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+  const path = `${uid}/${Date.now()}-${kind}-${safe}`;
+  const { error } = await sb.storage.from('vehicle-docs').upload(path, file);
+  if(error){ err.textContent = 'Error subiendo el documento: '+error.message; err.style.display='block'; return; }
+  vehicleDocs.push({ kind, url: path, path });   // bucket privado: se guarda la ruta, no una URL pública
+  renderVehicleDocs();
+}
+
+// ---------- Mapa de entrega ----------
+function ensureVehMap(){
+  if(!window.L) return;
+  if(!vehMap){
+    vehMap = L.map('vehMapBox').setView(TACHIRA_CENTER, 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'© OpenStreetMap' }).addTo(vehMap);
+    vehMap.on('click', e => setVehPin(e.latlng.lat, e.latlng.lng));
+  }
+  setTimeout(() => {
+    vehMap.invalidateSize();
+    if(vehPinLat != null) vehMap.setView([vehPinLat, vehPinLng], 15);
+  }, 60);
+}
+function setVehPin(lat, lng){
+  vehPinLat = lat; vehPinLng = lng;
+  if(!vehMap) return;
+  if(vehMarker){ vehMarker.setLatLng([lat,lng]); }
+  else {
+    vehMarker = L.marker([lat,lng], { draggable:true }).addTo(vehMap);
+    vehMarker.on('dragend', ev => { const p = ev.target.getLatLng(); vehPinLat=p.lat; vehPinLng=p.lng; updateVehPinLabel(); });
+  }
+  updateVehPinLabel();
+}
+function updateVehPinLabel(){
+  const el = document.getElementById('vehPinCoords');
+  if(!el) return;
+  el.textContent = (vehPinLat == null) ? 'Sin pin colocado todavía.'
+    : `📍 Entrega en ${vehPinLat.toFixed(5)}, ${vehPinLng.toFixed(5)} — arrastra el pin para ajustarlo.`;
+}
+
+// ---------- Calendario de días libres ----------
+function shiftVehCalendar(d){
+  vehCalCursor = new Date(vehCalCursor.getFullYear(), vehCalCursor.getMonth()+d, 1);
+  renderVehCalendar();
+}
+function renderVehCalendar(){
+  const grid = document.getElementById('vehCalGrid');
+  if(!grid) return;
+  const y = vehCalCursor.getFullYear(), m = vehCalCursor.getMonth();
+  document.getElementById('vehCalTitle').textContent = MONTH_NAMES[m] + ' ' + y;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const leading = (new Date(y,m,1).getDay() + 6) % 7;
+  const days = new Date(y, m+1, 0).getDate();
+  let html = ['L','M','M','J','V','S','D'].map(d => `<div class="cal-day muted">${d}</div>`).join('');
+  for(let i=0;i<leading;i++) html += '<div class="cal-day empty"></div>';
+  for(let d=1; d<=days; d++){
+    const date = new Date(y,m,d), key = dateKey(date);
+    if(date < today) html += `<div class="cal-day past">${d}</div>`;
+    else html += `<div class="cal-day ${vehicleAvailability.has(key)?'open':'closed'}" onclick="toggleVehDay('${key}')">${d}</div>`;
+  }
+  grid.innerHTML = html;
+}
+function toggleVehDay(k){
+  if(vehicleAvailability.has(k)) vehicleAvailability.delete(k); else vehicleAvailability.add(k);
+  renderVehCalendar();
+}
+
+function showVehTab(id, el){
+  document.querySelectorAll('#v-vehicle-editor .tabcontent').forEach(t => t.style.display='none');
+  document.getElementById('vt-'+id).style.display='block';
+  document.querySelectorAll('#v-vehicle-editor .tab').forEach(t => t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  if(id === 'entrega') ensureVehMap();
+  if(id === 'disponibilidad') renderVehCalendar();
+}
+
+// ---------- Guardar ----------
+async function saveVehicle(){
+  const btn = document.getElementById('vehSaveBtn');
+  const { data: u } = await sb.auth.getUser();
+  const uid = u?.user?.id;
+  if(!uid){ alert('Sesión no válida, vuelve a ingresar.'); return; }
+
+  const title = document.getElementById('vTitle').value.trim();
+  const brand = document.getElementById('vBrand').value.trim();
+  const model = document.getElementById('vModel').value.trim();
+  const municipio = document.getElementById('vMunicipio').value.trim();
+  const price = parseFloat(document.getElementById('vPrice').value);
+  if(!title || !brand || !model || !municipio || isNaN(price)){
+    alert('Completa al menos marca, modelo, título, municipio y precio por día.');
+    return;
+  }
+
+  const num = id => { const n = parseFloat(document.getElementById(id).value); return isNaN(n) ? null : n; };
+  const int = id => { const n = parseInt(document.getElementById(id).value,10); return isNaN(n) ? null : n; };
+
+  const payload = {
+    owner_id: uid,
+    provider_id: currentProvider ? currentProvider.id : null,
+    title, brand, model,
+    year: int('vYear'),
+    category: document.getElementById('vCategory').value,
+    transmission: document.getElementById('vTransmission').value,
+    fuel: document.getElementById('vFuel').value,
+    seats: int('vSeats'), doors: int('vDoors'),
+    description: document.getElementById('vDescription').value.trim() || null,
+    municipio,
+    pickup_address: document.getElementById('vAddress').value.trim() || null,
+    lat: vehPinLat, lng: vehPinLng,
+    price_per_day: price,
+    deposit: num('vDeposit') ?? 0,
+    min_days: int('vMinDays') || 1,
+    cancellation_policy: document.getElementById('vCancellation').value,
+    cover_image_url: vehiclePhotos[0]?.url || null,
+    status: 'published'    // "publicado" por el dueño; aun así queda oculto hasta las dos aprobaciones
+  };
+
+  const label = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Guardando...';
+
+  let saved, error;
+  if(editingVehicleId){
+    payload.updated_at = new Date().toISOString();
+    ({ data: saved, error } = await sb.from('vehicles').update(payload).eq('id', editingVehicleId).select().single());
+  } else {
+    ({ data: saved, error } = await sb.from('vehicles').insert(payload).select().single());
+  }
+  if(error){
+    btn.disabled=false; btn.textContent=label;
+    alert('Error al guardar: ' + error.message);
+    return;
+  }
+
+  const vid = saved.id;
+  const problemas = [];
+
+  await sb.from('vehicle_images').delete().eq('vehicle_id', vid);
+  if(vehiclePhotos.length > 1){
+    const extra = vehiclePhotos.slice(1).map((p,i) => ({ vehicle_id: vid, url: p.url, position: i+1 }));
+    const { error: e } = await sb.from('vehicle_images').insert(extra);
+    if(e) problemas.push('fotos: ' + e.message);
+  }
+
+  const plate = document.getElementById('vPlate').value.trim() || null;
+  await sb.from('vehicle_documents').delete().eq('vehicle_id', vid);
+  if(vehicleDocs.length > 0){
+    const rows = vehicleDocs.map(d => ({ vehicle_id: vid, kind: d.kind, url: d.url, plate }));
+    const { error: e } = await sb.from('vehicle_documents').insert(rows);
+    if(e) problemas.push('documentos: ' + e.message);
+  }
+
+  await sb.from('vehicle_availability').delete().eq('vehicle_id', vid);
+  const dias = Array.from(vehicleAvailability).map(d => ({ vehicle_id: vid, date: d, is_open: true }));
+  if(dias.length > 0){
+    const { error: e } = await sb.from('vehicle_availability').insert(dias);
+    if(e) problemas.push('disponibilidad: ' + e.message);
+  }
+
+  btn.disabled=false; btn.textContent=label;
+  await refreshVehicles();
+
+  if(problemas.length) alert('El vehículo se guardó, pero hubo problemas con: ' + problemas.join('; '));
+  else if(saved.is_approved) alert('Vehículo guardado. Ya es visible en la sección de alquiler.');
+  else alert('Vehículo guardado. Queda oculto hasta que apruebe la revisión legal y la revisión física.');
+
+  editingVehicleId = null;
+  showView('vehicles');
+  activateNav('vehicles');
+}
+
+function activateNav(viewId){
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.toggle('active', (n.getAttribute('onclick')||'').indexOf("'" + viewId + "'") >= 0);
+  });
 }
 
 // Un proveedor que se registra desde el Portal Cliente llega aquí con su sesión
