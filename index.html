@@ -218,7 +218,7 @@ tr:hover td{background:#FBFCFE}
 
     <div id="signupForm" style="display:none">
       <div class="field"><label>Nombre del negocio</label><input type="text" id="signupBusiness" placeholder="Ej. Posada El Páramo"></div>
-      <div class="field"><label>Municipio</label><input type="text" id="signupMunicipio" placeholder="Ej. San Cristóbal"></div>
+      <div class="field"><label>Municipio</label><select id="signupMunicipio" class="sel"><option value="">Selecciona tu municipio</option></select></div>
       <div class="field"><label>Correo electrónico</label><input type="email" id="signupEmail" placeholder="tu@correo.com"></div>
       <div class="field"><label>Contraseña</label><input type="password" id="signupPassword" placeholder="Mínimo 6 caracteres"></div>
       <div id="signupError" style="display:none;color:var(--red);font-size:12.5px;margin-bottom:14px"></div>
@@ -345,7 +345,7 @@ tr:hover td{background:#FBFCFE}
               <option value="actividad">Actividad</option>
             </select>
           </div>
-          <div class="field"><label>Municipio</label><input type="text" id="fMunicipio" placeholder="Ej. San Cristóbal"></div>
+          <div class="field"><label>Municipio</label><select id="fMunicipio" class="sel"><option value="">Selecciona tu municipio</option></select></div>
           <div class="field"><label>Descripción</label><input type="text" id="fDescription" placeholder="Descripción del listado"></div>
           <div class="field"><label>Condiciones de reembolso</label>
             <select id="fCancellation" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;font-family:inherit">
@@ -468,7 +468,7 @@ tr:hover td{background:#FBFCFE}
             <div class="field"><label>Puestos</label><input type="text" id="vSeats" placeholder="Ej. 5"></div>
             <div class="field"><label>Puertas</label><input type="text" id="vDoors" placeholder="Ej. 4"></div>
           </div>
-          <div class="field"><label>Municipio</label><input type="text" id="vMunicipio" placeholder="Ej. San Cristóbal"></div>
+          <div class="field"><label>Municipio</label><select id="vMunicipio" class="sel"><option value="">Selecciona tu municipio</option></select></div>
           <div class="field"><label>Descripción</label><input type="text" id="vDescription" placeholder="Estado del vehículo, extras, condiciones de uso"></div>
         </div>
       </div>
@@ -613,7 +613,7 @@ tr:hover td{background:#FBFCFE}
         <div class="card">
           <div class="field"><label>Nombre del negocio</label><input type="text" id="aBusinessName"></div>
           <div class="field"><label>RIF / Cédula</label><input type="text" id="aRif" placeholder="Ej. J-40123456-7"></div>
-          <div class="field"><label>Municipio</label><input type="text" id="aMunicipio"></div>
+          <div class="field"><label>Municipio</label><select id="aMunicipio" class="sel"><option value="">Selecciona tu municipio</option></select></div>
           <div class="field"><label>Correo</label><input type="text" id="aEmail" disabled style="background:var(--bg);color:var(--gray)"></div>
           <div id="accountMsg" style="display:none;font-size:12.5px;margin:8px 0"></div>
           <button class="btn btn-blue" onclick="saveAccount()">Guardar cambios</button>
@@ -639,6 +639,23 @@ tr:hover td{background:#FBFCFE}
 const SUPABASE_URL = 'https://vkgxvckooykxfulclodj.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_LVIRh3oSFP7gGSkQuCnBdg_eZ2SAB8g';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* Los 29 municipios oficiales del Táchira. El municipio se elige de la lista y
+   no se escribe: cuando se escribía llegaban "cordoba" o "ANDRES BELLO", y el
+   filtro del Portal Cliente, que compara contra estos nombres, no los encontraba. */
+const MUNICIPIOS = ["Andrés Bello","Antonio Rómulo Costa","Ayacucho","Bolívar","Cárdenas","Córdoba","Fernández Feo","Francisco de Miranda","García de Hevia","Guásimos","Independencia","Jáuregui","José María Vargas","Junín","Libertad","Libertador","Lobatera","Michelena","Panamericano","Pedro María Ureña","Rafael Urdaneta","Samuel Darío Maldonado","San Cristóbal","San Judas Tadeo","Seboruco","Simón Rodríguez","Sucre","Torbes","Uribante"];
+
+document.addEventListener('DOMContentLoaded', () => {
+  ['signupMunicipio','fMunicipio','vMunicipio','aMunicipio'].forEach(id => {
+    const sel = document.getElementById(id);
+    if(!sel) return;
+    MUNICIPIOS.forEach(m => {
+      const o = document.createElement('option');
+      o.value = m; o.textContent = m;
+      sel.appendChild(o);
+    });
+  });
+});
 
 let currentProvider = null;
 let authFlowInProgress = false;
