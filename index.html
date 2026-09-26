@@ -589,8 +589,42 @@ tr:hover td{background:#FBFCFE}
         </div>
       </div>
 
+      <div class="card" id="micrositeLinkCard" style="display:none;margin-bottom:20px">
+        <div class="section-title">La dirección de tu página</div>
+        <div style="font-size:12.5px;color:var(--gray);margin-bottom:12px">Compártela en tus redes: quien entre verá tu negocio, tu catálogo y podrá reservar ahí mismo.</div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <code id="micrositeUrl" style="flex:1;min-width:240px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:11px 14px;font-size:13.5px;color:var(--blue-dark)"></code>
+          <button class="btn btn-outline" onclick="copiarMicrositeUrl()" id="btnCopiarUrl">Copiar enlace</button>
+          <a class="btn btn-blue" id="btnVerMicrosite" target="_blank" rel="noopener">Ver mi página</a>
+        </div>
+      </div>
+
       <div class="grid grid-2" id="micrositeEditor" style="display:none">
         <div class="card">
+          <div class="field"><label>Logo de tu negocio</label>
+            <input type="file" id="logoInput" accept="image/*" style="display:none" onchange="subirMarca(event,'logo')">
+            <div style="display:flex;gap:12px;align-items:center">
+              <div id="logoPreview" style="width:64px;height:64px;border-radius:12px;border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--gray-light);background:var(--bg);overflow:hidden">Sin logo</div>
+              <button class="btn btn-ghost" onclick="document.getElementById('logoInput').click()">Subir logo</button>
+            </div>
+          </div>
+          <div class="field"><label>Foto de portada</label>
+            <input type="file" id="coverInput" accept="image/*" style="display:none" onchange="subirMarca(event,'cover')">
+            <div style="display:flex;gap:12px;align-items:center">
+              <div id="coverPreview" style="width:120px;height:64px;border-radius:9px;border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--gray-light);background:var(--bg);overflow:hidden">Sin portada</div>
+              <button class="btn btn-ghost" onclick="document.getElementById('coverInput').click()">Subir portada</button>
+            </div>
+          </div>
+          <div class="field"><label>Tipo de negocio</label>
+            <select id="mBusinessType" class="sel">
+              <option value="otro">Otro</option>
+              <option value="hotel">Hotel o posada</option>
+              <option value="operadora">Operadora de tours</option>
+              <option value="actividades">Actividades</option>
+              <option value="vehiculos">Alquiler de vehículos</option>
+            </select>
+          </div>
+          <div id="marcaError" style="display:none;color:var(--red);font-size:12.5px;margin-bottom:8px"></div>
           <div class="field"><label>Título de portada</label><input type="text" id="mTitle" oninput="renderMicrositePreview()"></div>
           <div class="field"><label>Frase destacada</label><input type="text" id="mTagline" oninput="renderMicrositePreview()"></div>
           <div class="field"><label>Sobre nosotros</label><input type="text" id="mAbout" oninput="renderMicrositePreview()"></div>
@@ -1050,6 +1084,51 @@ async function saveAccount(){
 // ============================================================
 // Micrositio — bloqueado hasta que el administrador apruebe
 // ============================================================
+const SITIO_PUBLICO = 'https://tachiragoo.com';
+
+async function subirMarca(event, cual){
+  const file = (event.target.files || [])[0];
+  const err = document.getElementById('marcaError');
+  event.target.value = '';
+  err.style.display = 'none';
+  if(!file || !currentProvider) return;
+  if(file.size > 3 * 1024 * 1024){
+    err.textContent = 'La imagen supera 3MB.'; err.style.display='block'; return;
+  }
+  const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const path = `${currentProvider.id}/${cual}-${Date.now()}-${safe}`;
+  const { error } = await sb.storage.from('provider-brand').upload(path, file);
+  if(error){ err.textContent = 'Error subiendo la imagen: ' + error.message; err.style.display='block'; return; }
+  const { data: pub } = sb.storage.from('provider-brand').getPublicUrl(path);
+  const campo = cual === 'logo' ? 'logo_url' : 'cover_image_url';
+  const { data, error: upErr } = await sb.from('providers')
+    .update({ [campo]: pub.publicUrl }).eq('id', currentProvider.id).select().single();
+  if(upErr){ err.textContent = 'Error al guardar: ' + upErr.message; err.style.display='block'; return; }
+  currentProvider = data;
+  pintarMarca();
+}
+
+function pintarMarca(){
+  const logo = document.getElementById('logoPreview');
+  const cover = document.getElementById('coverPreview');
+  if(logo) logo.innerHTML = currentProvider.logo_url
+    ? `<img src="${esc(currentProvider.logo_url)}" style="width:100%;height:100%;object-fit:contain">` : 'Sin logo';
+  if(cover) cover.innerHTML = currentProvider.cover_image_url
+    ? `<img src="${esc(currentProvider.cover_image_url)}" style="width:100%;height:100%;object-fit:cover">` : 'Sin portada';
+  const tipo = document.getElementById('mBusinessType');
+  if(tipo) tipo.value = currentProvider.business_type || 'otro';
+}
+
+function copiarMicrositeUrl(){
+  const url = document.getElementById('micrositeUrl').textContent;
+  const btn = document.getElementById('btnCopiarUrl');
+  navigator.clipboard.writeText(url).then(() => {
+    const previo = btn.textContent;
+    btn.textContent = '¡Copiado!';
+    setTimeout(() => { btn.textContent = previo; }, 1600);
+  });
+}
+
 function refreshMicrosite(){
   if(!currentProvider) return;
   const approved = currentProvider.verification_status === 'approved';
@@ -1069,11 +1148,22 @@ function refreshMicrosite(){
     badge.className = 'badge badge-orange';
   }
 
+  const tarjeta = document.getElementById('micrositeLinkCard');
+  if(approved && currentProvider.slug){
+    const url = SITIO_PUBLICO + '/' + currentProvider.slug;
+    document.getElementById('micrositeUrl').textContent = url;
+    document.getElementById('btnVerMicrosite').href = url;
+    tarjeta.style.display = 'block';
+  } else {
+    tarjeta.style.display = 'none';
+  }
+
   if(approved){
     document.getElementById('mTitle').value = currentProvider.cover_title || currentProvider.business_name || '';
     document.getElementById('mTagline').value = currentProvider.cover_tagline || '';
     document.getElementById('mAbout').value = currentProvider.about || '';
     document.getElementById('mWhatsapp').value = currentProvider.whatsapp || '';
+    pintarMarca();
     renderMicrositePreview();
   }
 }
@@ -1098,7 +1188,8 @@ async function saveMicrosite(){
     cover_title: document.getElementById('mTitle').value.trim() || null,
     cover_tagline: document.getElementById('mTagline').value.trim() || null,
     about: document.getElementById('mAbout').value.trim() || null,
-    whatsapp: document.getElementById('mWhatsapp').value.trim() || null
+    whatsapp: document.getElementById('mWhatsapp').value.trim() || null,
+    business_type: document.getElementById('mBusinessType').value
   }).eq('id', currentProvider.id).select().single();
   if(error){
     msg.textContent = 'Error al publicar: ' + error.message;
