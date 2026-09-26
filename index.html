@@ -241,6 +241,11 @@ tr:hover td{background:#FBFCFE}
     <div class="nav-item" onclick="showView('listings',this)"><span class="nav-ico">▤</span> Mis listados</div>
     <div class="nav-item" onclick="showView('bookings',this)"><span class="nav-ico">▥</span> Reservas</div>
 
+    <div class="sb-group-label" id="grpHotel" style="display:none">Hotel</div>
+    <div class="nav-item" id="navHabitaciones" style="display:none" onclick="showView('rooms',this)"><span class="nav-ico">▢</span> Habitaciones</div>
+    <div class="nav-item" id="navOcupacion" style="display:none" onclick="showView('occupancy',this)"><span class="nav-ico">▩</span> Ocupación</div>
+    <div class="nav-item" id="navRecepcion" style="display:none" onclick="showView('frontdesk',this)"><span class="nav-ico">◱</span> Recepción</div>
+
     <div class="sb-group-label">Alquiler de vehículos</div>
     <div class="nav-item" onclick="showView('vehicles',this)"><span class="nav-ico">⛟</span> Mis vehículos</div>
 
@@ -411,6 +416,79 @@ tr:hover td{background:#FBFCFE}
     </div>
 
     <!-- ====== Alquiler de vehículos: vertical propia, separada de los listados ====== -->
+    <!-- ====== HOTEL ====== -->
+    <div class="view" id="v-rooms" style="display:none">
+      <div class="topbar">
+        <div><div class="breadcrumb">HABITACIONES</div><h1 class="page-title">Tipos de habitación</h1><div class="page-sub">Declara qué habitaciones tienes y cuántas de cada tipo</div></div>
+        <button class="btn btn-blue" onclick="abrirNuevaHabitacion()">+ Nuevo tipo</button>
+      </div>
+      <div class="grid grid-3" id="roomsGrid"></div>
+    </div>
+
+    <div class="view" id="v-room-editor" style="display:none">
+      <div class="topbar">
+        <div><div class="breadcrumb" id="roomCrumb">NUEVO TIPO</div><h1 class="page-title" id="roomTitle">Nuevo tipo de habitación</h1><div class="page-sub">El precio y la cantidad se pueden ajustar día a día desde Ocupación</div></div>
+        <div style="display:flex;gap:10px"><button class="btn btn-outline" onclick="showView('rooms')">Cancelar</button><button class="btn btn-blue" id="roomSaveBtn" onclick="guardarHabitacion()">Guardar</button></div>
+      </div>
+      <div class="card" style="max-width:640px">
+        <div class="field"><label>Nombre</label><input type="text" id="rtNombre" placeholder="Ej. Doble estándar"></div>
+        <div class="field"><label>Descripción</label><input type="text" id="rtDescripcion" placeholder="Qué incluye, vista, cama"></div>
+        <div class="grid grid-2" style="gap:0 18px">
+          <div class="field"><label>Capacidad (huéspedes)</label><input type="text" id="rtCapacidad" placeholder="Ej. 2"></div>
+          <div class="field"><label>¿Cuántas tienes de este tipo?</label><input type="text" id="rtCantidad" placeholder="Ej. 6"></div>
+        </div>
+        <div class="field"><label>Precio por noche (USD)</label><input type="text" id="rtPrecio" placeholder="Ej. 45"></div>
+        <div class="field"><label>Foto</label>
+          <input type="file" id="rtFotoInput" accept="image/*" style="display:none" onchange="subirFotoHabitacion(event)">
+          <div style="display:flex;gap:12px;align-items:center">
+            <div id="rtFotoPreview" style="width:120px;height:78px;border-radius:9px;border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--gray-light);background:var(--bg);overflow:hidden">Sin foto</div>
+            <button class="btn btn-ghost" onclick="document.getElementById('rtFotoInput').click()">Subir foto</button>
+          </div>
+        </div>
+        <div class="field"><label>Estado</label>
+          <select id="rtStatus" class="sel"><option value="published">Publicada</option><option value="paused">Pausada</option><option value="draft">Borrador</option></select>
+        </div>
+        <div id="roomError" style="display:none;color:var(--red);font-size:12.5px;margin-top:8px"></div>
+      </div>
+    </div>
+
+    <div class="view" id="v-occupancy" style="display:none">
+      <div class="topbar"><div><div class="breadcrumb">OCUPACIÓN</div><h1 class="page-title">Disponibilidad y tarifas</h1><div class="page-sub">Ajusta cuántas habitaciones quedan y a qué precio, por rango de fechas</div></div></div>
+      <div class="card" style="margin-bottom:20px">
+        <div class="grid grid-2" style="gap:0 18px">
+          <div class="field"><label>Tipo de habitación</label><select id="ocTipo" class="sel" onchange="cargarOcupacion()"></select></div>
+          <div class="field"><label>Desde</label><input type="date" id="ocDesde" onchange="cargarOcupacion()"></div>
+        </div>
+        <div class="grid grid-2" style="gap:0 18px">
+          <div class="field"><label>Hasta</label><input type="date" id="ocHasta" onchange="cargarOcupacion()"></div>
+          <div class="field"><label>&nbsp;</label>
+            <div style="display:flex;gap:8px">
+              <input type="text" id="ocCantidad" placeholder="Disponibles" style="flex:1">
+              <input type="text" id="ocPrecio" placeholder="Precio" style="flex:1">
+              <button class="btn btn-blue" onclick="aplicarRango()">Aplicar al rango</button>
+            </div>
+          </div>
+        </div>
+        <div class="info-note">💡 Editar noventa días uno por uno no lo hace nadie: pon los valores y aplícalos a todo el rango de una vez.</div>
+        <div id="ocError" style="display:none;color:var(--red);font-size:12.5px;margin-top:8px"></div>
+      </div>
+      <div class="card"><div id="ocTabla"></div></div>
+    </div>
+
+    <div class="view" id="v-frontdesk" style="display:none">
+      <div class="topbar"><div><div class="breadcrumb">RECEPCIÓN</div><h1 class="page-title">Hoy en el hotel</h1><div class="page-sub">Entradas, salidas y ocupación del día</div></div></div>
+      <div class="grid grid-4" style="margin-bottom:24px">
+        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--blue)"></div><div class="kpi-label">Entradas hoy</div><div class="kpi-value num" id="fdEntradas">0</div></div>
+        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--orange)"></div><div class="kpi-label">Salidas hoy</div><div class="kpi-value num" id="fdSalidas">0</div></div>
+        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--green)"></div><div class="kpi-label">Ocupadas esta noche</div><div class="kpi-value num" id="fdOcupadas">0</div></div>
+        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--gray-light)"></div><div class="kpi-label">Por cobrar al llegar</div><div class="kpi-value num" id="fdPorCobrar">$0</div></div>
+      </div>
+      <div class="card">
+        <div class="section-title">Reservas</div>
+        <table><tbody id="fdTabla"><tr><td class="empty-state">Cargando...</td></tr></tbody></table>
+      </div>
+    </div>
+
     <div class="view" id="v-vehicles" style="display:none">
       <div class="topbar">
         <div><div class="breadcrumb">MIS VEHÍCULOS</div><h1 class="page-title">Alquiler de vehículos</h1><div class="page-sub">Cada vehículo necesita aprobar una revisión legal y una revisión física antes de ser visible</div></div>
@@ -866,6 +944,8 @@ async function refreshAll(){
   await refreshAccount();
   refreshMicrosite();
   await refreshVehicles();
+  aplicarTipoNegocio();
+  await refreshRooms();
   const now = new Date();
   document.getElementById('syncStatusText').textContent =
     'Sincronizado con el repositorio central · ' + now.toLocaleTimeString('es-VE', { hour:'2-digit', minute:'2-digit' });
@@ -1197,6 +1277,8 @@ async function saveMicrosite(){
     return;
   }
   currentProvider = data;
+  aplicarTipoNegocio();
+  refreshRooms();
   msg.textContent = 'Micrositio publicado.';
   msg.style.color = 'var(--green)'; msg.style.display = 'block';
 }
@@ -1585,6 +1667,257 @@ async function saveEdit(){
   editingListingId = null;
   showView('listings');
   activateNav('listings');
+}
+
+// ============================================================
+// HOTEL — habitaciones, ocupación y recepción
+// El inventario se lleva por tipo de habitación y noche. Quien descuenta y
+// devuelve el cupo es la base de datos, no esta pantalla.
+// ============================================================
+let roomTypes = [];
+let editingRoomId = null;
+let roomFoto = null;
+
+function esHotel(){
+  return currentProvider && currentProvider.business_type === 'hotel';
+}
+
+function aplicarTipoNegocio(){
+  const mostrar = esHotel() ? '' : 'none';
+  ['grpHotel','navHabitaciones','navOcupacion','navRecepcion'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.style.display = mostrar;
+  });
+}
+
+async function refreshRooms(){
+  if(!currentProvider || !esHotel()) return;
+  const { data, error } = await sb.from('room_types').select('*')
+    .eq('provider_id', currentProvider.id).order('created_at');
+  if(error){ console.error(error); return; }
+  roomTypes = data || [];
+  renderRooms();
+  const sel = document.getElementById('ocTipo');
+  if(sel){
+    sel.innerHTML = roomTypes.map(t => `<option value="${t.id}">${esc(t.nombre)}</option>`).join('');
+  }
+  await refreshFrontDesk();
+}
+
+const ROOM_ESTADO = { published:'Publicada', paused:'Pausada', draft:'Borrador' };
+
+function renderRooms(){
+  const grid = document.getElementById('roomsGrid');
+  if(!grid) return;
+  grid.innerHTML = roomTypes.map(t => `
+    <div class="veh-card">
+      <div class="veh-img" style="${t.cover_image_url ? `background-image:url('${esc(t.cover_image_url)}');background-size:cover;background-position:center;color:transparent` : ''}">
+        ${t.cover_image_url ? '' : 'Sin foto'}
+        <span class="badge ${t.status==='published'?'badge-green':'badge-gray'}" style="position:absolute;top:10px;right:10px">${ROOM_ESTADO[t.status]||t.status}</span>
+      </div>
+      <div class="veh-body">
+        <div class="listing-title">${esc(t.nombre)}</div>
+        <div class="listing-meta">${t.cantidad_total} ${t.cantidad_total===1?'habitación':'habitaciones'} · hasta ${t.capacidad} huéspedes · ${money(t.precio_base)}/noche</div>
+        <button class="btn btn-outline btn-sm" style="margin-top:12px" onclick="abrirEditarHabitacion('${t.id}')">Editar</button>
+      </div>
+    </div>`).join('') + `
+    <div class="new-listing-card" onclick="abrirNuevaHabitacion()">
+      <div style="font-size:26px">＋</div><div style="font-size:13px">Nuevo tipo de habitación</div>
+    </div>`;
+}
+
+function limpiarEditorHabitacion(){
+  ['rtNombre','rtDescripcion','rtCapacidad','rtCantidad','rtPrecio'].forEach(id => {
+    const e = document.getElementById(id); if(e) e.value = '';
+  });
+  document.getElementById('rtStatus').value = 'published';
+  document.getElementById('roomError').style.display = 'none';
+  roomFoto = null;
+  document.getElementById('rtFotoPreview').innerHTML = 'Sin foto';
+}
+
+function abrirNuevaHabitacion(){
+  editingRoomId = null;
+  limpiarEditorHabitacion();
+  document.getElementById('roomCrumb').textContent = 'NUEVO TIPO';
+  document.getElementById('roomTitle').textContent = 'Nuevo tipo de habitación';
+  showView('room-editor');
+}
+
+function abrirEditarHabitacion(id){
+  const t = roomTypes.find(x => x.id === id);
+  if(!t) return;
+  editingRoomId = id;
+  limpiarEditorHabitacion();
+  document.getElementById('roomCrumb').textContent = 'EDITAR TIPO';
+  document.getElementById('roomTitle').textContent = 'Editando: ' + t.nombre;
+  document.getElementById('rtNombre').value = t.nombre || '';
+  document.getElementById('rtDescripcion').value = t.descripcion || '';
+  document.getElementById('rtCapacidad').value = t.capacidad ?? '';
+  document.getElementById('rtCantidad').value = t.cantidad_total ?? '';
+  document.getElementById('rtPrecio').value = t.precio_base ?? '';
+  document.getElementById('rtStatus').value = t.status || 'published';
+  roomFoto = t.cover_image_url || null;
+  if(roomFoto) document.getElementById('rtFotoPreview').innerHTML =
+    `<img src="${esc(roomFoto)}" style="width:100%;height:100%;object-fit:cover">`;
+  showView('room-editor');
+}
+
+async function subirFotoHabitacion(event){
+  const file = (event.target.files || [])[0];
+  const err = document.getElementById('roomError');
+  event.target.value = '';
+  if(!file) return;
+  if(file.size > 5*1024*1024){ err.textContent='La foto supera 5MB.'; err.style.display='block'; return; }
+  const safe = file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+  const path = `${currentProvider.id}/hab-${Date.now()}-${safe}`;
+  const { error } = await sb.storage.from('listing-photos').upload(path, file);
+  if(error){ err.textContent='Error subiendo la foto: '+error.message; err.style.display='block'; return; }
+  const { data: pub } = sb.storage.from('listing-photos').getPublicUrl(path);
+  roomFoto = pub.publicUrl;
+  document.getElementById('rtFotoPreview').innerHTML =
+    `<img src="${esc(roomFoto)}" style="width:100%;height:100%;object-fit:cover">`;
+}
+
+async function guardarHabitacion(){
+  const err = document.getElementById('roomError');
+  err.style.display = 'none';
+  const nombre = document.getElementById('rtNombre').value.trim();
+  const cap = parseInt(document.getElementById('rtCapacidad').value, 10);
+  const cant = parseInt(document.getElementById('rtCantidad').value, 10);
+  const precio = parseFloat(document.getElementById('rtPrecio').value);
+  if(!nombre || isNaN(cap) || isNaN(cant) || isNaN(precio)){
+    err.textContent = 'Completa nombre, capacidad, cantidad y precio.';
+    err.style.display='block'; return;
+  }
+  const payload = {
+    provider_id: currentProvider.id, nombre,
+    descripcion: document.getElementById('rtDescripcion').value.trim() || null,
+    capacidad: cap, cantidad_total: cant, precio_base: precio,
+    cover_image_url: roomFoto, status: document.getElementById('rtStatus').value,
+    updated_at: new Date().toISOString()
+  };
+  const q = editingRoomId
+    ? sb.from('room_types').update(payload).eq('id', editingRoomId)
+    : sb.from('room_types').insert(payload);
+  const { error } = await q;
+  if(error){ err.textContent = 'Error al guardar: ' + error.message; err.style.display='block'; return; }
+  await refreshRooms();
+  showView('rooms'); activateNav('rooms');
+}
+
+// ---------- Ocupación ----------
+function diasDelRango(desde, hasta){
+  const out = [], d = new Date(desde+'T00:00:00'), f = new Date(hasta+'T00:00:00');
+  while(d <= f){ out.push(dateKey(d)); d.setDate(d.getDate()+1); }
+  return out;
+}
+
+async function cargarOcupacion(){
+  const tipo = document.getElementById('ocTipo').value;
+  const desde = document.getElementById('ocDesde').value;
+  const hasta = document.getElementById('ocHasta').value;
+  const cont = document.getElementById('ocTabla');
+  if(!tipo || !desde || !hasta || hasta < desde){
+    cont.innerHTML = '<div class="empty-state">Elige tipo de habitación y un rango de fechas.</div>';
+    return;
+  }
+  const t = roomTypes.find(x => x.id === tipo);
+  const dias = diasDelRango(desde, hasta);
+  const { data } = await sb.from('room_inventory').select('*')
+    .eq('room_type_id', tipo).gte('fecha', desde).lte('fecha', hasta);
+  const porFecha = {};
+  (data || []).forEach(r => { porFecha[r.fecha] = r; });
+
+  cont.innerHTML = '<table><tbody><tr><th>Fecha</th><th>Disponibles</th><th>Precio</th><th>Estado</th></tr>' +
+    dias.map(d => {
+      const r = porFecha[d];
+      const disp = r ? r.disponibles : t.cantidad_total;
+      const precio = r && r.precio != null ? r.precio : t.precio_base;
+      const bloq = r && r.bloqueado;
+      const agotado = disp === 0;
+      return `<tr>
+        <td class="tx-id">${d}</td>
+        <td class="num">${disp} / ${t.cantidad_total}</td>
+        <td class="num">${money(precio)}</td>
+        <td><span class="badge ${bloq?'badge-red':(agotado?'badge-orange':'badge-green')}">${bloq?'Cerrado':(agotado?'Completo':'Disponible')}</span></td>
+      </tr>`;
+    }).join('') + '</tbody></table>';
+}
+
+async function aplicarRango(){
+  const err = document.getElementById('ocError');
+  err.style.display = 'none';
+  const tipo = document.getElementById('ocTipo').value;
+  const desde = document.getElementById('ocDesde').value;
+  const hasta = document.getElementById('ocHasta').value;
+  const cant = document.getElementById('ocCantidad').value.trim();
+  const precio = document.getElementById('ocPrecio').value.trim();
+  if(!tipo || !desde || !hasta || hasta < desde){
+    err.textContent = 'Elige tipo y rango de fechas válidos.'; err.style.display='block'; return;
+  }
+  if(cant === '' && precio === ''){
+    err.textContent = 'Indica cuántas habitaciones quedan, el precio, o ambos.'; err.style.display='block'; return;
+  }
+  const t = roomTypes.find(x => x.id === tipo);
+  const nCant = cant === '' ? null : parseInt(cant, 10);
+  const nPrecio = precio === '' ? null : parseFloat(precio);
+  if(nCant !== null && (isNaN(nCant) || nCant < 0 || nCant > t.cantidad_total)){
+    err.textContent = `Las disponibles deben estar entre 0 y ${t.cantidad_total}.`; err.style.display='block'; return;
+  }
+  const filas = diasDelRango(desde, hasta).map(d => ({
+    room_type_id: tipo, fecha: d,
+    disponibles: nCant !== null ? nCant : t.cantidad_total,
+    precio: nPrecio !== null ? nPrecio : t.precio_base
+  }));
+  const { error } = await sb.from('room_inventory').upsert(filas, { onConflict: 'room_type_id,fecha' });
+  if(error){ err.textContent = 'Error al aplicar: ' + error.message; err.style.display='block'; return; }
+  await cargarOcupacion();
+}
+
+// ---------- Recepción ----------
+async function refreshFrontDesk(){
+  if(!currentProvider || !esHotel()) return;
+  const hoy = dateKey(new Date());
+  const { data, error } = await sb.from('room_bookings')
+    .select('*, room_types(nombre)')
+    .eq('provider_id', currentProvider.id)
+    .in('status', ['confirmada','pendiente_aprobacion','completada'])
+    .order('check_in');
+  const tabla = document.getElementById('fdTabla');
+  if(error){ if(tabla) tabla.innerHTML = '<tr><td class="empty-state">No se pudo cargar: '+esc(error.message)+'</td></tr>'; return; }
+  const res = data || [];
+
+  const entradas = res.filter(b => b.check_in === hoy && b.status === 'confirmada');
+  const salidas  = res.filter(b => b.check_out === hoy && b.status === 'confirmada');
+  const ocupadas = res.filter(b => b.status === 'confirmada' && b.check_in <= hoy && b.check_out > hoy)
+                      .reduce((s,b) => s + b.habitaciones, 0);
+  const porCobrar = res.filter(b => b.status === 'confirmada' && b.check_in >= hoy)
+                       .reduce((s,b) => s + Number(b.monto_pendiente||0), 0);
+
+  document.getElementById('fdEntradas').textContent = entradas.length;
+  document.getElementById('fdSalidas').textContent = salidas.length;
+  document.getElementById('fdOcupadas').textContent = ocupadas;
+  document.getElementById('fdPorCobrar').textContent = money(porCobrar);
+
+  const ESTADO = { pendiente_aprobacion:['Pendiente de pago','badge-orange'], confirmada:['Confirmada','badge-green'],
+                   completada:['Completada','badge-gray'] };
+  const cab = '<tr><th>Ref.</th><th>Huésped</th><th>Habitación</th><th>Entrada</th><th>Salida</th><th>Hab.</th><th>Por cobrar</th><th>Estado</th></tr>';
+  tabla.innerHTML = cab + (res.length === 0
+    ? '<tr><td colspan="8" class="empty-state">Todavía no hay reservas.</td></tr>'
+    : res.map(b => {
+        const e = ESTADO[b.status] || [b.status,'badge-gray'];
+        return `<tr>
+          <td class="tx-id">${esc(b.ref)}</td>
+          <td>${esc(b.guest_nombre || 'Huésped')}${b.guest_telefono ? `<div style="font-size:11px;color:var(--gray)">${esc(b.guest_telefono)}</div>` : ''}</td>
+          <td>${esc(b.room_types?.nombre || '')}</td>
+          <td>${esc(b.check_in)}</td>
+          <td>${esc(b.check_out)}</td>
+          <td class="num">${b.habitaciones}</td>
+          <td class="num">${money(b.monto_pendiente)}</td>
+          <td><span class="badge ${e[1]}">${e[0]}</span></td>
+        </tr>`;
+      }).join(''));
 }
 
 // ============================================================
