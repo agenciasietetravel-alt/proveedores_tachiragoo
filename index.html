@@ -240,6 +240,7 @@ tr:hover td{background:#FBFCFE}
     <div class="nav-item active" onclick="showView('dashboard',this)"><span class="nav-ico">▦</span> Panel general</div>
     <div class="nav-item" onclick="showView('listings',this)"><span class="nav-ico">▤</span> Mis listados</div>
     <div class="nav-item" onclick="showView('bookings',this)"><span class="nav-ico">▥</span> Reservas</div>
+    <div class="nav-item" onclick="showView('mensajes',this); refreshConversaciones()"><span class="nav-ico">✉</span> Mensajes <span id="badgeMensajes" class="badge badge-orange" style="display:none;margin-left:6px">0</span></div>
 
     <div class="sb-group-label" id="grpHotel" style="display:none">Hotel</div>
     <div class="nav-item" id="navHabitaciones" style="display:none" onclick="showView('rooms',this)"><span class="nav-ico">▢</span> Habitaciones</div>
@@ -632,6 +633,21 @@ tr:hover td{background:#FBFCFE}
       </div>
     </div>
 
+    <div class="view" id="v-mensajes" style="display:none">
+      <div class="topbar"><div><div class="breadcrumb">MENSAJES</div><h1 class="page-title">Mensajes</h1><div class="page-sub">Conversaciones con los viajeros que ya reservaron contigo</div></div>
+        <button class="btn btn-outline" onclick="refreshConversaciones()">Actualizar</button></div>
+      <div class="grid" style="grid-template-columns:320px 1fr;gap:20px;align-items:start">
+        <div class="card" style="padding:0;overflow:hidden">
+          <div id="listaConversaciones" style="max-height:520px;overflow-y:auto">
+            <div class="empty-state" style="padding:24px">Cargando…</div>
+          </div>
+        </div>
+        <div class="card" id="panelHilo">
+          <div class="empty-state" style="padding:40px">Elige una conversación de la izquierda.</div>
+        </div>
+      </div>
+    </div>
+
     <div class="view" id="v-billing" style="display:none">
       <div class="topbar"><div><div class="breadcrumb">FACTURACIÓN</div><h1 class="page-title">Facturación</h1><div class="page-sub">Ciclo de pago: quincenal</div></div></div>
       <div class="grid grid-3" style="margin-bottom:24px">
@@ -937,8 +953,8 @@ let leafletMap = null, leafletMarker = null;
 
 const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const CANCELLATION_LABEL = { full: '100% reembolsable', partial: 'Reembolsable parcialmente', no_refund: 'Sin reembolso' };
-const BOOKING_STATUS_LABEL = { pending: 'Pendiente', confirmed: 'Confirmada', completed: 'Completada', cancelled: 'Cancelada', disputed: 'En disputa' };
-const BOOKING_STATUS_BADGE = { pending: 'badge-orange', confirmed: 'badge-green', completed: 'badge-gray', cancelled: 'badge-red', disputed: 'badge-red' };
+const BOOKING_STATUS_LABEL = { pendiente_aprobacion: 'Pendiente de pago', confirmada: 'Confirmada', completada: 'Completada', rechazada: 'Rechazada', cancelada: 'Cancelada', no_show: 'No se presentó', disputa: 'En disputa' };
+const BOOKING_STATUS_BADGE = { pendiente_aprobacion: 'badge-orange', confirmada: 'badge-green', completada: 'badge-gray', rechazada: 'badge-red', cancelada: 'badge-gray', no_show: 'badge-red', disputa: 'badge-red' };
 
 function esc(s){
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -985,12 +1001,111 @@ async function refreshListings(){
 let providerListings = [];
 let providerBookings = [];
 
+// ============================================================
+// Mensajes con los viajeros
+// El viajero no tiene cuenta: escribe desde su panel de reserva y sus
+// mensajes llegan aquí atados al código de esa reserva.
+// ============================================================
+let CONVERSACIONES = [];
+let hiloAbierto = null;
+
+async function refreshConversaciones(){
+  if(!currentProvider) return;
+  const lista = document.getElementById('listaConversaciones');
+  const { data, error } = await sb.from('conversations')
+    .select('*')
+    .eq('provider_id', currentProvider.id)
+    .order('last_message_at', { ascending: false });
+  if(error){
+    lista.innerHTML = '<div class="empty-state" style="padding:24px">No se pudieron cargar: ' + esc(error.message) + '</div>';
+    return;
+  }
+  CONVERSACIONES = data || [];
+
+  const sinLeer = CONVERSACIONES.reduce((n, c) => n + (c.no_leidos_proveedor || 0), 0);
+  const badge = document.getElementById('badgeMensajes');
+  if(badge){ badge.textContent = sinLeer; badge.style.display = sinLeer ? 'inline-block' : 'none'; }
+
+  if(!CONVERSACIONES.length){
+    lista.innerHTML = '<div class="empty-state" style="padding:24px">Todavía no hay mensajes. Aparecerán cuando un viajero te escriba desde su reserva.</div>';
+    return;
+  }
+
+  lista.innerHTML = CONVERSACIONES.map(c => `
+    <div onclick="abrirHilo('${c.id}')" style="padding:14px 16px;border-bottom:1px solid var(--line);cursor:pointer;${hiloAbierto===c.id?'background:var(--blue-soft)':''}">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+        <strong style="font-size:13px">${esc(c.codigo)}</strong>
+        ${c.no_leidos_proveedor ? `<span class="badge badge-orange">${c.no_leidos_proveedor}</span>` : ''}
+      </div>
+      <div class="cell-sub" style="font-size:12px;color:var(--gray)">${esc(c.tipo)} · ${new Date(c.last_message_at).toLocaleDateString('es-VE')}</div>
+    </div>`).join('');
+}
+
+async function abrirHilo(id){
+  hiloAbierto = id;
+  const conv = CONVERSACIONES.find(c => c.id === id);
+  const panel = document.getElementById('panelHilo');
+  const { data, error } = await sb.from('messages')
+    .select('*').eq('conversation_id', id).order('created_at');
+  if(error){ panel.innerHTML = '<div class="empty-state" style="padding:24px">' + esc(error.message) + '</div>'; return; }
+
+  /* Abrir el hilo es haberlo leído. */
+  if(conv && conv.no_leidos_proveedor){
+    await sb.from('conversations').update({ no_leidos_proveedor: 0 }).eq('id', id);
+    conv.no_leidos_proveedor = 0;
+  }
+
+  const burbujas = (data || []).map(m => `
+    <div style="display:flex;justify-content:${m.autor==='proveedor'?'flex-end':'flex-start'};margin-bottom:10px">
+      <div style="max-width:78%;padding:9px 13px;border-radius:14px;font-size:13px;line-height:1.5;
+                  background:${m.autor==='proveedor'?'var(--blue)':m.autor==='admin'?'#FEF3C7':'#F1F5F9'};
+                  color:${m.autor==='proveedor'?'#fff':'#334155'}">
+        ${m.autor!=='proveedor' ? `<div style="font-size:10px;font-weight:700;opacity:.7;margin-bottom:2px">${m.autor==='admin'?'Táchira GOO!!!':esc(m.autor_nombre||'Viajero')}</div>` : ''}
+        <div style="white-space:pre-wrap">${esc(m.cuerpo)}</div>
+        <div style="font-size:10px;opacity:.65;margin-top:4px">${new Date(m.created_at).toLocaleString('es-VE',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+      </div>
+    </div>`).join('');
+
+  panel.innerHTML = `
+    <div style="border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:14px">
+      <strong>Reserva ${esc(conv ? conv.codigo : '')}</strong>
+      <div class="cell-sub" style="font-size:12px;color:var(--gray)">${esc(conv ? conv.tipo : '')}</div>
+    </div>
+    <div id="hiloBurbujas" style="max-height:360px;overflow-y:auto;padding-right:4px">
+      ${burbujas || '<div class="empty-state" style="padding:24px">Sin mensajes todavía.</div>'}
+    </div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <input class="input" id="hiloTexto" placeholder="Escribe tu respuesta…" style="flex:1"
+             onkeydown="if(event.key==='Enter') responderHilo()">
+      <button class="btn btn-blue" onclick="responderHilo()">Enviar</button>
+    </div>
+    <div id="hiloError" style="color:var(--red);font-size:12px;margin-top:6px"></div>`;
+
+  const cont = document.getElementById('hiloBurbujas');
+  if(cont) cont.scrollTop = cont.scrollHeight;
+  refreshConversaciones();
+}
+
+async function responderHilo(){
+  const campo = document.getElementById('hiloTexto');
+  const cuerpo = (campo.value || '').trim();
+  if(!cuerpo || !hiloAbierto) return;
+  const { error } = await sb.from('messages').insert({
+    conversation_id: hiloAbierto, autor: 'proveedor',
+    autor_nombre: currentProvider ? currentProvider.business_name : 'Proveedor',
+    cuerpo
+  });
+  if(error){ document.getElementById('hiloError').textContent = error.message; return; }
+  campo.value = '';
+  await abrirHilo(hiloAbierto);
+}
+
 async function refreshBookings(){
   if(!currentProvider) return;
   const tbody = document.getElementById('bookingsTableBody');
   const header = '<tr><th>Ref.</th><th>Cliente</th><th>Listado</th><th>Fecha</th><th>Monto</th><th>Estado</th><th></th></tr>';
   const { data: bookings, error } = await sb.from('bookings')
-    .select('*, listings(title), profiles(full_name)')
+    .select('*, listings(title)')
     .eq('provider_id', currentProvider.id)
     .order('created_at', { ascending: false });
   if(error){
@@ -1003,21 +1118,27 @@ async function refreshBookings(){
     tbody.innerHTML = header + '<tr><td colspan="7" class="empty-state">Todavía no tienes solicitudes de reserva.</td></tr>';
     return;
   }
+  /* El proveedor ya no confirma el pago: eso lo revisa el administrador, que
+     es quien recibe el dinero. Aquí solo se marca el servicio como prestado. */
   tbody.innerHTML = header + providerBookings.map(b => `
     <tr>
-      <td class="tx-id">${esc(b.ref)}</td>
-      <td>${esc(b.profiles?.full_name || 'Viajero')}</td>
+      <td class="tx-id">${esc(b.codigo || b.ref)}</td>
+      <td>${esc(b.guest_nombre || 'Viajero')}<div class="cell-sub">${esc(b.guest_telefono || '')}</div></td>
       <td>${esc(b.listings?.title || '')}</td>
       <td>${esc(b.booking_date)}</td>
       <td class="num">${money(b.amount)}</td>
       <td><span class="badge ${BOOKING_STATUS_BADGE[b.status] || 'badge-gray'}">${esc(BOOKING_STATUS_LABEL[b.status] || b.status)}</span></td>
-      <td>${b.status === 'pending' ? `<button class="btn btn-blue btn-sm" onclick="confirmBooking('${b.id}')">Confirmar</button>` : ''}</td>
+      <td>${b.status === 'confirmada'
+        ? `<button class="btn btn-blue btn-sm" onclick="marcarPrestado('${b.id}','completada')">Marcar prestado</button>
+           <button class="btn btn-outline btn-sm" onclick="marcarPrestado('${b.id}','no_show')">No se presentó</button>`
+        : b.status === 'pendiente_aprobacion'
+          ? '<span class="cell-sub">Verificando el pago</span>' : ''}</td>
     </tr>`).join('');
 }
 
-async function confirmBooking(id){
-  const { error } = await sb.from('bookings').update({ status: 'confirmed' }).eq('id', id);
-  if(error){ alert('Error al confirmar: ' + error.message); return; }
+async function marcarPrestado(id, estado){
+  const { error } = await sb.from('bookings').update({ status: estado }).eq('id', id);
+  if(error){ alert('No se pudo actualizar: ' + error.message); return; }
   await refreshBookings();
   await refreshDashboard();
   await refreshBilling();
@@ -1030,13 +1151,13 @@ async function refreshDashboard(){
   if(!currentProvider) return;
   const today = dateKey(new Date());
 
-  const todayCount = providerBookings.filter(b => b.booking_date === today && b.status !== 'cancelled').length;
+  const todayCount = providerBookings.filter(b => b.booking_date === today && !['cancelada','rechazada'].includes(b.status)).length;
   document.getElementById('kpiToday').textContent = todayCount;
   document.getElementById('kpiTodaySub').textContent =
     todayCount === 0 ? 'Sin reservas para hoy' : (todayCount === 1 ? '1 reserva agendada hoy' : todayCount + ' reservas agendadas hoy');
 
   const balance = providerBookings
-    .filter(b => b.status === 'confirmed')
+    .filter(b => ['confirmada','completada'].includes(b.status))
     .reduce((sum, b) => sum + Number(b.amount || 0), 0);
   document.getElementById('kpiBalance').textContent = money(balance);
   document.getElementById('kpiBalanceSub').textContent =
@@ -1088,7 +1209,7 @@ async function refreshDashboard(){
   const alerts = [];
   const drafts = providerListings.filter(l => l.status === 'draft').length;
   if(drafts > 0) alerts.push('🟠 ' + drafts + (drafts === 1 ? ' listado en borrador sin publicar' : ' listados en borrador sin publicar'));
-  const pending = providerBookings.filter(b => b.status === 'pending').length;
+  const pending = providerBookings.filter(b => b.status === 'pendiente_aprobacion').length;
   if(pending > 0) alerts.push('🔵 ' + pending + (pending === 1 ? ' reserva esperando tu confirmación' : ' reservas esperando tu confirmación'));
   if(providerListings.length === 0) alerts.push('🟠 Aún no has creado tu primer listado');
   if(currentProvider.verification_status !== 'approved') alerts.push('⏳ Tu micrositio se habilita cuando el administrador verifique tu cuenta');
@@ -1099,7 +1220,7 @@ async function refreshDashboard(){
 
 async function refreshBilling(){
   if(!currentProvider) return;
-  const confirmed = providerBookings.filter(b => b.status === 'confirmed');
+  const confirmed = providerBookings.filter(b => ['confirmada','completada'].includes(b.status));
   document.getElementById('billPending').textContent = money(confirmed.reduce((s, b) => s + Number(b.amount || 0), 0));
   document.getElementById('billBookings').textContent = confirmed.length;
 
