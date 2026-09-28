@@ -281,7 +281,11 @@ tr:hover td{background:#FBFCFE}
     <div class="view" id="v-dashboard">
       <div class="topbar">
         <div><div class="breadcrumb">PANEL GENERAL</div><h1 class="page-title" id="greetName">Hola, Posada El Páramo</h1><div class="page-sub">Resumen de tu actividad y estado de cuenta</div></div>
-        <button class="btn btn-blue" onclick="openNewListing()">+ Nuevo listado</button>
+        <div style="display:flex;gap:10px;align-items:center">
+          <a id="btnVerPaginaPublica" class="btn btn-outline" target="_blank" rel="noopener"
+             href="#" style="display:none">Ver mi página pública ↗</a>
+          <button class="btn btn-blue" onclick="openNewListing()">+ Nuevo listado</button>
+        </div>
       </div>
 
       <div class="trust-strip">
@@ -937,6 +941,7 @@ async function loadProviderContext(userId){
   }
   currentProvider = provider;
   applyProviderIdentity(provider);
+  pintarEnlacePublico();
   await refreshAll();
 }
 
@@ -1489,6 +1494,31 @@ async function saveMicrosite(){
 // ============================================================
 // Listados
 // ============================================================
+/* El proveedor quiere ver cómo le queda al viajero. Solo tiene sentido si
+   el administrador ya aprobó el micrositio y el listado está publicado:
+   enlazar a una página que no existe es peor que no enlazar. */
+function urlPublica(){
+  if(!currentProvider || currentProvider.verification_status !== 'approved' || !currentProvider.slug) return null;
+  return SITIO_PUBLICO + '/' + currentProvider.slug;
+}
+
+function enlacePublico(l){
+  const base = urlPublica();
+  if(!base) return '';
+  if(l.status !== 'published'){
+    return '<span class="cell-sub" style="align-self:center;font-size:12px;color:var(--gray)">Publícalo para verlo en la web</span>';
+  }
+  return `<a class="btn btn-outline btn-sm" target="_blank" rel="noopener" href="${esc(base)}#catalogo-proveedor">Ver en la web ↗</a>`;
+}
+
+function pintarEnlacePublico(){
+  const a = document.getElementById('btnVerPaginaPublica');
+  if(!a) return;
+  const url = urlPublica();
+  if(url){ a.href = url; a.style.display = 'inline-flex'; }
+  else { a.style.display = 'none'; }
+}
+
 function renderListings(listings){
   const grid = document.getElementById('listingsGrid');
   const cards = listings.map(l => `
@@ -1500,7 +1530,10 @@ function renderListings(listings){
       <div class="listing-body">
         <div class="listing-title">${esc(l.title)}</div>
         <div class="listing-meta">${esc(l.municipio)} · desde ${money(l.base_price)}</div>
-        <button class="btn btn-outline btn-sm" style="margin-top:12px" onclick="openEditListing('${l.id}')">Editar</button>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <button class="btn btn-outline btn-sm" onclick="openEditListing('${l.id}')">Editar</button>
+          ${enlacePublico(l)}
+        </div>
       </div>
     </div>`).join('');
   grid.innerHTML = cards + `
