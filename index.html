@@ -737,13 +737,32 @@ tr:hover td{background:#FBFCFE}
         </div>
       </div>
 
+      <div class="card" id="temaCard" style="display:none;margin-bottom:20px">
+        <div class="section-title">El estilo de tu página</div>
+        <p class="hint" style="margin-bottom:16px">Cada estilo cambia los colores, la tipografía y la forma de tu página. Elige el que se parezca a tu negocio.</p>
+        <div id="temaOpciones" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px"></div>
+      </div>
+
+      <div class="card" id="seccionesCard" style="display:none;margin-bottom:20px">
+        <div class="section-title">Qué secciones muestras</div>
+        <p class="hint" style="margin-bottom:14px">Tu portada y lo que vendes siempre se muestran. Lo demás decides tú si aparece o no.</p>
+        <div id="seccionesLista"></div>
+      </div>
+
       <div class="grid grid-2" id="micrositeEditor" style="display:none">
         <div class="card">
 
           <div class="field"><label>Título de portada</label><input type="text" id="mTitle" oninput="renderMicrositePreview()"></div>
+          <div class="field"><label>Lema · la frase grande de tu portada</label><input type="text" id="mLema" placeholder="Ej. Once habitaciones a 1.400 metros" oninput="renderMicrositePreview()"></div>
           <div class="field"><label>Frase destacada</label><input type="text" id="mTagline" oninput="renderMicrositePreview()"></div>
-          <div class="field"><label>Sobre nosotros</label><input type="text" id="mAbout" oninput="renderMicrositePreview()"></div>
-          <div class="field"><label>WhatsApp de contacto</label><input type="text" id="mWhatsapp" oninput="renderMicrositePreview()"></div>
+          <div class="field"><label>Sobre nosotros · versión corta</label><input type="text" id="mAbout" oninput="renderMicrositePreview()"></div>
+          <div class="field"><label>Nuestra historia</label><textarea id="mHistoria" rows="4" placeholder="Cómo empezaron, qué los hace distintos"></textarea></div>
+          <div class="field"><label>Qué hacemos</label><textarea id="mQueHacemos" rows="3" placeholder="Qué operan ustedes directamente y qué no"></textarea></div>
+          <div class="grid grid-2" style="gap:12px">
+            <div class="field"><label>Año de fundación</label><input type="number" id="mAnio" min="1900" max="2100" placeholder="2009"></div>
+            <div class="field"><label>WhatsApp de contacto</label><input type="text" id="mWhatsapp" oninput="renderMicrositePreview()"></div>
+          </div>
+          <div class="field"><label>Dirección · para "cómo llegar"</label><input type="text" id="mDireccion" placeholder="Calle, sector, ciudad"></div>
           <div id="micrositeMsg" style="display:none;font-size:12.5px;margin-top:6px"></div>
         </div>
         <div>
@@ -1448,12 +1467,85 @@ function refreshMicrosite(){
 
   if(approved){
     document.getElementById('mTitle').value = currentProvider.cover_title || currentProvider.business_name || '';
+    document.getElementById('mLema').value = currentProvider.lema || '';
     document.getElementById('mTagline').value = currentProvider.cover_tagline || '';
     document.getElementById('mAbout').value = currentProvider.about || '';
+    document.getElementById('mHistoria').value = currentProvider.historia || '';
+    document.getElementById('mQueHacemos').value = currentProvider.que_hacemos || '';
+    document.getElementById('mAnio').value = currentProvider.anio_fundacion || '';
+    document.getElementById('mDireccion').value = currentProvider.direccion || '';
     document.getElementById('mWhatsapp').value = currentProvider.whatsapp || '';
+    document.getElementById('temaCard').style.display = 'block';
+    document.getElementById('seccionesCard').style.display = 'block';
+    temaElegido = currentProvider.tema || 'clasico';
+    seccionesOcultas = (currentProvider.secciones_ocultas || []).slice();
+    pintarTemas();
+    pintarSecciones();
     pintarMarca();
     renderMicrositePreview();
+  } else {
+    document.getElementById('temaCard').style.display = 'none';
+    document.getElementById('seccionesCard').style.display = 'none';
   }
+}
+
+/* ------------------------------------------------------------------
+   Tema y secciones. La misma lista que usa el sitio público: si se
+   cambia allá, hay que cambiarla aquí.
+   ------------------------------------------------------------------ */
+const TEMAS_MICROSITIO = [
+  { id:'clasico',   nombre:'Clásico',   resumen:'El azul y naranja de Táchira GOO.',        muestra:['#0052CC','#FF6B00','#F8FAFC'] },
+  { id:'andino',    nombre:'Andino',    resumen:'Verdes y piedra, con serifa. Montaña.',    muestra:['#2F5D50','#C4703A','#F4F1EA'] },
+  { id:'costa',     nombre:'Costa',     resumen:'Turquesa y arena, formas redondeadas.',    muestra:['#0E8F9E','#F2A65A','#FFF8EF'] },
+  { id:'editorial', nombre:'Editorial', resumen:'Blanco, negro y mucho aire. Boutique.',    muestra:['#111111','#8A7A5C','#FAFAFA'] },
+  { id:'aventura',  nombre:'Aventura',  resumen:'Naranja y grafito, bordes rectos.',        muestra:['#E2561B','#1C1C1E','#F3F3F1'] }
+];
+
+const SECCIONES_MICROSITIO = [
+  { id:'nosotros',  label:'Quiénes somos',      nota:'Tu historia y qué hacen' },
+  { id:'galeria',   label:'Galería de fotos',   nota:'Se arma con las fotos de lo que publicas' },
+  { id:'catalogo',  label:'Resto del catálogo', nota:'Lo que vendes además de tu rubro principal' },
+  { id:'resenas',   label:'Reseñas',            nota:'Solo de viajeros que completaron una reserva' },
+  { id:'ubicacion', label:'Cómo llegar',        nota:'Tu dirección y el enlace al mapa' }
+];
+
+let temaElegido = 'clasico';
+let seccionesOcultas = [];
+
+function pintarTemas(){
+  document.getElementById('temaOpciones').innerHTML = TEMAS_MICROSITIO.map(t => `
+    <button onclick="elegirTema('${t.id}')" style="text-align:left;cursor:pointer;padding:14px;
+      border:2px solid ${t.id===temaElegido ? 'var(--blue)' : 'var(--border)'};
+      background:${t.id===temaElegido ? 'var(--blue-soft)' : '#fff'};border-radius:11px">
+      <div style="display:flex;gap:5px;margin-bottom:9px">
+        ${t.muestra.map(c => `<span style="width:20px;height:20px;border-radius:5px;background:${c};border:1px solid rgba(0,0,0,.08)"></span>`).join('')}
+      </div>
+      <div style="font-weight:700;font-size:13.5px">${esc(t.nombre)}</div>
+      <div style="font-size:11.5px;color:var(--gray);margin-top:2px;line-height:1.45">${esc(t.resumen)}</div>
+    </button>`).join('');
+}
+
+function elegirTema(id){
+  temaElegido = id;
+  pintarTemas();
+}
+
+function pintarSecciones(){
+  document.getElementById('seccionesLista').innerHTML = SECCIONES_MICROSITIO.map(x => {
+    const visible = !seccionesOcultas.includes(x.id);
+    return `<div class="disp-row">
+      <div><strong>${esc(x.label)}</strong><div class="cell-sub" style="font-size:12px;color:var(--gray)">${esc(x.nota)}</div></div>
+      <button class="btn btn-sm ${visible ? 'btn-outline' : 'btn-blue'}" onclick="alternarSeccion('${x.id}')">
+        ${visible ? 'Ocultar' : 'Mostrar'}
+      </button>
+    </div>`;
+  }).join('');
+}
+
+function alternarSeccion(id){
+  const i = seccionesOcultas.indexOf(id);
+  if(i >= 0) seccionesOcultas.splice(i, 1); else seccionesOcultas.push(id);
+  pintarSecciones();
 }
 
 function renderMicrositePreview(){
@@ -1472,12 +1564,20 @@ function renderMicrositePreview(){
 async function saveMicrosite(){
   if(!currentProvider) return;
   const msg = document.getElementById('micrositeMsg');
+  const anio = parseInt(document.getElementById('mAnio').value, 10);
   const { data, error } = await sb.from('providers').update({
     cover_title: document.getElementById('mTitle').value.trim() || null,
+    lema: document.getElementById('mLema').value.trim() || null,
     cover_tagline: document.getElementById('mTagline').value.trim() || null,
     about: document.getElementById('mAbout').value.trim() || null,
+    historia: document.getElementById('mHistoria').value.trim() || null,
+    que_hacemos: document.getElementById('mQueHacemos').value.trim() || null,
+    anio_fundacion: Number.isFinite(anio) ? anio : null,
+    direccion: document.getElementById('mDireccion').value.trim() || null,
     whatsapp: document.getElementById('mWhatsapp').value.trim() || null,
-    business_type: document.getElementById('mBusinessType').value
+    business_type: document.getElementById('mBusinessType').value,
+    tema: temaElegido,
+    secciones_ocultas: seccionesOcultas
   }).eq('id', currentProvider.id).select().single();
   if(error){
     msg.textContent = 'Error al publicar: ' + error.message;
