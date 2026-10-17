@@ -600,8 +600,21 @@ tr:hover td{background:#FBFCFE}
 
       <div class="tabcontent" id="vt-precio" style="display:none">
         <div class="card">
-          <div class="field"><label>Precio por día (USD)</label><input type="text" id="vPrice" placeholder="Ej. 45"></div>
-          <div class="field"><label>Depósito de garantía (USD)</label><input type="text" id="vDeposit" placeholder="Ej. 150"></div>
+          <div class="field" style="grid-column:1/-1">
+            <label>¿Cómo lo ofreces?</label>
+            <div style="display:flex;flex-wrap:wrap;gap:18px;padding:10px 0 2px">
+              <label style="display:flex;align-items:center;gap:7px;font-weight:600;cursor:pointer">
+                <input type="checkbox" id="vSinChofer" checked onchange="alternarModalidadVeh()"> El cliente conduce (rent a car)
+              </label>
+              <label style="display:flex;align-items:center;gap:7px;font-weight:600;cursor:pointer">
+                <input type="checkbox" id="vConChofer" onchange="alternarModalidadVeh()"> Con chofer (lo llevas tú)
+              </label>
+            </div>
+            <div class="hint">Puedes marcar las dos. Cada una tiene su propia tarifa.</div>
+          </div>
+          <div class="field"><label>Precio por día — sin chofer (USD)</label><input type="text" id="vPrice" placeholder="Ej. 45"></div>
+          <div class="field" id="campoPrecioChofer" style="display:none"><label>Precio por día — con chofer (USD)</label><input type="text" id="vPriceChofer" placeholder="Ej. 72"></div>
+          <div class="field" id="campoDeposito"><label>Depósito de garantía (USD)</label><input type="text" id="vDeposit" placeholder="Ej. 150"></div>
           <div class="field"><label>Mínimo de días por alquiler</label><input type="text" id="vMinDays" placeholder="Ej. 2"></div>
           <div class="field"><label>Condiciones de reembolso</label>
             <select id="vCancellation" class="sel">
@@ -2345,7 +2358,7 @@ function renderVehicleBanner(v){
 }
 
 function resetVehicleEditor(){
-  ['vBrand','vModel','vTitle','vYear','vSeats','vDoors','vMunicipio','vDescription','vPlate','vAddress','vPrice','vDeposit','vMinDays']
+  ['vBrand','vModel','vTitle','vYear','vSeats','vDoors','vMunicipio','vDescription','vPlate','vAddress','vPrice','vPriceChofer','vDeposit','vMinDays']
     .forEach(id => { const e = document.getElementById(id); if(e) e.value = ''; });
   document.getElementById('vCategory').value = 'sedan';
   document.getElementById('vTransmission').value = 'manual';
@@ -2390,7 +2403,11 @@ async function openEditVehicle(id){
   set('vBrand', v.brand); set('vModel', v.model); set('vTitle', v.title); set('vYear', v.year);
   set('vSeats', v.seats); set('vDoors', v.doors); set('vMunicipio', v.municipio);
   set('vDescription', v.description); set('vAddress', v.pickup_address);
-  set('vPrice', v.price_per_day); set('vDeposit', v.deposit); set('vMinDays', v.min_days);
+  set('vPrice', v.price_per_day); set('vPriceChofer', v.precio_con_chofer);
+  set('vDeposit', v.deposit); set('vMinDays', v.min_days);
+  document.getElementById('vSinChofer').checked = v.ofrece_sin_chofer !== false;
+  document.getElementById('vConChofer').checked = !!v.ofrece_con_chofer;
+  alternarModalidadVeh();
   document.getElementById('vCategory').value = v.category || 'sedan';
   document.getElementById('vTransmission').value = v.transmission || 'manual';
   document.getElementById('vFuel').value = v.fuel || 'gasolina';
@@ -2552,6 +2569,18 @@ function showVehTab(id, el){
 }
 
 // ---------- Guardar ----------
+/* Los campos de precio siguen a lo que el dueño marca: pedir una tarifa con
+   chofer a quien no ofrece chofer solo genera dudas. */
+function alternarModalidadVeh(){
+  const sin = document.getElementById('vSinChofer');
+  const con = document.getElementById('vConChofer');
+  if(!sin || !con) return;
+  const campoCh = document.getElementById('campoPrecioChofer');
+  const campoDep = document.getElementById('campoDeposito');
+  if(campoCh)  campoCh.style.display  = con.checked ? '' : 'none';
+  if(campoDep) campoDep.style.display = sin.checked ? '' : 'none';
+}
+
 async function saveVehicle(){
   const btn = document.getElementById('vehSaveBtn');
   const { data: u } = await sb.auth.getUser();
@@ -2562,7 +2591,17 @@ async function saveVehicle(){
   const brand = document.getElementById('vBrand').value.trim();
   const model = document.getElementById('vModel').value.trim();
   const municipio = document.getElementById('vMunicipio').value.trim();
-  const price = parseFloat(document.getElementById('vPrice').value);
+  const sinChofer = document.getElementById('vSinChofer').checked;
+  const conChofer = document.getElementById('vConChofer').checked;
+  const precioChofer = parseFloat(document.getElementById('vPriceChofer').value);
+  if(!sinChofer && !conChofer){
+    showToast('Marca al menos una forma de ofrecer el vehículo','warn'); return;
+  }
+  if(conChofer && !(precioChofer > 0)){
+    showToast('Indica el precio por día con chofer','warn'); return;
+  }
+  let price = parseFloat(document.getElementById('vPrice').value);
+  if(!sinChofer && isNaN(price)) price = precioChofer;
   if(!title || !brand || !model || !municipio || isNaN(price)){
     alert('Completa al menos marca, modelo, título, municipio y precio por día.');
     return;
@@ -2585,7 +2624,12 @@ async function saveVehicle(){
     pickup_address: document.getElementById('vAddress').value.trim() || null,
     lat: vehPinLat, lng: vehPinLng,
     price_per_day: price,
-    deposit: num('vDeposit') ?? 0,
+    ofrece_sin_chofer: sinChofer,
+    ofrece_con_chofer: conChofer,
+    precio_con_chofer: conChofer ? precioChofer : null,
+    /* Con chofer el vehículo no sale de manos del dueño, así que un depósito
+       solo tiene sentido si además se alquila sin conductor. */
+    deposit: sinChofer ? (num('vDeposit') ?? 0) : 0,
     min_days: int('vMinDays') || 1,
     cancellation_policy: document.getElementById('vCancellation').value,
     cover_image_url: vehiclePhotos[0]?.url || null,
