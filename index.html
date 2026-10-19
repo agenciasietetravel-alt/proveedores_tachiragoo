@@ -40,7 +40,8 @@ input{font-family:inherit}
 .field{margin-bottom:16px}
 .field label{display:block;font-size:12.5px;font-weight:600;margin-bottom:6px;color:var(--ink-soft)}
 .field input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;transition:.15s}
-.field input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-light)}
+.field textarea{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;font-family:inherit;resize:vertical}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-light)}
 .btn-primary{background:var(--blue);color:#fff;border:none;border-radius:9px;padding:13px;width:100%;font-weight:700;font-size:14px;box-shadow:var(--shadow-md)}
 .btn-primary:hover{background:var(--blue-dark)}
 .login-foot{margin-top:20px;font-size:12.5px;color:var(--gray);text-align:center;line-height:1.6}
@@ -148,16 +149,7 @@ tr:hover td{background:#FBFCFE}
 .itin-content{flex:1}
 .itin-remove{color:var(--red);font-size:11.5px;font-weight:700;cursor:pointer;background:none;border:none;padding:6px}
 
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-.cal-day{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:#fff}
-.cal-day.open{background:var(--green-bg);color:var(--green);border-color:#BEE8D6}
-.cal-day.closed{background:var(--red-bg);color:var(--red);border-color:#F3C1C7}
-.cal-day.muted{color:#CBD2DE;background:#FAFBFC;cursor:default;border-color:var(--border-soft)}
-.cal-day.past{color:#CBD2DE;background:#FAFBFC;cursor:not-allowed;border-color:var(--border-soft)}
-.cal-day.empty{border:none;background:none;cursor:default}
-.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.cal-nav{background:#fff;border:1.5px solid var(--border);border-radius:8px;width:32px;height:32px;font-size:15px;font-weight:700;color:var(--blue);cursor:pointer}
-.cal-nav:hover{background:var(--blue-light)}
+.dp-texto{font-size:13px;color:var(--ink-soft);line-height:1.6;margin:0 0 12px}
 
 .sel{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;font-family:inherit;background:#fff}
 .veh-card{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow-sm)}
@@ -243,6 +235,7 @@ tr:hover td{background:#FBFCFE}
 .ca-barra input{width:88px;font-size:12px;padding:6px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#fff}
 .ca-barra input::placeholder{color:rgba(255,255,255,.5)}
 .ca-vacio{text-align:center;padding:46px 20px;color:var(--gray);font-size:13.5px}
+.ca-nota{grid-column:1/-1;font-size:12px;color:var(--gray);padding:2px 2px 6px}
 
 /* Confirmación al guardar. Sin esto el proveedor no sabe si su
    cambio entró, y vuelve a darle al botón. */
@@ -595,16 +588,10 @@ tr:hover td{background:#FBFCFE}
 
       <div class="tabcontent" id="t-disponibilidad" style="display:none">
         <div class="card">
-          <div class="cal-head">
-            <button class="cal-nav" onclick="shiftCalendar(-1)" title="Mes anterior">‹</button>
-            <div class="section-title" style="margin:0" id="calTitle">—</div>
-            <button class="cal-nav" onclick="shiftCalendar(1)" title="Mes siguiente">›</button>
-          </div>
-          <div class="cal-grid" id="calGrid"></div>
-          <div style="display:flex;gap:16px;margin-top:14px;font-size:12px">
-            <div>🟢 Disponible</div><div>🔴 Bloqueado</div>
-          </div>
-          <div style="font-size:12px;color:var(--gray);margin-top:8px">Haz clic en un día para abrirlo o cerrarlo. Los días que no marques quedan como no disponibles.</div>
+          <div class="section-title">Los días en que no sales</div>
+          <p class="dp-texto">Tu experiencia se puede reservar <b>todos los días</b> desde que la publicas. Lo único que hay que marcar son los días en que <b>no</b> sales: un feriado, un mantenimiento, una semana de descanso.</p>
+          <p class="dp-texto">Eso se hace en el <b>Calendario anual</b>, que te muestra los doce meses de una vez y te deja cerrar un rango completo arrastrando, en lugar de ir mes por mes.</p>
+          <button class="btn btn-blue" type="button" onclick="caIrA('experiencia', editingListingId)">Abrir el calendario anual</button>
         </div>
       </div>
     </div>
@@ -670,7 +657,7 @@ tr:hover td{background:#FBFCFE}
     </div>
 
     <div class="view" id="v-calendario" style="display:none">
-      <div class="topbar"><div><div class="breadcrumb">CALENDARIO</div><h1 class="page-title">Tu año completo</h1><div class="page-sub">Los doce meses en una pantalla. Arrastra para marcar varios días y aplica el cambio de una vez.</div></div></div>
+      <div class="topbar"><div><div class="breadcrumb">CALENDARIO</div><h1 class="page-title">Tu año completo</h1><div class="page-sub">Todo lo que tienes por delante en una pantalla. Arrastra para marcar varios días y aplica el cambio de una vez.</div></div></div>
 
       <div class="card" style="margin-bottom:18px">
         <div class="ca-top">
@@ -757,6 +744,40 @@ tr:hover td{background:#FBFCFE}
         <button class="btn btn-blue" onclick="openNewVehicle()">+ Publicar vehículo</button>
       </div>
       <div class="grid grid-3" id="vehiclesGrid"></div>
+
+      <div class="card" style="margin-top:24px">
+        <div class="section-title">Alquileres</div>
+        <div class="info-note" style="margin-bottom:12px">💡 Registra el estado del vehículo al entregarlo y al recibirlo. Es la prueba que resuelve una discusión por un golpe o por el tanque.</div>
+        <div class="sa-lista" id="alqLista"></div>
+      </div>
+
+      <div class="card" id="alqForm" style="margin-top:24px;display:none">
+        <div class="section-title" id="alqFormTitulo">Entrega del vehículo</div>
+        <div class="info-note" style="margin-bottom:16px">💡 Esto es la prueba que resuelve la discusión después. Anótalo aunque el carro salga sin una marca.</div>
+        <div class="grid grid-2" style="gap:0 18px">
+          <div class="field"><label>Kilómetros del odómetro</label><input type="text" id="alqKmInput" placeholder="Ej. 48000"></div>
+          <div class="field"><label>Tanque</label>
+            <select id="alqComb" class="sel">
+              <option value="lleno">Lleno</option>
+              <option value="tres_cuartos">Tres cuartos</option>
+              <option value="medio">Medio</option>
+              <option value="un_cuarto">Un cuarto</option>
+              <option value="vacio">Vacío</option>
+            </select></div>
+          <div class="field"><label>Limpieza</label>
+            <select id="alqLimp" class="sel">
+              <option value="impecable">Impecable</option>
+              <option value="normal">Normal</option>
+              <option value="sucio">Sucio</option>
+            </select></div>
+          <div class="field"><label>Quién firma</label><input type="text" id="alqFirma" placeholder="Nombre y cédula de quien recibe o entrega"></div>
+        </div>
+        <div class="field"><label>Golpes o detalles que dejar anotados</label><textarea id="alqDanos" rows="3" placeholder="Déjalo vacío si el vehículo va sin novedad"></textarea></div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-blue" onclick="alqGuardar()">Guardar</button>
+          <button class="btn btn-outline" onclick="alqCerrarForm()">Cancelar</button>
+        </div>
+      </div>
     </div>
 
     <div class="view" id="v-vehicle-editor" style="display:none">
@@ -873,6 +894,15 @@ tr:hover td{background:#FBFCFE}
           <div class="field" id="campoPrecioChofer" style="display:none"><label>Precio por día — con chofer (USD)</label><input type="text" id="vPriceChofer" placeholder="Ej. 72"></div>
           <div class="field" id="campoDeposito"><label>Depósito de garantía (USD)</label><input type="text" id="vDeposit" placeholder="Ej. 150"></div>
           <div class="field"><label>Mínimo de días por alquiler</label><input type="text" id="vMinDays" placeholder="Ej. 2"></div>
+          <div class="field" id="campoKm"><label>Kilómetros incluidos por día</label><input type="text" id="vKmIncluidos" placeholder="Ej. 200 · vacío = sin límite"></div>
+          <div class="field" id="campoKmExtra"><label>Precio del kilómetro de más (USD)</label><input type="text" id="vKmExtra" placeholder="Ej. 0.25"></div>
+          <div class="field" id="campoCombustible"><label>Combustible</label>
+            <select id="vCombustible" class="sel">
+              <option value="lleno_a_lleno">Se entrega lleno y se devuelve lleno</option>
+              <option value="igual_que_al_recibir">Se devuelve como se recibió</option>
+              <option value="prepagado">El tanque va pagado por adelantado</option>
+            </select></div>
+          <div class="field" id="campoEdad"><label>Edad mínima del conductor</label><input type="text" id="vEdadMinima" placeholder="Ej. 21"></div>
           <div class="field"><label>Condiciones de reembolso</label>
             <select id="vCancellation" class="sel">
               <option value="full">100% reembolsable (hasta 48h antes)</option>
@@ -885,14 +915,10 @@ tr:hover td{background:#FBFCFE}
 
       <div class="tabcontent" id="vt-disponibilidad" style="display:none">
         <div class="card">
-          <div class="cal-head">
-            <button class="cal-nav" onclick="shiftVehCalendar(-1)" title="Mes anterior">‹</button>
-            <div class="section-title" style="margin:0" id="vehCalTitle">—</div>
-            <button class="cal-nav" onclick="shiftVehCalendar(1)" title="Mes siguiente">›</button>
-          </div>
-          <div class="cal-grid" id="vehCalGrid"></div>
-          <div style="display:flex;gap:16px;margin-top:14px;font-size:12px"><div>🟢 Libre para alquilar</div><div>🔴 No disponible</div></div>
-          <div style="font-size:12px;color:var(--gray);margin-top:8px">Marca los días en que tu vehículo está libre. Los que no marques no se podrán reservar.</div>
+          <div class="section-title">Los días en que no lo alquilas</div>
+          <p class="dp-texto">Tu vehículo queda <b>libre todos los días</b> en cuanto pasa la revisión. Lo único que hay que marcar son los días en que <b>no</b> lo vas a alquilar: cuando lo usas tú, cuando está en el taller o cuando lo tienes fuera de la ciudad.</p>
+          <p class="dp-texto">Eso se hace en el <b>Calendario anual</b>, que te muestra los doce meses de una vez y te deja cerrar un rango completo arrastrando, en lugar de ir mes por mes.</p>
+          <button class="btn btn-blue" type="button" onclick="caIrA('vehiculo', editingVehicleId)">Abrir el calendario anual</button>
         </div>
       </div>
     </div>
@@ -1314,8 +1340,6 @@ async function loadProviderContext(userId){
 let editingListingId = null;
 let currentListingPhotos = [];   // [{url, path}]
 let currentItinerary = [];       // [{step_time, description}]
-let availabilityOpen = new Set();// claves 'YYYY-MM-DD' marcadas como disponibles
-let calCursor = new Date();      // mes visible en el calendario
 let pinLat = null, pinLng = null;
 let leafletMap = null, leafletMarker = null;
 
@@ -2143,48 +2167,22 @@ function updatePinLabel(){
 }
 
 // ============================================================
-// Calendario de disponibilidad — mes completo
-// ============================================================
-function shiftCalendar(delta){
-  calCursor = new Date(calCursor.getFullYear(), calCursor.getMonth() + delta, 1);
-  renderCalendar();
-}
-
-function renderCalendar(){
-  const grid = document.getElementById('calGrid');
-  const year = calCursor.getFullYear(), month = calCursor.getMonth();
-  document.getElementById('calTitle').textContent = MONTH_NAMES[month] + ' ' + year;
-
-  const today = new Date(); today.setHours(0,0,0,0);
-  const first = new Date(year, month, 1);
-  // getDay(): 0=domingo. La semana arranca en lunes.
-  const leading = (first.getDay() + 6) % 7;
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-  let html = ['L','M','M','J','V','S','D'].map(d => `<div class="cal-day muted">${d}</div>`).join('');
-  for(let i = 0; i < leading; i++) html += '<div class="cal-day empty"></div>';
-  for(let d = 1; d <= daysInMonth; d++){
-    const date = new Date(year, month, d);
-    const key = dateKey(date);
-    if(date < today){
-      html += `<div class="cal-day past" title="Fecha pasada">${d}</div>`;
-    } else {
-      const open = availabilityOpen.has(key);
-      html += `<div class="cal-day ${open ? 'open' : 'closed'}" onclick="toggleDay('${key}')">${d}</div>`;
-    }
-  }
-  grid.innerHTML = html;
-}
-
-function toggleDay(key){
-  if(availabilityOpen.has(key)) availabilityOpen.delete(key);
-  else availabilityOpen.add(key);
-  renderCalendar();
-}
-
-// ============================================================
 // Navegación
 // ============================================================
+/* Cada pantalla se vuelve a leer al entrar. Antes solo se cargaban al iniciar
+   sesión: si entraba una reserva mientras el proveedor estaba en otra vista,
+   no la veía hasta recargar la página entera. */
+const RECARGAR_VISTA = {
+  listings: () => refreshListings(),
+  rooms: () => refreshRooms(),
+  vehicles: () => refreshVehicles(),
+  frontdesk: () => refreshFrontDesk(),
+  bookings: () => refreshBookings(),
+  mensajes: () => refreshConversaciones(),
+  billing: () => refreshBilling(),
+  dashboard: () => refreshDashboard()
+};
+
 function showView(id, el){
   document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
   document.getElementById('v-'+id).style.display = 'block';
@@ -2192,6 +2190,8 @@ function showView(id, el){
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     el.classList.add('active');
   }
+  const recargar = RECARGAR_VISTA[id];
+  if(recargar && currentProvider) Promise.resolve(recargar()).catch(e => console.error(e));
 }
 function showTab(id, el){
   document.querySelectorAll('.tabcontent').forEach(t => t.style.display = 'none');
@@ -2199,7 +2199,6 @@ function showTab(id, el){
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   if(el) el.classList.add('active');
   if(id === 'ubicacion') ensureMap();
-  if(id === 'disponibilidad') renderCalendar();
 }
 
 // ============================================================
@@ -2215,12 +2214,9 @@ function resetEditorState(){
   document.getElementById('photoUploadError').style.display = 'none';
   currentListingPhotos = [];
   currentItinerary = [];
-  availabilityOpen = new Set();
-  calCursor = new Date();
   clearPin();
   renderGallery();
   renderItinerary();
-  renderCalendar();
   // Volver siempre a la primera pestaña
   showTab('info', document.querySelector('.tabs .tab'));
 }
@@ -2269,10 +2265,6 @@ async function openEditListing(id){
     .eq('listing_id', id).order('position', { ascending: true });
   currentItinerary = (steps || []).map(s => ({ step_time: s.step_time || '', description: s.description || '' }));
   renderItinerary();
-
-  const { data: avail } = await sb.from('listing_availability').select('date, is_open').eq('listing_id', id);
-  availabilityOpen = new Set((avail || []).filter(a => a.is_open).map(a => a.date));
-  renderCalendar();
 
   if(listing.lat != null && listing.lng != null){
     pinLat = listing.lat; pinLng = listing.lng;
@@ -2352,13 +2344,11 @@ async function saveEdit(){
     if(itinErr) childErrors.push('itinerario: ' + itinErr.message);
   }
 
-  // Disponibilidad
-  await sb.from('listing_availability').delete().eq('listing_id', listingId);
-  const days = Array.from(availabilityOpen).map(d => ({ listing_id: listingId, date: d, is_open: true }));
-  if(days.length > 0){
-    const { error: availErr } = await sb.from('listing_availability').insert(days);
-    if(availErr) childErrors.push('disponibilidad: ' + availErr.message);
-  }
+  /* La disponibilidad ya no se toca al guardar el listado. Antes esto borraba
+     la tabla entera y la reescribía con lo que tuviera el calendario chico del
+     editor: cada vez que el proveedor corregía una foto o el precio, perdía
+     los cierres que había puesto en el Calendario anual. Ahora los cierres
+     viven en un solo sitio y solo se cambian desde allí. */
 
   btn.disabled = false;
   btn.textContent = originalLabel;
@@ -2589,8 +2579,6 @@ let providerVehicles = [];
 let editingVehicleId = null;
 let vehiclePhotos = [];          // [{url, path}]
 let vehicleDocs = [];            // [{kind, url, path, id?}]
-let vehicleAvailability = new Set();
-let vehCalCursor = new Date();
 let vehPinLat = null, vehPinLng = null;
 let vehMap = null, vehMarker = null;
 
@@ -2601,6 +2589,7 @@ const REVIEW_CLASS = { pending:'rp-pending', in_review:'rp-pending', approved:'r
 
 async function refreshVehicles(){
   if(!currentProvider) return;
+  refreshAlquileres();
   const { data: userData } = await sb.auth.getUser();
   const uid = userData?.user?.id;
   if(!uid) return;
@@ -2669,7 +2658,7 @@ function renderVehicleBanner(v){
 }
 
 function resetVehicleEditor(){
-  ['vBrand','vModel','vTitle','vYear','vSeats','vDoors','vMunicipio','vDescription','vPlate','vAddress','vPrice','vPriceChofer','vDeposit','vMinDays']
+  ['vBrand','vModel','vTitle','vYear','vSeats','vDoors','vMunicipio','vDescription','vPlate','vAddress','vPrice','vPriceChofer','vDeposit','vMinDays','vKmIncluidos','vKmExtra','vEdadMinima']
     .forEach(id => { const e = document.getElementById(id); if(e) e.value = ''; });
   document.getElementById('vCategory').value = 'sedan';
   document.getElementById('vTransmission').value = 'manual';
@@ -2678,15 +2667,12 @@ function resetVehicleEditor(){
   document.getElementById('vPhotoError').style.display = 'none';
   document.getElementById('vDocError').style.display = 'none';
   vehiclePhotos = []; vehicleDocs = [];
-  vehicleAvailability = new Set();
-  vehCalCursor = new Date();
   vehPinLat = null; vehPinLng = null;
   if(vehMarker && vehMap){ vehMap.removeLayer(vehMarker); }
   vehMarker = null;
   updateVehPinLabel();
   renderVehicleGallery();
   renderVehicleDocs();
-  renderVehCalendar();
   showVehTab('datos', document.querySelector('#v-vehicle-editor .tab'));
 }
 
@@ -2716,6 +2702,10 @@ async function openEditVehicle(id){
   set('vDescription', v.description); set('vAddress', v.pickup_address);
   set('vPrice', v.price_per_day); set('vPriceChofer', v.precio_con_chofer);
   set('vDeposit', v.deposit); set('vMinDays', v.min_days);
+  set('vKmIncluidos', v.km_incluidos); set('vKmExtra', v.precio_km_extra);
+  set('vEdadMinima', v.edad_minima);
+  const comb = document.getElementById('vCombustible');
+  if(comb) comb.value = v.politica_combustible || 'lleno_a_lleno';
   document.getElementById('vSinChofer').checked = v.ofrece_sin_chofer !== false;
   document.getElementById('vConChofer').checked = !!v.ofrece_con_chofer;
   alternarModalidadVeh();
@@ -2735,10 +2725,6 @@ async function openEditVehicle(id){
   vehicleDocs = (docs || []).map(d => ({ id:d.id, kind:d.kind, url:d.url, path:null }));
   if(docs && docs.length && docs[0].plate) document.getElementById('vPlate').value = docs[0].plate;
   renderVehicleDocs();
-
-  const { data: av } = await sb.from('vehicle_availability').select('date,is_open').eq('vehicle_id', id);
-  vehicleAvailability = new Set((av || []).filter(a => a.is_open).map(a => a.date));
-  renderVehCalendar();
 
   if(v.lat != null && v.lng != null){
     vehPinLat = v.lat; vehPinLng = v.lng;
@@ -2843,40 +2829,12 @@ function updateVehPinLabel(){
     : `📍 Entrega en ${vehPinLat.toFixed(5)}, ${vehPinLng.toFixed(5)} — arrastra el pin para ajustarlo.`;
 }
 
-// ---------- Calendario de días libres ----------
-function shiftVehCalendar(d){
-  vehCalCursor = new Date(vehCalCursor.getFullYear(), vehCalCursor.getMonth()+d, 1);
-  renderVehCalendar();
-}
-function renderVehCalendar(){
-  const grid = document.getElementById('vehCalGrid');
-  if(!grid) return;
-  const y = vehCalCursor.getFullYear(), m = vehCalCursor.getMonth();
-  document.getElementById('vehCalTitle').textContent = MONTH_NAMES[m] + ' ' + y;
-  const today = new Date(); today.setHours(0,0,0,0);
-  const leading = (new Date(y,m,1).getDay() + 6) % 7;
-  const days = new Date(y, m+1, 0).getDate();
-  let html = ['L','M','M','J','V','S','D'].map(d => `<div class="cal-day muted">${d}</div>`).join('');
-  for(let i=0;i<leading;i++) html += '<div class="cal-day empty"></div>';
-  for(let d=1; d<=days; d++){
-    const date = new Date(y,m,d), key = dateKey(date);
-    if(date < today) html += `<div class="cal-day past">${d}</div>`;
-    else html += `<div class="cal-day ${vehicleAvailability.has(key)?'open':'closed'}" onclick="toggleVehDay('${key}')">${d}</div>`;
-  }
-  grid.innerHTML = html;
-}
-function toggleVehDay(k){
-  if(vehicleAvailability.has(k)) vehicleAvailability.delete(k); else vehicleAvailability.add(k);
-  renderVehCalendar();
-}
-
 function showVehTab(id, el){
   document.querySelectorAll('#v-vehicle-editor .tabcontent').forEach(t => t.style.display='none');
   document.getElementById('vt-'+id).style.display='block';
   document.querySelectorAll('#v-vehicle-editor .tab').forEach(t => t.classList.remove('active'));
   if(el) el.classList.add('active');
   if(id === 'entrega') ensureVehMap();
-  if(id === 'disponibilidad') renderVehCalendar();
 }
 
 // ---------- Guardar ----------
@@ -2941,6 +2899,10 @@ async function saveVehicle(){
     /* Con chofer el vehículo no sale de manos del dueño, así que un depósito
        solo tiene sentido si además se alquila sin conductor. */
     deposit: sinChofer ? (num('vDeposit') ?? 0) : 0,
+    km_incluidos: num('vKmIncluidos'),
+    precio_km_extra: num('vKmExtra'),
+    politica_combustible: document.getElementById('vCombustible').value,
+    edad_minima: num('vEdadMinima') ?? 21,
     min_days: int('vMinDays') || 1,
     cancellation_policy: document.getElementById('vCancellation').value,
     cover_image_url: vehiclePhotos[0]?.url || null,
@@ -2979,13 +2941,6 @@ async function saveVehicle(){
     const rows = vehicleDocs.map(d => ({ vehicle_id: vid, kind: d.kind, url: d.url, plate }));
     const { error: e } = await sb.from('vehicle_documents').insert(rows);
     if(e) problemas.push('documentos: ' + e.message);
-  }
-
-  await sb.from('vehicle_availability').delete().eq('vehicle_id', vid);
-  const dias = Array.from(vehicleAvailability).map(d => ({ vehicle_id: vid, date: d, is_open: true }));
-  if(dias.length > 0){
-    const { error: e } = await sb.from('vehicle_availability').insert(dias);
-    if(e) problemas.push('disponibilidad: ' + e.message);
   }
 
   btn.disabled=false; btn.textContent=label;
@@ -3039,7 +2994,11 @@ function activateNav(viewId){
 })();
 
 sb.auth.onAuthStateChange((event, session) => {
-  if(event === 'SIGNED_IN' && session && !currentProvider && !authFlowInProgress){
+  /* Al recargar, supabase-js no emite SIGNED_IN sino INITIAL_SESSION. Como
+     solo se escuchaba el primero, el proveedor con sesión viva caía igual en
+     la pantalla de ingreso y tenía que escribir la clave en cada recarga. */
+  if((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session
+     && !currentProvider && !authFlowInProgress){
     loadProviderContext(session.user.id).then(() => {
       document.getElementById('login').style.display = 'none';
       document.getElementById('app').style.display = 'block';
@@ -3112,12 +3071,21 @@ function caLlenarAnios(){
   sel.value = Cal.anio;
 }
 
-async function caAbrir(){
+async function caAbrir(preseleccion){
   caLlenarAnios();
   await caLlenarObjetos();
   const sel = document.getElementById('caObjeto');
+  if(preseleccion && [...sel.options].some(o => o.value === preseleccion)) sel.value = preseleccion;
   if(!sel.value){ caPintarVacio(); return; }
   await caCambiarObjeto();
+}
+
+/* Desde el editor de un producto se salta al calendario ya parado en él.
+   Si no, el proveedor salía del editor y tenía que buscarlo otra vez. */
+async function caIrA(ambito, id){
+  if(!id){ showToast('Guarda primero. El calendario necesita el producto ya creado.'); return; }
+  showView('calendario', document.getElementById('navCalendario'));
+  await caAbrir(ambito + ':' + id);
 }
 
 async function caCambiarObjeto(){
@@ -3139,11 +3107,10 @@ async function caCambiarAnio(){
   await caCargar();
 }
 
-/* Cada ámbito guarda su disponibilidad en su propia tabla, y no
-   con la misma convención: en habitaciones la fila que falta
-   significa "queda todo", en experiencias "abierto", y en
-   vehículos "cerrado". El calendario traduce las tres a lo
-   mismo para que el proveedor no tenga que saberlo. */
+/* Cada ámbito guarda su disponibilidad en su propia tabla, pero
+   todas con el mismo criterio: el día sin fila está abierto y lo
+   que se escribe es el cierre. Así el proveedor no tiene que
+   abrir el año entero para empezar a recibir reservas. */
 async function caCargar(){
   const desde = Cal.anio + '-01-01', hasta = Cal.anio + '-12-31';
   Cal.dias = new Map();
@@ -3175,8 +3142,11 @@ async function caCargar(){
       const e = Cal.dias.get(k) || { bloqueado:false, libres:1, total:1, precio:null, especial:false };
       e.reservados = 1; e.libres = 0; Cal.dias.set(k, e);
     }));
-    // En vehículos la fila que falta quiere decir cerrado.
-    Cal._porDefecto = { bloqueado: true, libres: 0, total: 1, precio: null, especial: false };
+    /* Antes, en vehículos, la fila que faltaba quería decir cerrado: un carro
+       recién publicado nacía cerrado los 365 días y nunca salía en el buscador.
+       Ahora los tres ámbitos usan el mismo criterio —el día sin fila está
+       abierto— y lo que se guarda es el cierre. */
+    Cal._porDefecto = { bloqueado: false, libres: 1, total: 1, precio: null, especial: false };
 
   } else {
     const cupo = Cal.objeto?.max_capacity == null ? null : Number(Cal.objeto.max_capacity);
@@ -3232,7 +3202,8 @@ function caClase(k, fecha, hoy){
   if(e.reservados > 0 && (e.libres === 0)) return 'agotado';
   if(e.reservados > 0) return 'reservado';
   if(e.libres === 0) return 'agotado';
-  if(e.total && e.libres != null && e.libres <= Math.max(1, Math.round(e.total * 0.25))) return 'poco';
+  if(Cal.ambito !== 'vehiculo' && e.total > 1 && e.libres != null
+     && e.libres <= Math.max(1, Math.round(e.total * 0.25))) return 'poco';
   return 'libre';
 }
 
@@ -3257,8 +3228,12 @@ function caPintarVacio(){
 
 function caPintar(){
   const hoy = caHoy();
+  /* Del año en curso no se pintan los meses que ya pasaron: ocupaban la
+     pantalla entera en gris y empujaban hacia abajo lo único editable. */
+  const desdeMes = Cal.anio === hoy.getFullYear() ? hoy.getMonth() : 0;
   let html = '';
-  for(let m = 0; m < 12; m++){
+  if(desdeMes > 0) html += `<div class="ca-nota">${desdeMes === 1 ? 'Enero ya pasó' : CA_MESES[0] + ' a ' + CA_MESES[desdeMes-1] + ' ya pasaron'}; el año empieza aquí.</div>`;
+  for(let m = desdeMes; m < 12; m++){
     const primero = new Date(Cal.anio, m, 1);
     const hueco = (primero.getDay() + 6) % 7;         // la semana arranca en lunes
     const cuantos = new Date(Cal.anio, m + 1, 0).getDate();
@@ -3283,10 +3258,19 @@ function caPintar(){
     ? [['libre','Disponible'],['poco','Poco cupo'],['agotado','Agotado'],['reservado','Con reservas'],['bloqueado','Cerrado']]
     : Cal.ambito === 'experiencia'
       ? [['libre','Abierto'],['poco','Poco cupo'],['agotado','Lleno'],['reservado','Con inscritos'],['bloqueado','No sale']]
-      : [['libre','Disponible'],['reservado','Alquilado'],['bloqueado','No disponible']];
+      : [['libre','Disponible'],['reservado','Alquilado'],['bloqueado','Cerrado por ti']];
   document.getElementById('caLeyenda').innerHTML =
     ley.map(l => `<span><i class="ca-d ${l[0]}" style="display:inline-block"></i>${l[1]}</span>`).join('')
     + (Cal.ambito === 'habitacion' ? '<span><i style="background:var(--orange)"></i>Precio distinto al base</span>' : '');
+
+  const ayuda = document.getElementById('caAyuda');
+  if(ayuda) ayuda.innerHTML = '\u{1F4A1} ' + (
+    Cal.ambito === 'habitacion'
+      ? 'Todas las noches están abiertas al precio base. Marca solo lo que cambia: una noche cerrada, un cupo distinto o una tarifa especial.'
+      : Cal.ambito === 'vehiculo'
+        ? 'El vehículo está libre todos los días. Marca solo los que cierras: cuando lo usas tú, cuando está en el taller o cuando lo tienes fuera.'
+        : 'La experiencia sale todos los días. Marca solo los que cierras: feriados, mantenimiento o descanso.')
+    + ' Arrastra para marcar un rango, o toca el nombre del mes para marcarlo entero.';
 
   caPintarBarra();
 }
@@ -4001,6 +3985,102 @@ async function saCancelar(id){
   if(error){ showToast(error.message); return; }
   showToast(data ? 'Salida cancelada. ' + data + ' reserva(s) con reembolso total anotado.' : 'Salida cancelada.');
   await saCargar();
+}
+
+// ============================================================
+// Alquileres: entrega y devolución
+// El portal no mostraba las reservas de vehículos en ninguna
+// parte: el dueño no tenía dónde ver quién tenía su carro.
+// ============================================================
+async function refreshAlquileres(){
+  const caja = document.getElementById('alqLista');
+  if(!caja || !currentProvider) return;
+  const { data: { user } } = await sb.auth.getUser();
+  if(!user) return;
+  const { data, error } = await sb.from('vehicle_bookings')
+    .select('*, vehicles(title, km_incluidos, precio_km_extra)')
+    .eq('owner_id', user.id).order('start_date', { ascending: false }).limit(40);
+  if(error){ caja.innerHTML = '<div class="fd-vacio">No se pudieron cargar: ' + esc(error.message) + '</div>'; return; }
+  const alq = data || [];
+  if(!alq.length){ caja.innerHTML = '<div class="fd-vacio">Todavía no te han alquilado ningún vehículo.</div>'; return; }
+
+  const { data: ent } = await sb.from('vehicle_entregas')
+    .select('booking_id, momento').in('booking_id', alq.map(a => a.id));
+  const hecho = {};
+  (ent || []).forEach(e => { (hecho[e.booking_id] = hecho[e.booking_id] || {})[e.momento] = true; });
+
+  caja.innerHTML = alq.map(a => {
+    const h = hecho[a.id] || {};
+    const acciones = a.status !== 'confirmada' ? ''
+      : !h.entrega
+        ? `<button class="btn btn-blue" onclick="alqRegistrar('${a.id}','entrega')">Registrar entrega</button>`
+        : !h.devolucion
+          ? `<button class="btn btn-blue" onclick="alqRegistrar('${a.id}','devolucion')">Registrar devolución</button>`
+          : '';
+    const sello = h.devolucion ? 'Devuelto' : h.entrega ? 'Entregado'
+                : (typeof BOOKING_STATUS_LABEL !== 'undefined' && BOOKING_STATUS_LABEL[a.status]) || a.status;
+    return `<div class="sa-fila">
+      <div class="sa-cuando"><b>${esc(a.vehicles?.title || 'Vehículo')}</b>
+        <span>${esc(a.guest_nombre || 'Viajero')} · ${esc(a.guest_telefono || '')}</span></div>
+      <div class="fd-dato">Retiro<b>${esc(a.start_date)}</b></div>
+      <div class="fd-dato">Entrega<b>${esc(a.end_date)}</b></div>
+      <div class="fd-dato">Estado<b>${esc(sello)}</b></div>
+      <div class="sa-acc">${acciones}
+        ${h.devolucion ? `<button class="btn btn-outline" onclick="alqKm('${a.id}')">Ver kilómetros</button>` : ''}</div>
+    </div>`;
+  }).join('');
+}
+
+/* Esto se pedía con cuatro prompt() encadenados y el tanque se escribía a
+   mano: cualquier palabra fuera de la lista rebotaba con el error crudo de
+   la restricción de la base. Es un acta, no una pregunta al vuelo. */
+let alqActual = null;      // { id, momento }
+
+function alqRegistrar(id, momento){
+  alqActual = { id, momento };
+  document.getElementById('alqFormTitulo').textContent =
+    momento === 'entrega' ? 'Entrega del vehículo' : 'Devolución del vehículo';
+  ['alqKmInput','alqFirma','alqDanos'].forEach(k => { document.getElementById(k).value = ''; });
+  document.getElementById('alqComb').value = 'lleno';
+  document.getElementById('alqLimp').value = 'impecable';
+  const f = document.getElementById('alqForm');
+  f.style.display = 'block';
+  f.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function alqCerrarForm(){
+  alqActual = null;
+  document.getElementById('alqForm').style.display = 'none';
+}
+
+async function alqGuardar(){
+  if(!alqActual) return;
+  const km = parseInt(String(document.getElementById('alqKmInput').value).replace(/[^0-9]/g, ''), 10);
+  if(!(km >= 0)){ showToast('Escribe los kilómetros que marca el odómetro.'); return; }
+  const firma = document.getElementById('alqFirma').value.trim();
+  if(!firma){ showToast('Falta el nombre de quien firma.'); return; }
+  const { id, momento } = alqActual;
+  const { error } = await sb.rpc('registrar_entrega', {
+    p_booking_id: id, p_momento: momento, p_km: km,
+    p_combustible: document.getElementById('alqComb').value,
+    p_limpieza: document.getElementById('alqLimp').value,
+    p_danos: document.getElementById('alqDanos').value.trim() || null,
+    p_fotos: [], p_firmado_por: firma });
+  if(error){ showToast(error.message); return; }
+  alqCerrarForm();
+  showToast(momento === 'entrega' ? 'Entrega registrada.' : 'Devolución registrada. El alquiler quedó cerrado.');
+  await refreshAlquileres();
+  // El kilometraje de más se dice solo: no hay que ir a pedirlo.
+  if(momento === 'devolucion') await alqKm(id);
+}
+
+async function alqKm(id){
+  const { data, error } = await sb.rpc('km_excedidos', { p_booking_id: id });
+  if(error || !data || !data.length){ showToast('No se pudo calcular.'); return; }
+  const k = data[0];
+  showToast(k.km_extra > 0
+    ? `Recorrió ${k.km_recorridos} km, ${k.km_extra} de más. A cobrar: ${money(k.a_cobrar)}`
+    : `Recorrió ${k.km_recorridos} km, dentro de los ${k.km_incluidos} incluidos.`);
 }
 
 </script>
