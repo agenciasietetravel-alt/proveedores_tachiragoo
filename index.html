@@ -270,6 +270,48 @@ tr:hover td{background:#FBFCFE}
 .tg-tarea:hover{border-color:var(--blue);color:var(--blue)}
 .tg-tarea.lista{border-color:transparent;background:var(--green-bg);color:var(--green);cursor:default}
 .tg-tarea .tg-tic{font-size:11px}
+
+/* ============================================================
+   ONBOARDING POR TIPO DE NEGOCIO
+   Quien se registra dice primero qué es, y desde ahí todo
+   cambia: los módulos, la comisión, el plan y el panel.
+   ============================================================ */
+.tn-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:16px}
+@media(max-width:420px){.tn-grid{grid-template-columns:1fr}}
+.tn-card{text-align:left;padding:11px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);background:#fff;cursor:pointer;transition:border-color .15s ease,box-shadow .15s ease}
+.tn-card:hover{border-color:var(--gray-light)}
+.tn-card.on{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,82,204,.1)}
+.tn-ico{font-size:17px;line-height:1;color:var(--gray);margin-bottom:5px;display:block}
+.tn-card.on .tn-ico{color:var(--blue)}
+.tn-nom{font-size:13px;font-weight:700;color:var(--ink);display:block}
+.tn-frase{font-size:11px;color:var(--gray);display:block;margin-top:2px;line-height:1.35}
+.tn-label{font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:7px;display:block}
+
+.mb-hero{border-radius:var(--radius);padding:22px 24px;margin-bottom:22px;background:linear-gradient(135deg,var(--blue-dark),var(--blue));color:#fff}
+.mb-hero h2{font-size:21px;font-weight:800;margin-bottom:5px}
+.mb-hero p{font-size:13.5px;opacity:.9;line-height:1.5;max-width:62ch}
+.mb-chip{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:rgba(255,255,255,.18);margin-bottom:11px}
+.mb-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px}
+@media(max-width:900px){.mb-cols{grid-template-columns:1fr}}
+.mb-lista{list-style:none;margin:0;padding:0}
+.mb-lista li{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--ink-soft);padding:5px 0;line-height:1.45}
+.mb-lista li b{font-weight:600;color:var(--ink)}
+.mb-mk{flex-shrink:0;font-size:12px;width:16px;text-align:center}
+.mb-si{color:var(--green)}.mb-plan-mk{color:var(--orange)}.mb-no{color:var(--gray-light)}
+.mb-com{display:flex;flex-wrap:wrap;gap:22px;align-items:baseline}
+.mb-com div b{display:block;font-size:22px;font-weight:800;color:var(--blue);line-height:1.1}
+.mb-com div span{font-size:12px;color:var(--gray)}
+.mb-planes{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:900px){.mb-planes{grid-template-columns:1fr}}
+.mb-plan{border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;background:#fff;display:flex;flex-direction:column}
+.mb-plan h4{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:3px}
+.mb-precio{font-size:24px;font-weight:800;color:var(--ink);line-height:1.15;margin:7px 0 2px}
+.mb-precio small{font-size:12px;font-weight:600;color:var(--gray)}
+.mb-pronto{font-size:12.5px;color:var(--gray);margin:9px 0 2px}
+.mb-plan ul{list-style:none;margin:12px 0 0;padding:0;flex:1}
+.mb-plan li{font-size:12.5px;color:var(--ink-soft);padding:4px 0 4px 16px;position:relative;line-height:1.4}
+.mb-plan li:before{content:'·';position:absolute;left:4px;color:var(--blue);font-weight:800}
+.mb-estado{margin-top:13px;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-light)}
 </style>
 </head>
 <body>
@@ -288,6 +330,8 @@ tr:hover td{background:#FBFCFE}
     </div>
 
     <div id="signupForm" style="display:none">
+      <span class="tn-label">¿Qué tipo de negocio tienes?</span>
+      <div class="tn-grid" id="tnGrid"></div>
       <div class="field"><label>Nombre del negocio</label><input type="text" id="signupBusiness" placeholder="Ej. Posada El Páramo"></div>
       <div class="field"><label>Municipio</label><select id="signupMunicipio" class="sel"><option value="">Selecciona tu municipio</option></select></div>
       <div class="field"><label>Correo electrónico</label><input type="email" id="signupEmail" placeholder="tu@correo.com"></div>
@@ -309,6 +353,7 @@ tr:hover td{background:#FBFCFE}
 
     <div class="sb-group-label">Operación</div>
     <div class="nav-item active" onclick="showView('dashboard',this)"><span class="nav-ico">▦</span> Panel general</div>
+    <div class="nav-item" id="navMembresia" onclick="showView('membresia',this); pintarMembresia()"><span class="nav-ico">◆</span> Mi plan</div>
     <div class="nav-item" id="navListados" onclick="showView('listings',this)"><span class="nav-ico">▤</span> Mis listados</div>
     <div class="nav-item" onclick="showView('bookings',this)"><span class="nav-ico">▥</span> Reservas</div>
     <div class="nav-item" id="navCalendario" onclick="showView('calendario',this); caAbrir()"><span class="nav-ico">▦</span> Calendario anual</div>
@@ -772,6 +817,45 @@ tr:hover td{background:#FBFCFE}
       </div>
     </div>
 
+
+    <div class="view" id="v-membresia" style="display:none">
+      <div class="mb-hero">
+        <span class="mb-chip" id="mbTipo">—</span>
+        <h2 id="mbTitulo">Tu cuenta</h2>
+        <p id="mbFrase"></p>
+      </div>
+
+      <div class="mb-cols">
+        <div class="card">
+          <div class="section-title">Lo que ya tienes</div>
+          <ul class="mb-lista" id="mbIncluido"></ul>
+        </div>
+        <div class="card">
+          <div class="section-title">Se activa cuando lo pidas</div>
+          <ul class="mb-lista" id="mbPedido"></ul>
+        </div>
+        <div class="card">
+          <div class="section-title">No aplica a tu negocio</div>
+          <ul class="mb-lista" id="mbBloqueado"></ul>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:22px">
+        <div class="section-title">Lo que cobra Táchira GOO</div>
+        <div class="mb-com" id="mbComision"></div>
+        <div class="info-note" id="mbComisionNota" style="margin-top:14px"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Planes</div>
+        <div class="mb-planes" id="mbPlanes"></div>
+      </div>
+
+      <div style="margin-top:22px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-blue" onclick="showView('dashboard'); activateNav('dashboard')">Entrar a mi panel</button>
+      </div>
+    </div>
+
     <div class="view" id="v-bookings" style="display:none">
       <div class="topbar"><div><div class="breadcrumb">RESERVAS</div><h1 class="page-title">Reservas</h1><div class="page-sub">Solicitudes reales enviadas desde el Portal Cliente</div></div></div>
       <div class="card">
@@ -978,6 +1062,7 @@ document.getElementById('goSignup').addEventListener('click', (e)=>{
   e.preventDefault();
   document.getElementById('loginForm').style.display = 'none';
   document.getElementById('signupForm').style.display = 'block';
+  cargarTiposNegocio();
 });
 document.getElementById('goLogin').addEventListener('click', (e)=>{
   e.preventDefault();
@@ -996,6 +1081,11 @@ async function signUpProvider(){
   errEl.style.display = 'none';
   okEl.style.display = 'none';
 
+  if(!tipoElegido){
+    errEl.textContent = 'Elige primero qué tipo de negocio tienes.';
+    errEl.style.display = 'block';
+    return;
+  }
   if(!businessName || !municipio || !email || !password){
     errEl.textContent = 'Completa todos los campos.';
     errEl.style.display = 'block';
@@ -1028,7 +1118,7 @@ async function signUpProvider(){
 
   await sb.from('profiles').upsert({ id: data.user.id, role: 'proveedor' });
   const { data: newProvider, error: provErr } = await sb.from('providers')
-    .upsert({ owner_id: data.user.id, business_name: businessName, municipio }, { onConflict: 'owner_id' })
+    .upsert({ owner_id: data.user.id, business_name: businessName, municipio, business_type: tipoElegido }, { onConflict: 'owner_id' })
     .select().single();
   authFlowInProgress = false;
   if(provErr){
@@ -1041,6 +1131,9 @@ async function signUpProvider(){
   await refreshAll();
   document.getElementById('login').style.display='none';
   document.getElementById('app').style.display='block';
+  /* Recién registrado no entra a un panel vacío: primero se le dice qué
+     trae su cuenta, qué se le cobra y qué puede añadir. */
+  await abrirMembresia();
 }
 
 async function logout(){
@@ -3442,6 +3535,113 @@ async function pintarAvance(){
     if(!t.ok) b.onclick = t.ir;
     cont.appendChild(b);
   });
+}
+
+// ============================================================
+// Onboarding por tipo de negocio
+// El registro deja de ser genérico: quien entra dice qué es, y
+// desde ahí cambian los módulos, la comisión, el plan y el
+// panel. Las tarjetas salen de la base, no del HTML, para que
+// agregar un tipo no obligue a tocar los tres portales.
+// ============================================================
+const TN_ICONO = { bed: '▢', compass: '◎', car: '⛟', store: '▣' };
+let tipoElegido = null;
+
+async function cargarTiposNegocio(){
+  const caja = document.getElementById('tnGrid');
+  if(!caja) return;
+  const { data } = await sb.from('business_types').select('*').order('orden');
+  caja.innerHTML = (data || []).map(t => `
+    <button type="button" class="tn-card" data-tipo="${esc(t.tipo)}" onclick="elegirTipo('${esc(t.tipo)}')">
+      <span class="tn-ico">${TN_ICONO[t.icono] || '▦'}</span>
+      <span class="tn-nom">${esc(t.etiqueta)}</span>
+      <span class="tn-frase">${esc(t.frase)}</span>
+    </button>`).join('');
+}
+
+function elegirTipo(t){
+  tipoElegido = t;
+  document.querySelectorAll('.tn-card').forEach(c =>
+    c.classList.toggle('on', c.getAttribute('data-tipo') === t));
+  const err = document.getElementById('signupError');
+  if(err) err.style.display = 'none';
+}
+
+/* ============================================================
+   Qué incluye tu cuenta
+   Se arma de la base: módulos, comisión y planes. Si mañana
+   cambias una comisión o enciendes un plan, esta pantalla lo
+   refleja sin que nadie despliegue nada.
+   ============================================================ */
+const MB_NOMBRE = {
+  micrositio: 'Tu página pública', habitaciones: 'Habitaciones y tarifas',
+  calendario: 'Calendario anual', ocupacion: 'Disponibilidad por fecha',
+  recepcion: 'Recepción: entradas y salidas', reservas: 'Reservas',
+  experiencias: 'Experiencias y tours', participantes: 'Lista de participantes',
+  vehiculos: 'Vehículos y alquiler', traslados: 'Traslados y carreras',
+  mensajes: 'Mensajes con el viajero', facturacion: 'Facturación y cobros',
+  reportes: 'Reportes', resenas: 'Reseñas',
+  visibilidad: 'Aparecer de primero', publicidad: 'Publicidad en nuestras redes'
+};
+
+async function abrirMembresia(){
+  showView('membresia');
+  activateNav('membresia');
+  await pintarMembresia();
+}
+
+async function pintarMembresia(){
+  if(!currentProvider) return;
+  const { data: r, error } = await sb.rpc('resumen_de_membresia', { p_provider_id: currentProvider.id });
+  if(error || !r) return;
+
+  document.getElementById('mbTipo').textContent = r.etiqueta || '';
+  document.getElementById('mbTitulo').textContent =
+    'Hola, ' + (currentProvider.business_name || 'tu negocio');
+  document.getElementById('mbFrase').textContent =
+    (r.frase || '') + ' Esto es lo que trae tu cuenta y lo que cobramos cuando vendes.';
+
+  const mods = r.modulos || [];
+  const pinta = (destino, filtro, marca, clase) => {
+    const l = mods.filter(filtro);
+    document.getElementById(destino).innerHTML = l.length
+      ? l.map(m => `<li><span class="mb-mk ${clase}">${marca}</span><b>${esc(MB_NOMBRE[m.modulo] || m.modulo)}</b>${m.nota ? ' — ' + esc(m.nota) : ''}</li>`).join('')
+      : '<li style="color:var(--gray-light)">Nada por aquí.</li>';
+  };
+  pinta('mbIncluido',  m => m.estado === 'incluido',       '✓', 'mb-si');
+  pinta('mbPedido',    m => m.estado === 'por_solicitud' || m.estado === 'por_plan', '◇', 'mb-plan-mk');
+  pinta('mbBloqueado', m => m.estado === 'bloqueado',      '—', 'mb-no');
+
+  const c = r.comision;
+  const caja = document.getElementById('mbComision');
+  if(c){
+    caja.innerHTML =
+      `<div><b>${c.comision_negocio_pct}%</b><span>se te descuenta a ti</span></div>` +
+      (Number(c.recargo_viajero_pct) > 0
+        ? `<div><b>${c.recargo_viajero_pct}%</b><span>se le suma al viajero</span></div>` : '') +
+      `<div><b>${Number(c.comision_negocio_pct) + Number(c.recargo_viajero_pct)}%</b><span>en total para la plataforma</span></div>`;
+    /* Un número sin ejemplo no se entiende. */
+    const base = 100, neto = 100 - Number(c.comision_negocio_pct);
+    const paga = 100 + Number(c.recargo_viajero_pct);
+    document.getElementById('mbComisionNota').innerHTML =
+      `💡 Si pones una tarifa de <b>$${base}</b>, tú recibes <b>$${neto.toFixed(2)}</b>` +
+      (paga !== base ? ` y el viajero paga <b>$${paga.toFixed(2)}</b>.` : '.') +
+      ' Solo se cobra cuando la reserva se confirma.';
+  } else {
+    caja.innerHTML = '<div style="color:var(--gray);font-size:13px">Todavía no hay comisión definida para tu tipo de negocio.</div>';
+    document.getElementById('mbComisionNota').innerHTML = '';
+  }
+
+  const planes = r.planes || [];
+  document.getElementById('mbPlanes').innerHTML = planes.map(p => `
+    <div class="mb-plan">
+      <h4>${esc(p.nombre)}</h4>
+      ${p.precio_mes != null
+        ? `<div class="mb-precio">$${Number(p.precio_mes).toFixed(2)} <small>/ mes</small></div>`
+        : '<div class="mb-pronto">Precio por definir</div>'}
+      <ul>${(p.beneficios || []).map(b => `<li>${esc(b)}</li>`).join('')}</ul>
+      <div class="mb-estado">${p.activo ? 'Disponible' : 'Próximamente'}</div>
+    </div>`).join('') || '<div style="color:var(--gray);font-size:13px">Aún no hay planes para tu tipo de negocio.</div>';
 }
 
 </script>
