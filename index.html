@@ -3823,7 +3823,7 @@ async function fdOcupacion(){
       <div class="oc-mes">${m}</div>
       <div class="oc-barra"><i style="width:${Math.min(Number(f.ocupacion),100)}%"></i></div>
       <div class="oc-pct">${Number(f.ocupacion).toFixed(0)}%</div>
-      <div class="oc-ing">${money(f.ingreso)}</div>
+      <div class="oc-ing" title="Tu tarifa, antes de comisión">${money(f.tarifa)}</div>
     </div>`;
   }).join('');
 }
