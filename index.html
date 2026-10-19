@@ -810,6 +810,7 @@ tr:hover td{background:#FBFCFE}
       </div>
       <div class="card">
         <div class="section-title">Historial de liquidaciones</div>
+        <div class="info-note" id="billComision" style="margin-bottom:14px"></div>
         <table>
           <tbody id="payoutsBody"><tr><th>Período</th><th>Reservas</th><th>Monto liquidado</th><th>Ref. de pago</th><th>Estado</th></tr>
           <tr><td colspan="5" class="empty-state">Aún no hay liquidaciones. La primera se genera al cerrar tu primer ciclo de pago.</td></tr>
@@ -1389,32 +1390,60 @@ async function refreshDashboard(){
 
 async function refreshBilling(){
   if(!currentProvider) return;
-  const confirmed = providerBookings.filter(b => ['confirmada','completada'].includes(b.status));
-  document.getElementById('billPending').textContent = money(confirmed.reduce((s, b) => s + Number(b.amount || 0), 0));
-  document.getElementById('billBookings').textContent = confirmed.length;
 
-  const { data: payouts } = await sb.from('payouts').select('*')
-    .eq('provider_id', currentProvider.id).order('period_end', { ascending: false });
-  const paid = (payouts || []).filter(p => p.status === 'paid');
-  document.getElementById('billPaid').textContent = money(paid.reduce((s, p) => s + Number(p.amount || 0), 0));
+  /* Lo que ve el proveedor es SU dinero, no el del viajero: desde que la
+     plataforma cobra comisión, sumar el importe de la reserva le mostraría
+     de más. El neto sale del libro de cargos. */
+  const { data: cargos } = await sb.from('mkt_cargos')
+    .select('estado,neto_negocio,plataforma,total_viajero,liquidacion_id')
+    .eq('provider_id', currentProvider.id);
+
+  const firmes = (cargos || []).filter(c => c.estado === 'firme');
+  const porLiquidar = firmes.filter(c => !c.liquidacion_id);
+  const suma = (arr, campo) => arr.reduce((t, c) => t + Number(c[campo] || 0), 0);
+
+  document.getElementById('billPending').textContent = money(suma(porLiquidar, 'neto_negocio'));
+  document.getElementById('billBookings').textContent = porLiquidar.length;
+
+  const { data: liqs } = await sb.from('mkt_liquidaciones').select('*')
+    .eq('provider_id', currentProvider.id).order('hasta', { ascending: false });
+  const pagadas = (liqs || []).filter(l => l.estado === 'pagada');
+  document.getElementById('billPaid').textContent =
+    money(pagadas.reduce((t, l) => t + Number(l.neto || 0), 0));
 
   const body = document.getElementById('payoutsBody');
-  const header = '<tr><th>Período</th><th>Reservas</th><th>Monto liquidado</th><th>Ref. de pago</th><th>Estado</th></tr>';
-  const PAYOUT_LABEL = { pending: 'Pendiente', paid: 'Pagado', failed: 'Fallido' };
-  const PAYOUT_BADGE = { pending: 'badge-orange', paid: 'badge-green', failed: 'badge-red' };
-  body.innerHTML = header + (!payouts || payouts.length === 0
-    ? '<tr><td colspan="5" class="empty-state">Aún no hay liquidaciones. La primera se genera al cerrar tu primer ciclo de pago.</td></tr>'
-    : payouts.map(p => `
+  const cab = '<tr><th>Período</th><th>Reservas</th><th>Pagó el viajero</th><th>Comisión</th><th>Te toca</th><th>Estado</th></tr>';
+  const ETIQ = { pendiente: 'Pendiente', pagada: 'Pagada', fallida: 'Fallida' };
+  const COLOR = { pendiente: 'badge-orange', pagada: 'badge-green', fallida: 'badge-red' };
+  body.innerHTML = cab + (!liqs || liqs.length === 0
+    ? '<tr><td colspan="6" class="empty-state">Aún no hay liquidaciones. La primera se arma al cerrar tu primer período de cobro.</td></tr>'
+    : liqs.map(l => `
       <tr>
-        <td>${esc(p.period_start)} — ${esc(p.period_end)}</td>
-        <td>${p.bookings_count}</td>
-        <td class="num">${money(p.amount)}</td>
-        <td class="tx-id">${esc(p.payment_ref || '—')}</td>
-        <td><span class="badge ${PAYOUT_BADGE[p.status] || 'badge-gray'}">${esc(PAYOUT_LABEL[p.status] || p.status)}</span></td>
+        <td>${esc(l.desde)} — ${esc(l.hasta)}</td>
+        <td>${l.reservas}</td>
+        <td class="num">${money(l.bruto)}</td>
+        <td class="num">${money(l.comision)}</td>
+        <td class="num">${money(l.neto)}</td>
+        <td><span class="badge ${COLOR[l.estado] || 'badge-gray'}">${esc(ETIQ[l.estado] || l.estado)}</span></td>
       </tr>`).join(''));
 
-  const methodRow = document.getElementById('payoutMethodRow');
-  methodRow.innerHTML = currentProvider.payout_method
+  /* Que la comisión no sea una sorpresa: se dice cuál es y sobre qué. */
+  const nota = document.getElementById('billComision');
+  if(nota){
+    const tipo = (currentProvider.business_type || '').toLowerCase();
+    const pilar = ['hotel','alojamiento'].includes(tipo) ? 'alojamiento'
+                : tipo === 'vehiculos' ? 'vehiculo' : 'experiencia';
+    const { data: c } = await sb.from('mkt_comisiones').select('*').eq('pilar', pilar).maybeSingle();
+    nota.innerHTML = c
+      ? `💡 De cada reserva se te descuenta el <b>${c.comision_negocio_pct}%</b>` +
+        (Number(c.recargo_viajero_pct) > 0
+          ? `, y al viajero se le suma un <b>${c.recargo_viajero_pct}%</b> aparte. Tú recibes tu precio menos ese ${c.comision_negocio_pct}%.`
+          : '. Tú recibes tu precio menos ese porcentaje.')
+      : '';
+  }
+
+  const metodo = document.getElementById('payoutMethodRow');
+  metodo.innerHTML = currentProvider.payout_method
     ? `<div>${esc(currentProvider.payout_method)} <span class="tx-id" style="margin-left:8px">${esc(currentProvider.payout_ref || '')}</span></div><span class="badge badge-green">Registrado</span>`
     : '<div style="color:var(--gray);font-size:13px">Todavía no has registrado un método de cobro.</div><span class="badge badge-gray">Sin configurar</span>';
 }
