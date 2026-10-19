@@ -1252,8 +1252,8 @@ tr:hover td{background:#FBFCFE}
       <div class="card" id="micrositeLocked">
         <div class="locked-panel">
           <div class="locked-icon">🔒</div>
-          <div style="font-weight:800;font-size:17px;margin-bottom:8px">Micrositio bloqueado</div>
-          <div style="font-size:13.5px;color:var(--gray);max-width:460px;margin:0 auto;line-height:1.8">
+          <div style="font-weight:800;font-size:17px;margin-bottom:8px" id="micrositeLockTit">Micrositio bloqueado</div>
+          <div style="font-size:13.5px;color:var(--gray);max-width:460px;margin:0 auto;line-height:1.8" id="micrositeLockTxt">
             Tu página pública se habilita cuando el administrador revise tu negocio. Completa lo que falta aquí abajo y avísanos: mientras tanto tus productos ya son visibles para los viajeros.
           </div>
           <div style="max-width:460px;margin:22px auto 0;text-align:left" id="requisitosLista"></div>
@@ -2154,12 +2154,36 @@ function pintarRequisitos(){
      <span class="badge ${ok ? 'badge-green' : 'badge-gray'}">${ok ? 'Listo' : 'Falta'}</span></div>`).join('');
 }
 
-function refreshMicrosite(){
+async function refreshMicrosite(){
   if(!currentProvider) return;
   const approved = currentProvider.verification_status === 'approved';
-  document.getElementById('micrositeLocked').style.display = approved ? 'none' : 'block';
-  document.getElementById('micrositeEditor').style.display = approved ? 'grid' : 'none';
-  document.getElementById('micrositeSaveBtn').style.display = approved ? 'inline-flex' : 'none';
+
+  /* Verificar y pagar son dos puertas distintas. Decir siempre "espera al
+     administrador" dejaba a una operadora ya verificada esperando algo que
+     no iba a pasar: lo suyo entra con la membresía. */
+  const { data: pagado } = await sb.rpc('micrositio_activo', { p_provider_id: currentProvider.id });
+  const conModulo = pagado !== false;
+  const abierto = approved && conModulo;
+
+  document.getElementById('micrositeLocked').style.display = abierto ? 'none' : 'block';
+  document.getElementById('micrositeEditor').style.display = abierto ? 'grid' : 'none';
+  document.getElementById('micrositeSaveBtn').style.display = abierto ? 'inline-flex' : 'none';
+
+  const tit = document.getElementById('micrositeLockTit');
+  const txt = document.getElementById('micrositeLockTxt');
+  if(approved && !conModulo){
+    tit.textContent = 'Tu página propia va con la membresía';
+    txt.innerHTML = 'Tu negocio ya está verificado y tus productos se ven en el buscador. '
+      + 'La página propia —tu dirección, tu marca, tu catálogo completo— entra con el plan. '
+      + '<a href="#" onclick="irA(\'membresia\');return false" style="color:var(--blue);font-weight:700">Mira qué incluye</a>.';
+  } else {
+    tit.textContent = 'Micrositio bloqueado';
+    txt.textContent = 'Tu página pública se habilita cuando el administrador revise tu negocio. '
+      + 'Completa lo que falta aquí abajo y avísanos: mientras tanto tus productos ya son visibles para los viajeros.';
+  }
+  document.getElementById('requisitosLista').style.display = approved && !conModulo ? 'none' : '';
+  document.getElementById('micrositeStatusBadge').parentElement.style.display =
+    approved && !conModulo ? 'none' : '';
 
   const badge = document.getElementById('micrositeStatusBadge');
   if(currentProvider.verification_status === 'rejected'){
@@ -2511,6 +2535,7 @@ const RECARGAR_VISTA = {
   bookings: () => refreshBookings(),
   mensajes: () => refreshConversaciones(),
   billing: () => refreshBilling(),
+  microsite: () => refreshMicrosite(),
   dashboard: () => refreshDashboard()
 };
 
