@@ -3089,7 +3089,7 @@ function caPintar(){
       const pt = caEstado(k).especial ? '<span class="ca-pt"></span>' : '';
       const manejo = cls === 'pasado' ? ''
         : ` onmousedown="caBajar('${k}',event)" onmouseenter="caEntrar('${k}')" ontouchstart="caBajar('${k}',event)"`;
-      html += `<div class="ca-d ${cls}${sel}" title="${esc(caTitulo(k))}"${manejo}>${d}${pt}</div>`;
+      html += `<div class="ca-d ${cls}${sel}" data-k="${k}" title="${esc(caTitulo(k))}"${manejo}>${d}${pt}</div>`;
     }
     html += '</div></div>';
   }
@@ -3135,6 +3135,21 @@ function caMarcar(k){
 document.addEventListener('mouseup', () => { Cal.arrastrando = false; });
 document.addEventListener('touchend', () => { Cal.arrastrando = false; });
 
+/* En el teléfono no hay mouseenter, así que arrastrar no marcaba nada: solo
+   se podía ir día por día. Se mira qué hay debajo del dedo. */
+document.addEventListener('touchmove', ev => {
+  if(!Cal.arrastrando || !ev.touches.length) return;
+  const t = ev.touches[0];
+  const el = document.elementFromPoint(t.clientX, t.clientY);
+  if(!el || !el.classList.contains('ca-d')) return;
+  if(el.classList.contains('vacio') || el.classList.contains('pasado')) return;
+  const k = el.getAttribute('data-k');
+  if(!k) return;
+  ev.preventDefault();          // mientras se marca, la página no se desplaza
+  caMarcar(k);
+  caPintar();
+}, { passive: false });
+
 function caDiasDelAnio(filtro){
   const hoy = caHoy(), out = [];
   for(let m = 0; m < 12; m++){
@@ -3178,7 +3193,9 @@ async function caAplicar(accion){
       return {
         room_type_id: Cal.objetoId, fecha: k,
         disponibles: accion === 'cupo' ? cupo : (e.libres ?? e.total ?? 0),
-        precio: accion === 'precio' ? precio : (e.precio ?? null),
+        // Solo se escribe precio cuando de verdad es distinto al base:
+        // escribirlo siempre congelaba la tarifa de esa noche.
+        precio: accion === 'precio' ? precio : (e.especial ? e.precio : null),
         bloqueado: accion === 'cerrar' ? true : accion === 'abrir' ? false : !!e.bloqueado
       };
     }
