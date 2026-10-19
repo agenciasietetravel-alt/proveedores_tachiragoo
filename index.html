@@ -2206,8 +2206,12 @@ async function refreshMicrosite(){
   if(w0) w0.value = currentProvider.whatsapp || '';
   pintarRequisitos();
 
+  /* La dirección pública solo se enseña si de verdad responde. Sin el módulo
+     la aplicación contesta «página no encontrada» en esa misma dirección, y
+     prometerla sería mandar al proveedor —y a quien él le pase el enlace— a
+     una puerta cerrada. Si la consulta falló y no sabemos, tampoco se promete. */
   const tarjeta = document.getElementById('micrositeLinkCard');
-  if(approved && currentProvider.slug){
+  if(approved && pagado === true && currentProvider.slug){
     const url = SITIO_PUBLICO + '/' + currentProvider.slug;
     document.getElementById('micrositeUrl').textContent = url;
     document.getElementById('btnVerMicrosite').href = url;
