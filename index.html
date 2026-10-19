@@ -344,6 +344,33 @@ tr:hover td{background:#FBFCFE}
 .oc-barra i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--blue-mid))}
 .oc-pct{width:52px;text-align:right;font-weight:700;color:var(--ink)}
 .oc-ing{width:92px;text-align:right;color:var(--gray)}
+
+/* ============================================================
+   SALIDAS
+   Una experiencia no se vende por día sino por salida: la de
+   las 8 y la de las 14 son dos cosas distintas.
+   ============================================================ */
+.sa-barra{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:4px}
+.sa-barra .field{margin-bottom:0}
+.sa-dias{display:flex;gap:5px;flex-wrap:wrap}
+.sa-dia{width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:#fff;font-size:11.5px;font-weight:700;color:var(--ink-soft);cursor:pointer}
+.sa-dia.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.sa-lista{display:flex;flex-direction:column;gap:7px}
+.sa-fila{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:#fff}
+.sa-fila.cancelada{opacity:.55}
+.sa-cuando{min-width:150px}
+.sa-cuando b{display:block;font-size:13.5px;color:var(--ink)}
+.sa-cuando span{font-size:11.5px;color:var(--gray)}
+.sa-cupo{flex:1;min-width:140px;display:flex;align-items:center;gap:9px}
+.sa-cupo .barra{flex:1;height:7px;border-radius:999px;background:var(--border-soft);overflow:hidden}
+.sa-cupo .barra i{display:block;height:100%;background:var(--blue)}
+.sa-cupo .barra i.lleno{background:var(--green)}
+.sa-cupo b{font-size:12px;color:var(--ink-soft);white-space:nowrap}
+.sa-acc{display:flex;gap:6px}
+.sa-acc .btn{padding:5px 10px;font-size:12px}
+.sa-manif{margin-top:8px;border-left:3px solid var(--blue);padding:4px 0 4px 12px}
+.sa-manif div{font-size:12.5px;color:var(--ink-soft);padding:3px 0}
+.sa-manif b{color:var(--ink)}
 </style>
 </head>
 <body>
@@ -389,6 +416,7 @@ tr:hover td{background:#FBFCFE}
     <div class="nav-item" id="navListados" onclick="showView('listings',this)"><span class="nav-ico">▤</span> Mis listados</div>
     <div class="nav-item" onclick="showView('bookings',this)"><span class="nav-ico">▥</span> Reservas</div>
     <div class="nav-item" id="navCalendario" onclick="showView('calendario',this); caAbrir()"><span class="nav-ico">▦</span> Calendario anual</div>
+    <div class="nav-item" id="navSalidas" onclick="showView('salidas',this); saAbrir()"><span class="nav-ico">◷</span> Salidas</div>
     <div class="nav-item" onclick="showView('mensajes',this); refreshConversaciones()"><span class="nav-ico">✉</span> Mensajes <span id="badgeMensajes" class="badge badge-orange" style="display:none;margin-left:6px">0</span></div>
 
     <div class="sb-group-label" id="grpHotel" style="display:none">Hotel</div>
@@ -905,6 +933,31 @@ tr:hover td{background:#FBFCFE}
 
       <div style="margin-top:22px;display:flex;gap:10px;flex-wrap:wrap">
         <button class="btn btn-blue" onclick="showView('dashboard'); activateNav('dashboard')">Entrar a mi panel</button>
+      </div>
+    </div>
+
+
+    <div class="view" id="v-salidas" style="display:none">
+      <div class="topbar"><div><div class="breadcrumb">SALIDAS</div><h1 class="page-title">Cuándo sale cada experiencia</h1><div class="page-sub">Cada salida tiene su hora y su cupo. La de las 8 y la de las 14 son dos cosas distintas.</div></div></div>
+
+      <div class="card" style="margin-bottom:18px">
+        <div class="field"><label>Experiencia</label><select id="saListado" class="sel" onchange="saCargar()"></select></div>
+        <div class="section-title" style="margin-top:6px">Crear salidas en serie</div>
+        <div class="sa-barra">
+          <div class="field"><label>Desde</label><input type="date" id="saDesde"></div>
+          <div class="field"><label>Hasta</label><input type="date" id="saHasta"></div>
+          <div class="field"><label>Días</label><div class="sa-dias" id="saDias"></div></div>
+          <div class="field"><label>Horas (separadas por coma)</label><input type="text" id="saHoras" placeholder="08:00, 14:00"></div>
+          <div class="field"><label>Cupo</label><input type="text" id="saCupo" placeholder="10" style="width:80px"></div>
+          <div class="field"><label>Mínimo</label><input type="text" id="saMin" placeholder="2" style="width:80px"></div>
+          <div class="field"><label>&nbsp;</label><button class="btn btn-blue" onclick="saGenerar()">Crear salidas</button></div>
+        </div>
+        <div class="info-note">💡 Marca los días, pon las horas y el cupo, y se crean todas de una vez. Las que ya existan se respetan.</div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Próximas salidas</div>
+        <div class="sa-lista" id="saLista"></div>
       </div>
     </div>
 
@@ -3424,6 +3477,7 @@ function showToast(texto){
 const MOD_NAV = {
   habitaciones: 'navHabitaciones', ocupacion: 'navOcupacion', recepcion: 'navRecepcion',
   vehiculos: 'navVehiculos', micrositio: 'navMicrositio', calendario: 'navCalendario',
+  salidas: 'navSalidas',
   facturacion: 'navFacturacion', experiencias: 'navListados'
 };
 const MOD_GRUPO = {
@@ -3826,6 +3880,127 @@ async function fdOcupacion(){
       <div class="oc-ing" title="Tu tarifa, antes de comisión">${money(f.tarifa)}</div>
     </div>`;
   }).join('');
+}
+
+// ============================================================
+// Salidas de las experiencias
+// ============================================================
+const SA_DIAS = [['D',0],['L',1],['M',2],['X',3],['J',4],['V',5],['S',6]];
+let saDiasSel = new Set([1,2,3,4,5,6,0]);
+
+function saPintarDias(){
+  const caja = document.getElementById('saDias');
+  if(!caja) return;
+  caja.innerHTML = SA_DIAS.map(([l,n]) =>
+    `<button type="button" class="sa-dia${saDiasSel.has(n)?' on':''}" onclick="saAlternarDia(${n})">${l}</button>`).join('');
+}
+function saAlternarDia(n){
+  if(saDiasSel.has(n)) saDiasSel.delete(n); else saDiasSel.add(n);
+  saPintarDias();
+}
+
+async function saAbrir(){
+  saPintarDias();
+  const sel = document.getElementById('saListado');
+  const { data } = await sb.from('listings').select('id,title,status')
+    .eq('provider_id', currentProvider.id).order('title');
+  sel.innerHTML = (data || []).length
+    ? data.map(l => `<option value="${esc(l.id)}">${esc(l.title)}${l.status!=='published'?' (borrador)':''}</option>`).join('')
+    : '<option value="">Todavía no tienes experiencias</option>';
+  const hoy = new Date();
+  if(!document.getElementById('saDesde').value) document.getElementById('saDesde').value = dateKey(hoy);
+  if(!document.getElementById('saHasta').value){
+    const f = new Date(hoy); f.setMonth(f.getMonth() + 2);
+    document.getElementById('saHasta').value = dateKey(f);
+  }
+  await saCargar();
+}
+
+async function saGenerar(){
+  const lid = document.getElementById('saListado').value;
+  if(!lid){ showToast('Primero crea una experiencia.'); return; }
+  const horas = String(document.getElementById('saHoras').value || '')
+    .split(',').map(h => h.trim()).filter(Boolean);
+  const cupo = parseInt(document.getElementById('saCupo').value, 10);
+  const min  = parseInt(document.getElementById('saMin').value, 10) || 1;
+  if(!(cupo > 0)){ showToast('Escribe cuántas personas caben en cada salida.'); return; }
+  if(!saDiasSel.size){ showToast('Marca al menos un día de la semana.'); return; }
+
+  const { data, error } = await sb.rpc('generar_salidas', {
+    p_listing_id: lid,
+    p_desde: document.getElementById('saDesde').value,
+    p_hasta: document.getElementById('saHasta').value,
+    p_dias: [...saDiasSel],
+    p_horas: horas.length ? horas : null,
+    p_cupo: cupo, p_min: min });
+  if(error){ showToast(error.message); return; }
+  showToast(data + (data === 1 ? ' salida creada' : ' salidas creadas'));
+  await saCargar();
+}
+
+async function saCargar(){
+  const lid = document.getElementById('saListado').value;
+  const caja = document.getElementById('saLista');
+  if(!lid){ caja.innerHTML = '<div class="fd-vacio">Crea una experiencia primero.</div>'; return; }
+
+  const { data: sal, error } = await sb.from('listing_departures')
+    .select('*').eq('listing_id', lid).gte('fecha', dateKey(new Date()))
+    .order('fecha').order('hora').limit(120);
+  if(error){ showToast('No se pudieron cargar: ' + error.message); return; }
+  if(!sal || !sal.length){
+    caja.innerHTML = '<div class="fd-vacio">Todavía no hay salidas. Créalas arriba.</div>'; return;
+  }
+
+  /* El cupo libre se pregunta una vez por salida, no reserva por reserva. */
+  const { data: ocupacion } = await sb.from('bookings')
+    .select('departure_id, personas, status')
+    .in('departure_id', sal.map(s => s.id));
+  const tomado = {};
+  (ocupacion || []).forEach(b => {
+    if(['pendiente_aprobacion','confirmada','completada'].includes(b.status))
+      tomado[b.departure_id] = (tomado[b.departure_id] || 0) + Number(b.personas || 0);
+  });
+
+  caja.innerHTML = sal.map(s => {
+    const usado = tomado[s.id] || 0;
+    const pct = Math.min(usado / s.cupo * 100, 100);
+    const lleno = usado >= s.cupo;
+    const cancelada = s.estado === 'cancelada';
+    const hora = s.hora ? String(s.hora).slice(0,5) : 'Todo el día';
+    return `<div class="sa-fila ${cancelada ? 'cancelada' : ''}">
+      <div class="sa-cuando"><b>${esc(s.fecha)} · ${esc(hora)}</b>
+        <span>${cancelada ? 'Cancelada' : (lleno ? 'Completa' : 'Abierta')}${usado && usado < s.min_participantes ? ' · bajo el mínimo' : ''}</span></div>
+      <div class="sa-cupo">
+        <div class="barra"><i class="${lleno?'lleno':''}" style="width:${pct}%"></i></div>
+        <b>${usado} / ${s.cupo}</b></div>
+      <div class="sa-acc">
+        ${usado ? `<button class="btn btn-outline" onclick="saManifiesto('${s.id}')">Ver lista</button>` : ''}
+        ${cancelada ? '' : `<button class="btn btn-outline" onclick="saCancelar('${s.id}')">Cancelar salida</button>`}
+      </div>
+      <div class="sa-manif" id="manif-${s.id}" style="display:none"></div>
+    </div>`;
+  }).join('');
+}
+
+async function saManifiesto(id){
+  const caja = document.getElementById('manif-' + id);
+  if(caja.style.display === 'block'){ caja.style.display = 'none'; return; }
+  const { data, error } = await sb.rpc('participantes_de_salida', { p_departure_id: id });
+  if(error){ showToast(error.message); return; }
+  caja.innerHTML = (data || []).length
+    ? (data || []).map(p => `<div><b>${esc(p.nombre)}</b> · ${p.personas} pax · ${esc(p.telefono || '')}
+        ${p.pendiente > 0 ? ' · debe ' + money(p.pendiente) : ' · pagado'}</div>`).join('')
+    : '<div>Nadie inscrito todavía.</div>';
+  caja.style.display = 'block';
+}
+
+async function saCancelar(id){
+  const motivo = prompt('¿Por qué se cancela la salida? Los inscritos verán este motivo.');
+  if(motivo === null) return;
+  const { data, error } = await sb.rpc('cancelar_salida', { p_departure_id: id, p_motivo: motivo });
+  if(error){ showToast(error.message); return; }
+  showToast(data ? 'Salida cancelada. ' + data + ' reserva(s) con reembolso total anotado.' : 'Salida cancelada.');
+  await saCargar();
 }
 
 </script>
