@@ -496,6 +496,22 @@ tr:hover td{background:#FBFCFE}
   </div>
 </div>
 
+<!-- Quien ya estaba registrado sin rubro —se registró por la portada,
+     cuando esa puerta no lo preguntaba— no puede quedarse con un panel
+     genérico para siempre. Antes de entrar, una sola pregunta. -->
+<div id="rubroGate" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(10,20,40,.72);
+     align-items:center;justify-content:center;padding:20px;overflow-y:auto">
+  <div style="background:#fff;border-radius:16px;max-width:460px;width:100%;padding:26px">
+    <h2 style="margin:0 0 6px;font-size:19px;font-weight:800;color:var(--ink)">Antes de entrar: ¿a qué se dedica tu negocio?</h2>
+    <p style="margin:0 0 16px;font-size:13.5px;line-height:1.6;color:var(--gray)">
+      De esto dependen las secciones que verás, la comisión y lo que puedes publicar.
+      Te registraste antes de que te lo preguntáramos; se arregla en un clic.</p>
+    <div class="tn-grid" id="rubroGrid"></div>
+    <div id="rubroError" style="display:none;color:var(--red);font-size:12.5px;margin-bottom:12px"></div>
+    <button class="btn-primary" id="rubroBtn" onclick="guardarRubro()">Guardar y entrar</button>
+  </div>
+</div>
+
 <div id="app">
 <div class="shell">
   <div class="sidebar">
@@ -1549,6 +1565,7 @@ async function refreshAll(){
   await refreshVehicles();
   aplicarTipoNegocio();
   await refreshRooms();
+  await pedirRubroSiFalta();
   const now = new Date();
   document.getElementById('syncStatusText').textContent =
     'Sincronizado con el repositorio central · ' + now.toLocaleTimeString('es-VE', { hour:'2-digit', minute:'2-digit' });
@@ -3992,6 +4009,59 @@ async function cargarTiposNegocio(){
       <span class="tn-nom">${esc(t.etiqueta)}</span>
       <span class="tn-frase">${esc(t.frase)}</span>
     </button>`).join('');
+}
+
+/* El mismo selector, esta vez para quien ya tiene cuenta. Las tarjetas salen
+   de la misma tabla: un tipo nuevo aparece en las dos puertas a la vez. */
+let rubroElegido = null;
+
+async function pedirRubroSiFalta(){
+  if(!currentProvider) return;
+  const t = String(currentProvider.business_type || '').toLowerCase();
+  if(t && t !== 'otro') return;
+  const caja = document.getElementById('rubroGrid');
+  if(!caja) return;
+  const { data } = await sb.from('business_types').select('*').order('orden');
+  if(!data || !data.length) return;        // sin tipos que ofrecer, no se estorba
+  rubroElegido = null;
+  caja.innerHTML = data.map(x => `
+    <button type="button" class="tn-card" data-rubro="${esc(x.tipo)}" onclick="elegirRubro('${esc(x.tipo)}')">
+      <span class="tn-ico">${TN_ICONO[x.icono] || '▦'}</span>
+      <span class="tn-nom">${esc(x.etiqueta)}</span>
+      <span class="tn-frase">${esc(x.frase)}</span>
+    </button>`).join('');
+  document.getElementById('rubroGate').style.display = 'flex';
+}
+
+function elegirRubro(t){
+  rubroElegido = t;
+  document.querySelectorAll('#rubroGrid .tn-card').forEach(c =>
+    c.classList.toggle('on', c.getAttribute('data-rubro') === t));
+  document.getElementById('rubroError').style.display = 'none';
+}
+
+async function guardarRubro(){
+  const err = document.getElementById('rubroError');
+  if(!rubroElegido){
+    err.textContent = 'Elige una para continuar.';
+    err.style.display = 'block';
+    return;
+  }
+  const btn = document.getElementById('rubroBtn');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  const { data, error } = await sb.from('providers')
+    .update({ business_type: rubroElegido }).eq('id', currentProvider.id).select().single();
+  btn.disabled = false; btn.textContent = 'Guardar y entrar';
+  if(error){
+    err.textContent = 'No se pudo guardar: ' + error.message;
+    err.style.display = 'block';
+    return;
+  }
+  currentProvider = data;
+  document.getElementById('rubroGate').style.display = 'none';
+  await aplicarTipoNegocio();
+  await refreshMicrosite();
+  await abrirMembresia();   /* que vea de una vez qué trae su cuenta */
 }
 
 function elegirTipo(t){
