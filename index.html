@@ -91,6 +91,7 @@ input{font-family:inherit}
 .kpi-accent{position:absolute;top:0;left:0;width:3px;height:100%}
 
 .section-title{font-size:15px;font-weight:700;margin:0 0 16px;display:flex;align-items:center;justify-content:space-between}
+.hint{font-size:11.5px;color:var(--gray);line-height:1.55;margin-top:6px}
 .section-hint{font-size:11.5px;color:var(--gray-light);font-weight:500}
 
 .btn{border:none;border-radius:9px;padding:10px 18px;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px}
@@ -773,6 +774,12 @@ tr:hover td{background:#FBFCFE}
           <div class="field"><label>Quién firma</label><input type="text" id="alqFirma" placeholder="Nombre y cédula de quien recibe o entrega"></div>
         </div>
         <div class="field"><label>Golpes o detalles que dejar anotados</label><textarea id="alqDanos" rows="3" placeholder="Déjalo vacío si el vehículo va sin novedad"></textarea></div>
+        <div class="field">
+          <label>Fotos del estado del vehículo</label>
+          <input type="file" id="alqFoto" accept="image/*" multiple onchange="alqSubirFotos(event)">
+          <div class="hint">Las cuatro esquinas, el tablero con el kilometraje y cualquier golpe. Solo las ves tú y el administrador.</div>
+          <div class="sa-lista" id="alqFotos" style="margin-top:10px"></div>
+        </div>
         <div style="display:flex;gap:10px">
           <button class="btn btn-blue" onclick="alqGuardar()">Guardar</button>
           <button class="btn btn-outline" onclick="alqCerrarForm()">Cancelar</button>
@@ -873,6 +880,24 @@ tr:hover td{background:#FBFCFE}
           <div class="map-box" id="vehMapBox"></div>
           <div class="field" style="margin-top:16px"><label>Dirección o referencia</label><input type="text" id="vAddress" placeholder="Ej. Terminal de San Cristóbal, puerta principal"></div>
           <div style="font-size:12px;color:var(--gray)" id="vehPinCoords">Sin pin colocado todavía.</div>
+        </div>
+
+        <div class="card" style="margin-top:20px">
+          <div class="section-title">Otros sitios donde lo entregas</div>
+          <p class="dp-texto">El punto del mapa es el de siempre. Aquí añades los demás —el aeropuerto, un hotel, el terminal— y lo que cobras por llevarlo hasta allá. Si no cobras, déjalo en 0.</p>
+          <div class="sa-lista" id="vpLista"></div>
+          <div class="grid grid-2" style="gap:0 18px;margin-top:16px">
+            <div class="field"><label>Nombre del sitio</label><input type="text" id="vpNombre" placeholder="Ej. Aeropuerto de Santo Domingo"></div>
+            <div class="field"><label>Municipio</label><select id="vpMunicipio" class="sel"><option value="">Sin especificar</option></select></div>
+            <div class="field"><label>Costo de llevarlo (USD)</label><input type="text" id="vpCosto" placeholder="0"></div>
+            <div class="field"><label>Sirve para</label>
+              <select id="vpUso" class="sel">
+                <option value="ambos">Entregar y devolver</option>
+                <option value="entrega">Solo entregar</option>
+                <option value="devolucion">Solo devolver</option>
+              </select></div>
+          </div>
+          <button class="btn btn-outline" type="button" onclick="vpAgregar()">Añadir sitio</button>
         </div>
       </div>
 
@@ -1175,7 +1200,7 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const MUNICIPIOS = ["Andrés Bello","Antonio Rómulo Costa","Ayacucho","Bolívar","Cárdenas","Córdoba","Fernández Feo","Francisco de Miranda","García de Hevia","Guásimos","Independencia","Jáuregui","José María Vargas","Junín","Libertad","Libertador","Lobatera","Michelena","Panamericano","Pedro María Ureña","Rafael Urdaneta","Samuel Darío Maldonado","San Cristóbal","San Judas Tadeo","Seboruco","Simón Rodríguez","Sucre","Torbes","Uribante"];
 
 document.addEventListener('DOMContentLoaded', () => {
-  ['signupMunicipio','fMunicipio','vMunicipio','aMunicipio'].forEach(id => {
+  ['signupMunicipio','fMunicipio','vMunicipio','aMunicipio','vpMunicipio'].forEach(id => {
     const sel = document.getElementById(id);
     if(!sel) return;
     MUNICIPIOS.forEach(m => {
@@ -2834,7 +2859,7 @@ function showVehTab(id, el){
   document.getElementById('vt-'+id).style.display='block';
   document.querySelectorAll('#v-vehicle-editor .tab').forEach(t => t.classList.remove('active'));
   if(el) el.classList.add('active');
-  if(id === 'entrega') ensureVehMap();
+  if(id === 'entrega'){ ensureVehMap(); vpCargar(); }
 }
 
 // ---------- Guardar ----------
@@ -3988,6 +4013,58 @@ async function saCancelar(id){
 }
 
 // ============================================================
+// Puntos de entrega y devolución
+// La tabla existía desde la migración de alquiler pero no tenía
+// dónde llenarse: el dueño solo podía ofrecer el sitio del pin.
+// ============================================================
+async function vpCargar(){
+  const caja = document.getElementById('vpLista');
+  if(!caja) return;
+  if(!editingVehicleId){
+    caja.innerHTML = '<div class="fd-vacio">Guarda el vehículo primero y aquí podrás añadir sitios.</div>';
+    return;
+  }
+  const { data, error } = await sb.from('vehicle_puntos')
+    .select('*').eq('vehicle_id', editingVehicleId).order('nombre');
+  if(error){ caja.innerHTML = '<div class="fd-vacio">' + esc(error.message) + '</div>'; return; }
+  const pts = data || [];
+  caja.innerHTML = pts.length ? pts.map(p => {
+    const uso = p.entrega && p.devolucion ? 'Entregar y devolver'
+              : p.entrega ? 'Solo entregar' : 'Solo devolver';
+    return `<div class="sa-fila">
+      <div class="sa-cuando"><b>${esc(p.nombre)}</b><span>${esc(p.municipio || 'Sin municipio')}</span></div>
+      <div class="fd-dato">Costo<b>${Number(p.costo) > 0 ? money(p.costo) : 'Sin cargo'}</b></div>
+      <div class="fd-dato">Sirve para<b>${uso}</b></div>
+      <div class="sa-acc"><button class="btn btn-outline btn-sm" onclick="vpQuitar('${p.id}')">Quitar</button></div>
+    </div>`;
+  }).join('') : '<div class="fd-vacio">Solo entregas en el sitio del mapa. Añade otros abajo si también llevas el vehículo.</div>';
+}
+
+async function vpAgregar(){
+  if(!editingVehicleId){ showToast('Guarda el vehículo primero.'); return; }
+  const nombre = document.getElementById('vpNombre').value.trim();
+  if(!nombre){ showToast('Escribe cómo se llama el sitio.'); return; }
+  const costo = parseFloat(String(document.getElementById('vpCosto').value).replace(',', '.')) || 0;
+  if(costo < 0){ showToast('El costo no puede ser negativo.'); return; }
+  const uso = document.getElementById('vpUso').value;
+  const { error } = await sb.from('vehicle_puntos').insert({
+    vehicle_id: editingVehicleId, nombre,
+    municipio: document.getElementById('vpMunicipio').value || null,
+    costo, entrega: uso !== 'devolucion', devolucion: uso !== 'entrega' });
+  if(error){ showToast('No se pudo guardar: ' + error.message); return; }
+  document.getElementById('vpNombre').value = '';
+  document.getElementById('vpCosto').value = '';
+  showToast('Sitio añadido.');
+  await vpCargar();
+}
+
+async function vpQuitar(id){
+  const { error } = await sb.from('vehicle_puntos').delete().eq('id', id);
+  if(error){ showToast(error.message); return; }
+  await vpCargar();
+}
+
+// ============================================================
 // Alquileres: entrega y devolución
 // El portal no mostraba las reservas de vehículos en ninguna
 // parte: el dueño no tenía dónde ver quién tenía su carro.
@@ -4035,9 +4112,46 @@ async function refreshAlquileres(){
    mano: cualquier palabra fuera de la lista rebotaba con el error crudo de
    la restricción de la base. Es un acta, no una pregunta al vuelo. */
 let alqActual = null;      // { id, momento }
+let alqFotos = [];         // rutas dentro del bucket privado
+
+/* El acta se guarda en vehicle-docs, que es privado: solo el dueño que
+   subió el archivo y el administrador pueden abrirlo. Una foto del golpe
+   no es material de catálogo. */
+async function alqSubirFotos(ev){
+  const files = [...(ev.target.files || [])];
+  ev.target.value = '';
+  if(!files.length || !alqActual) return;
+  for(const file of files){
+    if(file.size > 5 * 1024 * 1024){ showToast('“' + file.name + '” pasa de 5MB.'); continue; }
+    const limpio = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const ruta = `entregas/${alqActual.id}/${alqActual.momento}-${Date.now()}-${limpio}`;
+    const { error } = await sb.storage.from('vehicle-docs').upload(ruta, file);
+    if(error){ showToast('No se pudo subir: ' + error.message); continue; }
+    alqFotos.push(ruta);
+  }
+  alqPintarFotos();
+}
+
+function alqPintarFotos(){
+  const caja = document.getElementById('alqFotos');
+  if(!caja) return;
+  caja.innerHTML = alqFotos.map((f, i) => `<div class="sa-fila">
+    <div class="sa-cuando"><b>${esc(f.split('/').pop())}</b></div>
+    <div class="sa-acc"><button class="btn btn-outline btn-sm" onclick="alqQuitarFoto(${i})">Quitar</button></div>
+  </div>`).join('');
+}
+
+async function alqQuitarFoto(i){
+  const ruta = alqFotos[i];
+  await sb.storage.from('vehicle-docs').remove([ruta]);
+  alqFotos.splice(i, 1);
+  alqPintarFotos();
+}
 
 function alqRegistrar(id, momento){
   alqActual = { id, momento };
+  alqFotos = [];
+  alqPintarFotos();
   document.getElementById('alqFormTitulo').textContent =
     momento === 'entrega' ? 'Entrega del vehículo' : 'Devolución del vehículo';
   ['alqKmInput','alqFirma','alqDanos'].forEach(k => { document.getElementById(k).value = ''; });
@@ -4050,6 +4164,8 @@ function alqRegistrar(id, momento){
 
 function alqCerrarForm(){
   alqActual = null;
+  alqFotos = [];
+  alqPintarFotos();
   document.getElementById('alqForm').style.display = 'none';
 }
 
@@ -4065,7 +4181,7 @@ async function alqGuardar(){
     p_combustible: document.getElementById('alqComb').value,
     p_limpieza: document.getElementById('alqLimp').value,
     p_danos: document.getElementById('alqDanos').value.trim() || null,
-    p_fotos: [], p_firmado_por: firma });
+    p_fotos: alqFotos, p_firmado_por: firma });
   if(error){ showToast(error.message); return; }
   alqCerrarForm();
   showToast(momento === 'entrega' ? 'Entrega registrada.' : 'Devolución registrada. El alquiler quedó cerrado.');
