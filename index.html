@@ -312,6 +312,38 @@ tr:hover td{background:#FBFCFE}
 .mb-plan li{font-size:12.5px;color:var(--ink-soft);padding:4px 0 4px 16px;position:relative;line-height:1.4}
 .mb-plan li:before{content:'·';position:absolute;left:4px;color:var(--blue);font-weight:800}
 .mb-estado{margin-top:13px;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-light)}
+
+/* ============================================================
+   RECEPCIÓN
+   Un hotel se opera de pie y con prisa: lo del día primero, y
+   cada acción a un clic de distancia.
+   ============================================================ */
+.fd-sec{margin-bottom:22px}
+.fd-tit{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.fd-tit span{font-size:11px;font-weight:700;color:var(--gray);background:var(--border-soft);padding:2px 7px;border-radius:999px}
+.fd-fila{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:11px 13px;border:1px solid var(--border);border-radius:var(--radius-sm);background:#fff;margin-bottom:8px}
+.fd-quien{flex:1;min-width:190px}
+.fd-quien b{display:block;font-size:13.5px;color:var(--ink)}
+.fd-quien span{display:block;font-size:11.5px;color:var(--gray);margin-top:1px}
+.fd-dato{font-size:12px;color:var(--ink-soft);min-width:96px}
+.fd-dato b{display:block;font-size:13px;color:var(--ink)}
+.fd-acc{display:flex;gap:7px;flex-wrap:wrap}
+.fd-acc .btn{padding:6px 11px;font-size:12px}
+.fd-vacio{font-size:12.5px;color:var(--gray);padding:12px 2px}
+.hab-tablero{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px}
+.hab{border-radius:var(--radius-sm);padding:9px 6px;text-align:center;border:1px solid var(--border);cursor:pointer;background:#fff}
+.hab b{display:block;font-size:13px;font-weight:700;color:var(--ink)}
+.hab span{display:block;font-size:10.5px;margin-top:2px}
+.hab.limpia{background:var(--green-bg);border-color:transparent}.hab.limpia span{color:var(--green)}
+.hab.por_limpiar{background:#FFF4E5;border-color:transparent}.hab.por_limpiar span{color:#B25E09}
+.hab.ocupada{background:var(--blue-light);border-color:transparent}.hab.ocupada span{color:var(--blue)}
+.hab.fuera_de_servicio{background:var(--red-bg);border-color:transparent}.hab.fuera_de_servicio span{color:var(--red)}
+.oc-fila{display:flex;align-items:center;gap:12px;padding:7px 0;font-size:13px}
+.oc-mes{width:76px;color:var(--ink-soft);font-weight:600}
+.oc-barra{flex:1;height:9px;border-radius:999px;background:var(--border-soft);overflow:hidden}
+.oc-barra i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--blue-mid))}
+.oc-pct{width:52px;text-align:right;font-weight:700;color:var(--ink)}
+.oc-ing{width:92px;text-align:right;color:var(--gray)}
 </style>
 </head>
 <body>
@@ -662,12 +694,32 @@ tr:hover td{background:#FBFCFE}
       <div class="grid grid-4" style="margin-bottom:24px">
         <div class="card kpi-card"><div class="kpi-accent" style="background:var(--blue)"></div><div class="kpi-label">Entradas hoy</div><div class="kpi-value num" id="fdEntradas">0</div></div>
         <div class="card kpi-card"><div class="kpi-accent" style="background:var(--orange)"></div><div class="kpi-label">Salidas hoy</div><div class="kpi-value num" id="fdSalidas">0</div></div>
-        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--green)"></div><div class="kpi-label">Ocupadas esta noche</div><div class="kpi-value num" id="fdOcupadas">0</div></div>
-        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--gray-light)"></div><div class="kpi-label">Por cobrar al llegar</div><div class="kpi-value num" id="fdPorCobrar">$0</div></div>
+        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--green)"></div><div class="kpi-label">Huéspedes en casa</div><div class="kpi-value num" id="fdOcupadas">0</div></div>
+        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--gray-light)"></div><div class="kpi-label">Por cobrar al salir</div><div class="kpi-value num" id="fdPorCobrar">$0</div></div>
       </div>
+
+      <div class="card fd-sec">
+        <div class="fd-tit">Llegan hoy <span id="fdNumLlegan">0</span></div>
+        <div id="fdLlegan"></div>
+      </div>
+      <div class="card fd-sec">
+        <div class="fd-tit">En casa <span id="fdNumCasa">0</span></div>
+        <div id="fdCasa"></div>
+      </div>
+      <div class="card fd-sec">
+        <div class="fd-tit">Salen hoy <span id="fdNumSalen">0</span></div>
+        <div id="fdSalen"></div>
+      </div>
+
+      <div class="card fd-sec">
+        <div class="section-title">Estado de las habitaciones</div>
+        <div class="info-note" style="margin-bottom:12px">💡 Toca una habitación para cambiar su estado: limpia, por limpiar o fuera de servicio.</div>
+        <div class="hab-tablero" id="fdHabitaciones"></div>
+      </div>
+
       <div class="card">
-        <div class="section-title">Reservas</div>
-        <table><tbody id="fdTabla"><tr><td class="empty-state">Cargando...</td></tr></tbody></table>
+        <div class="section-title">Ocupación de los últimos meses</div>
+        <div id="fdOcupacion"></div>
       </div>
     </div>
 
@@ -2474,49 +2526,6 @@ async function aplicarRango(){
 }
 
 // ---------- Recepción ----------
-async function refreshFrontDesk(){
-  if(!currentProvider || !esHotel()) return;
-  const hoy = dateKey(new Date());
-  const { data, error } = await sb.from('room_bookings')
-    .select('*, room_types(nombre)')
-    .eq('provider_id', currentProvider.id)
-    .in('status', ['confirmada','pendiente_aprobacion','completada'])
-    .order('check_in');
-  const tabla = document.getElementById('fdTabla');
-  if(error){ if(tabla) tabla.innerHTML = '<tr><td class="empty-state">No se pudo cargar: '+esc(error.message)+'</td></tr>'; return; }
-  const res = data || [];
-
-  const entradas = res.filter(b => b.check_in === hoy && b.status === 'confirmada');
-  const salidas  = res.filter(b => b.check_out === hoy && b.status === 'confirmada');
-  const ocupadas = res.filter(b => b.status === 'confirmada' && b.check_in <= hoy && b.check_out > hoy)
-                      .reduce((s,b) => s + b.habitaciones, 0);
-  const porCobrar = res.filter(b => b.status === 'confirmada' && b.check_in >= hoy)
-                       .reduce((s,b) => s + Number(b.monto_pendiente||0), 0);
-
-  document.getElementById('fdEntradas').textContent = entradas.length;
-  document.getElementById('fdSalidas').textContent = salidas.length;
-  document.getElementById('fdOcupadas').textContent = ocupadas;
-  document.getElementById('fdPorCobrar').textContent = money(porCobrar);
-
-  const ESTADO = { pendiente_aprobacion:['Pendiente de pago','badge-orange'], confirmada:['Confirmada','badge-green'],
-                   completada:['Completada','badge-gray'] };
-  const cab = '<tr><th>Ref.</th><th>Huésped</th><th>Habitación</th><th>Entrada</th><th>Salida</th><th>Hab.</th><th>Por cobrar</th><th>Estado</th></tr>';
-  tabla.innerHTML = cab + (res.length === 0
-    ? '<tr><td colspan="8" class="empty-state">Todavía no hay reservas.</td></tr>'
-    : res.map(b => {
-        const e = ESTADO[b.status] || [b.status,'badge-gray'];
-        return `<tr>
-          <td class="tx-id">${esc(b.ref)}</td>
-          <td>${esc(b.guest_nombre || 'Huésped')}${b.guest_telefono ? `<div style="font-size:11px;color:var(--gray)">${esc(b.guest_telefono)}</div>` : ''}</td>
-          <td>${esc(b.room_types?.nombre || '')}</td>
-          <td>${esc(b.check_in)}</td>
-          <td>${esc(b.check_out)}</td>
-          <td class="num">${b.habitaciones}</td>
-          <td class="num">${money(b.monto_pendiente)}</td>
-          <td><span class="badge ${e[1]}">${e[0]}</span></td>
-        </tr>`;
-      }).join(''));
-}
 
 // ============================================================
 // ALQUILER DE VEHÍCULOS
@@ -3642,6 +3651,181 @@ async function pintarMembresia(){
       <ul>${(p.beneficios || []).map(b => `<li>${esc(b)}</li>`).join('')}</ul>
       <div class="mb-estado">${p.activo ? 'Disponible' : 'Próximamente'}</div>
     </div>`).join('') || '<div style="color:var(--gray);font-size:13px">Aún no hay planes para tu tipo de negocio.</div>';
+}
+
+// ============================================================
+// Recepción
+// El panel del día: quién llega, quién está, quién sale, y cada
+// acción a un clic. Antes era una tabla con todas las reservas
+// y ninguna acción, que obliga a buscar con los ojos.
+// ============================================================
+const HAB_ETIQ = { limpia:'Limpia', por_limpiar:'Por limpiar', ocupada:'Ocupada', fuera_de_servicio:'Fuera de servicio' };
+const HAB_CICLO = { limpia:'por_limpiar', por_limpiar:'limpia', fuera_de_servicio:'limpia', ocupada:'ocupada' };
+
+function fdFila(b, acciones){
+  const tel = b.guest_telefono ? `<span>${esc(b.guest_telefono)}</span>` : '';
+  const hab = b.room_units ? ` · ${esc(b.room_units.numero)}` : '';
+  return `<div class="fd-fila">
+    <div class="fd-quien"><b>${esc(b.guest_nombre || 'Huésped')}</b>
+      <span>${esc(b.room_types?.nombre || '')}${hab} · ${b.habitaciones} hab. · ${b.huespedes} pax</span>${tel}</div>
+    <div class="fd-dato">Entrada<b>${esc(b.check_in)}</b></div>
+    <div class="fd-dato">Salida<b>${esc(b.check_out)}</b></div>
+    <div class="fd-dato">Por cobrar<b>${money(b.monto_pendiente)}</b></div>
+    <div class="fd-acc">${acciones}</div>
+  </div>`;
+}
+
+async function refreshFrontDesk(){
+  if(!currentProvider) return;
+  const hoy = dateKey(new Date());
+
+  const { data, error } = await sb.from('room_bookings')
+    .select('*, room_types(nombre), room_units(numero)')
+    .eq('provider_id', currentProvider.id)
+    .in('status', ['confirmada','completada'])
+    .order('check_in');
+  if(error){ showToast('No se pudo cargar la recepción: ' + error.message); return; }
+  const res = data || [];
+
+  const llegan = res.filter(b => b.status === 'confirmada' && b.check_in === hoy && !b.check_in_real);
+  const casa   = res.filter(b => b.status === 'confirmada' && b.check_in_real && b.check_out > hoy);
+  const salen  = res.filter(b => b.status === 'confirmada' && b.check_out <= hoy);
+
+  document.getElementById('fdEntradas').textContent = llegan.length;
+  document.getElementById('fdSalidas').textContent  = salen.length;
+  document.getElementById('fdOcupadas').textContent = casa.reduce((s,b) => s + Number(b.huespedes||0), 0);
+  document.getElementById('fdPorCobrar').textContent =
+    money(casa.concat(salen).reduce((s,b) => s + Number(b.monto_pendiente||0), 0));
+
+  const pinta = (destino, lista, acciones, vacio) => {
+    document.getElementById(destino).innerHTML = lista.length
+      ? lista.map(b => fdFila(b, acciones(b))).join('')
+      : `<div class="fd-vacio">${vacio}</div>`;
+  };
+  pinta('fdLlegan', llegan,
+    b => `<button class="btn btn-blue" onclick="fdCheckIn('${b.id}')">Dar entrada</button>
+          <button class="btn btn-outline" onclick="fdAnular('${b.id}')">Anular</button>`,
+    'Nadie llega hoy.');
+  pinta('fdCasa', casa,
+    b => `<button class="btn btn-outline" onclick="fdExtra('${b.id}')">Cargar consumo</button>
+          <button class="btn btn-blue" onclick="fdCheckOut('${b.id}')">Dar salida</button>`,
+    'No hay huéspedes alojados.');
+  pinta('fdSalen', salen,
+    b => b.check_in_real
+      ? `<button class="btn btn-outline" onclick="fdExtra('${b.id}')">Cargar consumo</button>
+         <button class="btn btn-blue" onclick="fdCheckOut('${b.id}')">Dar salida</button>`
+      : `<button class="btn btn-outline" onclick="fdAnular('${b.id}')">Marcar no-show</button>`,
+    'Nadie sale hoy.');
+  document.getElementById('fdNumLlegan').textContent = llegan.length;
+  document.getElementById('fdNumCasa').textContent   = casa.length;
+  document.getElementById('fdNumSalen').textContent  = salen.length;
+
+  await fdHabitaciones();
+  await fdOcupacion();
+}
+
+async function fdHabitaciones(){
+  const caja = document.getElementById('fdHabitaciones');
+  if(!caja) return;
+  const { data } = await sb.from('room_units')
+    .select('id,numero,estado,room_types(nombre)')
+    .eq('provider_id', currentProvider.id).order('numero');
+  const us = data || [];
+  caja.innerHTML = us.length
+    ? us.map(u => `<div class="hab ${u.estado}" title="${esc(u.room_types?.nombre || '')}"
+         onclick="fdCambiarHabitacion('${u.id}','${u.estado}')">
+         <b>${esc(u.numero)}</b><span>${HAB_ETIQ[u.estado] || u.estado}</span></div>`).join('')
+    : `<div class="fd-vacio" style="grid-column:1/-1">Todavía no has creado tus habitaciones.
+         <button class="btn btn-outline" style="margin-left:8px" onclick="fdGenerar()">Crearlas ahora</button></div>`;
+}
+
+async function fdGenerar(){
+  const { data: tipos } = await sb.from('room_types')
+    .select('id,nombre').eq('provider_id', currentProvider.id).eq('status','published');
+  let n = 0;
+  for(const t of (tipos || [])){
+    const { data } = await sb.rpc('generar_habitaciones', { p_room_type_id: t.id, p_prefijo: '' });
+    n += Number(data || 0);
+  }
+  showToast(n ? n + ' habitaciones creadas' : 'No hacía falta crear ninguna');
+  await fdHabitaciones();
+}
+
+async function fdCambiarHabitacion(id, estado){
+  /* Una habitación ocupada no se cambia a mano: la libera el check-out. */
+  if(estado === 'ocupada'){ showToast('Esta habitación está ocupada. Se libera al dar la salida.'); return; }
+  const siguiente = estado === 'limpia'
+    ? (confirm('¿Marcarla fuera de servicio? Cancela para marcarla por limpiar.') ? 'fuera_de_servicio' : 'por_limpiar')
+    : HAB_CICLO[estado] || 'limpia';
+  const { error } = await sb.from('room_units')
+    .update({ estado: siguiente, actualizado_en: new Date().toISOString() }).eq('id', id);
+  if(error){ showToast('No se pudo cambiar: ' + error.message); return; }
+  showToast('Habitación ' + (HAB_ETIQ[siguiente] || siguiente).toLowerCase());
+  await fdHabitaciones();
+}
+
+async function fdCheckIn(id){
+  const { error } = await sb.rpc('hacer_check_in', { p_booking_id: id });
+  if(error){ showToast(error.message); return; }
+  showToast('Entrada registrada');
+  await refreshFrontDesk();
+}
+
+async function fdCheckOut(id){
+  const { data: b } = await sb.from('room_bookings').select('monto_pendiente').eq('id', id).single();
+  const saldo = Number(b?.monto_pendiente || 0);
+  if(saldo > 0 && !confirm('Quedan ' + money(saldo) + ' por cobrar. ¿Dar la salida igual?')) return;
+  const { error } = await sb.rpc('hacer_check_out', { p_booking_id: id });
+  if(error){ showToast(error.message); return; }
+  showToast('Salida registrada. La habitación quedó por limpiar.');
+  await refreshFrontDesk();
+}
+
+async function fdExtra(id){
+  const concepto = prompt('¿Qué se cobra? (ej. consumos del minibar)');
+  if(!concepto) return;
+  const monto = parseFloat(String(prompt('¿Cuánto?') || '').replace(',', '.'));
+  if(!(monto > 0)){ showToast('El monto no es válido.'); return; }
+  const { error } = await sb.rpc('agregar_cargo_extra',
+    { p_booking_id: id, p_concepto: concepto, p_monto: monto });
+  if(error){ showToast(error.message); return; }
+  showToast('Cargado ' + money(monto) + ' a la cuenta');
+  await refreshFrontDesk();
+}
+
+async function fdAnular(id){
+  const motivo = prompt('¿Por qué se anula? El huésped verá este motivo.');
+  if(motivo === null) return;
+  const { data, error } = await sb.rpc('anular_reserva_hotel', { p_booking_id: id, p_motivo: motivo });
+  if(error){ showToast(error.message); return; }
+  const m = data ? Number(data.monto || 0) : 0;
+  showToast(m > 0
+    ? 'Anulada. Le corresponde un reembolso de ' + money(m) + '.'
+    : 'Anulada. Según la política no corresponde reembolso.');
+  await refreshFrontDesk();
+}
+
+async function fdOcupacion(){
+  const caja = document.getElementById('fdOcupacion');
+  if(!caja) return;
+  const hasta = new Date();
+  const desde = new Date(hasta.getFullYear(), hasta.getMonth() - 5, 1);
+  const { data, error } = await sb.rpc('reporte_ocupacion', {
+    p_provider_id: currentProvider.id, p_desde: dateKey(desde), p_hasta: dateKey(hasta) });
+  if(error || !data || !data.length){
+    caja.innerHTML = '<div class="fd-vacio">Todavía no hay noches vendidas que medir.</div>';
+    return;
+  }
+  const MES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  caja.innerHTML = data.map(f => {
+    const m = MES[Number(String(f.mes).slice(5,7)) - 1] + ' ' + String(f.mes).slice(2,4);
+    return `<div class="oc-fila">
+      <div class="oc-mes">${m}</div>
+      <div class="oc-barra"><i style="width:${Math.min(Number(f.ocupacion),100)}%"></i></div>
+      <div class="oc-pct">${Number(f.ocupacion).toFixed(0)}%</div>
+      <div class="oc-ing">${money(f.ingreso)}</div>
+    </div>`;
+  }).join('');
 }
 
 </script>
