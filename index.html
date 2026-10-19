@@ -199,6 +199,77 @@ tr:hover td{background:#FBFCFE}
   .content{padding:20px}
   .header-top{padding:14px 20px}
 }
+
+/* ============================================================
+   CALENDARIO ANUAL
+   Doce meses en una pantalla. Abrir medio año se hace
+   arrastrando, no con cuarenta clics.
+   ============================================================ */
+.ca-top{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between;margin-bottom:14px}
+.ca-sel{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.ca-sel .field{margin-bottom:0}
+.ca-atajos{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.ca-atajo{font-size:11.5px;font-weight:600;padding:5px 9px;border:1px solid var(--border);background:#fff;border-radius:999px;cursor:pointer;color:var(--ink-soft)}
+.ca-atajo:hover{border-color:var(--blue);color:var(--blue)}
+.ca-atajo.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.ca-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:1180px){.ca-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:860px){.ca-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:540px){.ca-grid{grid-template-columns:1fr}}
+.ca-mes{border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px;background:#fff}
+.ca-mnombre{font-size:12.5px;font-weight:700;color:var(--ink);text-align:center;margin-bottom:7px;cursor:pointer;border-radius:6px;padding:3px 0}
+.ca-mnombre:hover{background:var(--blue-light);color:var(--blue)}
+.ca-dow{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:3px}
+.ca-dow span{font-size:9.5px;font-weight:700;color:var(--gray-light);text-align:center}
+.ca-dias{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.ca-d{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;border-radius:5px;cursor:pointer;user-select:none;position:relative;border:1px solid transparent;color:var(--ink-soft);background:#F4F6F9}
+.ca-d.vacio{background:transparent;cursor:default}
+.ca-d.pasado{color:var(--gray-light);background:transparent;cursor:not-allowed}
+.ca-d.libre{background:var(--green-bg);color:var(--green)}
+.ca-d.poco{background:#FFF4E5;color:#B25E09}
+.ca-d.agotado{background:var(--red-bg);color:var(--red)}
+.ca-d.bloqueado{background:repeating-linear-gradient(45deg,#EDEFF3,#EDEFF3 3px,#E1E5EB 3px,#E1E5EB 6px);color:var(--gray)}
+.ca-d.reservado{background:var(--blue-light);color:var(--blue)}
+.ca-d.sel{outline:2px solid var(--blue);outline-offset:-2px;box-shadow:0 0 0 2px rgba(0,82,204,.16)}
+.ca-d .ca-pt{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:3px;height:3px;border-radius:50%;background:var(--orange)}
+.ca-leyenda{display:flex;flex-wrap:wrap;gap:13px;margin-top:16px;font-size:11.5px;color:var(--gray)}
+.ca-leyenda i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.ca-barra{position:sticky;bottom:14px;margin-top:18px;background:var(--ink);color:#fff;border-radius:var(--radius);padding:12px 14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;box-shadow:0 10px 30px rgba(16,24,40,.25);z-index:20}
+.ca-barra b{font-size:13px;margin-right:4px}
+.ca-barra button{font-size:12px;font-weight:600;padding:7px 11px;border-radius:8px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#fff;cursor:pointer}
+.ca-barra button:hover{background:rgba(255,255,255,.2)}
+.ca-barra button:disabled{opacity:.4;cursor:not-allowed}
+.ca-barra .ca-sal{margin-left:auto;border-color:transparent;background:transparent;color:rgba(255,255,255,.7)}
+.ca-barra input{width:88px;font-size:12px;padding:6px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#fff}
+.ca-barra input::placeholder{color:rgba(255,255,255,.5)}
+.ca-vacio{text-align:center;padding:46px 20px;color:var(--gray);font-size:13.5px}
+
+/* Confirmación al guardar. Sin esto el proveedor no sabe si su
+   cambio entró, y vuelve a darle al botón. */
+#tgToast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,16px);background:var(--ink);color:#fff;font-size:13px;font-weight:600;padding:11px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(16,24,40,.3);z-index:9999;opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease;max-width:88vw;text-align:center}
+#tgToast.ver{opacity:1;transform:translate(-50%,0)}
+@media (prefers-reduced-motion:reduce){#tgToast{transition:none}}
+
+/* ============================================================
+   EXPERIENCIA GUIADA
+   El panel deja de ser una lista de pantallas: dice en qué va
+   el negocio, qué falta, y qué módulos no le tocan a este tipo.
+   ============================================================ */
+.mod-chip{font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;border-radius:999px;margin-left:auto;background:rgba(255,255,255,.14);color:rgba(255,255,255,.82)}
+.nav-item[data-mod]{cursor:pointer}
+.nav-item[data-mod="por_plan"],.nav-item[data-mod="por_solicitud"]{opacity:.62}
+.tg-avance-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:12px}
+.tg-avance-tit{font-size:15.5px;font-weight:700;color:var(--ink)}
+.tg-avance-sub{font-size:12.5px;color:var(--gray);margin-top:3px}
+.tg-avance-pct{font-size:26px;font-weight:800;color:var(--blue);line-height:1}
+.tg-barra{height:7px;border-radius:999px;background:var(--border-soft);overflow:hidden}
+.tg-barra i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--blue),var(--blue-mid));transition:width .4s ease}
+@media (prefers-reduced-motion:reduce){.tg-barra i{transition:none}}
+.tg-tareas{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.tg-tarea{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;padding:7px 12px;border-radius:999px;border:1px solid var(--border);background:#fff;color:var(--ink-soft);cursor:pointer}
+.tg-tarea:hover{border-color:var(--blue);color:var(--blue)}
+.tg-tarea.lista{border-color:transparent;background:var(--green-bg);color:var(--green);cursor:default}
+.tg-tarea .tg-tic{font-size:11px}
 </style>
 </head>
 <body>
@@ -238,8 +309,9 @@ tr:hover td{background:#FBFCFE}
 
     <div class="sb-group-label">Operación</div>
     <div class="nav-item active" onclick="showView('dashboard',this)"><span class="nav-ico">▦</span> Panel general</div>
-    <div class="nav-item" onclick="showView('listings',this)"><span class="nav-ico">▤</span> Mis listados</div>
+    <div class="nav-item" id="navListados" onclick="showView('listings',this)"><span class="nav-ico">▤</span> Mis listados</div>
     <div class="nav-item" onclick="showView('bookings',this)"><span class="nav-ico">▥</span> Reservas</div>
+    <div class="nav-item" id="navCalendario" onclick="showView('calendario',this); caAbrir()"><span class="nav-ico">▦</span> Calendario anual</div>
     <div class="nav-item" onclick="showView('mensajes',this); refreshConversaciones()"><span class="nav-ico">✉</span> Mensajes <span id="badgeMensajes" class="badge badge-orange" style="display:none;margin-left:6px">0</span></div>
 
     <div class="sb-group-label" id="grpHotel" style="display:none">Hotel</div>
@@ -247,14 +319,14 @@ tr:hover td{background:#FBFCFE}
     <div class="nav-item" id="navOcupacion" style="display:none" onclick="showView('occupancy',this)"><span class="nav-ico">▩</span> Ocupación</div>
     <div class="nav-item" id="navRecepcion" style="display:none" onclick="showView('frontdesk',this)"><span class="nav-ico">◱</span> Recepción</div>
 
-    <div class="sb-group-label">Alquiler de vehículos</div>
-    <div class="nav-item" onclick="showView('vehicles',this)"><span class="nav-ico">⛟</span> Mis vehículos</div>
+    <div class="sb-group-label" id="grpVehiculos">Alquiler de vehículos</div>
+    <div class="nav-item" id="navVehiculos" onclick="showView('vehicles',this)"><span class="nav-ico">⛟</span> Mis vehículos</div>
 
     <div class="sb-group-label">Finanzas</div>
-    <div class="nav-item" onclick="showView('billing',this)"><span class="nav-ico">$</span> Facturación</div>
+    <div class="nav-item" id="navFacturacion" onclick="showView('billing',this)"><span class="nav-ico">$</span> Facturación</div>
 
     <div class="sb-group-label">Presencia</div>
-    <div class="nav-item" onclick="showView('microsite',this)"><span class="nav-ico">◈</span> Mi microsite</div>
+    <div class="nav-item" id="navMicrositio" onclick="showView('microsite',this)"><span class="nav-ico">◈</span> Mi microsite</div>
     <div class="nav-item" onclick="showView('account',this)"><span class="nav-ico">⚙</span> Cuenta y seguridad</div>
 
     <div class="sb-foot">
@@ -292,6 +364,18 @@ tr:hover td{background:#FBFCFE}
         <div class="trust-item">🔒 Datos protegidos con cifrado en tránsito</div>
         <div class="trust-item">🧾 ID de proveedor: <span class="tx-id" style="color:var(--blue-dark)" id="trustProviderId">—</span></div>
         <div class="trust-item" id="trustVerification">Verificación pendiente</div>
+      </div>
+
+      <div class="card tg-avance" id="tgAvance" style="display:none;margin-bottom:24px">
+        <div class="tg-avance-top">
+          <div>
+            <div class="tg-avance-tit" id="tgAvanceTit">Tu negocio está al 0%</div>
+            <div class="tg-avance-sub" id="tgAvanceSub">Completa estos pasos para empezar a recibir reservas</div>
+          </div>
+          <div class="tg-avance-pct num" id="tgAvancePct">0%</div>
+        </div>
+        <div class="tg-barra"><i id="tgBarraLlena" style="width:0%"></i></div>
+        <div class="tg-tareas" id="tgTareas"></div>
       </div>
 
       <div class="grid grid-4" style="margin-bottom:24px">
@@ -478,6 +562,54 @@ tr:hover td{background:#FBFCFE}
         <div id="ocError" style="display:none;color:var(--red);font-size:12.5px;margin-top:8px"></div>
       </div>
       <div class="card"><div id="ocTabla"></div></div>
+    </div>
+
+    <div class="view" id="v-calendario" style="display:none">
+      <div class="topbar"><div><div class="breadcrumb">CALENDARIO</div><h1 class="page-title">Tu año completo</h1><div class="page-sub">Los doce meses en una pantalla. Arrastra para marcar varios días y aplica el cambio de una vez.</div></div></div>
+
+      <div class="card" style="margin-bottom:18px">
+        <div class="ca-top">
+          <div class="ca-sel">
+            <div class="field"><label>Qué estás viendo</label>
+              <select id="caObjeto" class="sel" onchange="caCambiarObjeto()"></select></div>
+            <div class="field"><label>Año</label>
+              <select id="caAnio" class="sel" onchange="caCambiarAnio()"></select></div>
+          </div>
+          <div class="ca-atajos">
+            <span style="font-size:11.5px;color:var(--gray);margin-right:2px">Marcar:</span>
+            <button class="ca-atajo" onclick="caSeleccionarAnio()">Todo el año</button>
+            <button class="ca-atajo" onclick="caSeleccionarDow(1)">Lunes</button>
+            <button class="ca-atajo" onclick="caSeleccionarDow(2)">Martes</button>
+            <button class="ca-atajo" onclick="caSeleccionarDow(3)">Miércoles</button>
+            <button class="ca-atajo" onclick="caSeleccionarDow(4)">Jueves</button>
+            <button class="ca-atajo" onclick="caSeleccionarDow(5)">Viernes</button>
+            <button class="ca-atajo" onclick="caSeleccionarDow(6)">Sábado</button>
+            <button class="ca-atajo" onclick="caSeleccionarDow(0)">Domingo</button>
+            <button class="ca-atajo" onclick="caSeleccionarFinde()">Fines de semana</button>
+          </div>
+        </div>
+        <div class="info-note" id="caAyuda">💡 Haz clic en un día para marcarlo, arrastra para marcar un rango, o toca el nombre del mes para marcarlo entero.</div>
+      </div>
+
+      <div class="card">
+        <div id="caGrid" class="ca-grid"></div>
+        <div class="ca-leyenda" id="caLeyenda"></div>
+      </div>
+
+      <div class="ca-barra" id="caBarra" style="display:none">
+        <b id="caCuenta">0 días</b>
+        <button onclick="caAplicar('abrir')">Abrir</button>
+        <button onclick="caAplicar('cerrar')">Cerrar</button>
+        <span id="caCamposHotel" style="display:none;gap:8px;align-items:center">
+          <input type="text" id="caCupo" placeholder="Cupo">
+          <button onclick="caAplicar('cupo')">Cambiar cupo</button>
+          <input type="text" id="caPrecio" placeholder="Precio">
+          <button onclick="caAplicar('precio')">Cambiar precio</button>
+        </span>
+        <button onclick="caCopiar()">Copiar a…</button>
+        <button id="caBtnDeshacer" onclick="caDeshacer()" disabled>Deshacer</button>
+        <button class="ca-sal" onclick="caLimpiar()">Quitar selección</button>
+      </div>
     </div>
 
     <div class="view" id="v-frontdesk" style="display:none">
@@ -2031,13 +2163,8 @@ function esHotel(){
   return currentProvider && currentProvider.business_type === 'hotel';
 }
 
-function aplicarTipoNegocio(){
-  const mostrar = esHotel() ? '' : 'none';
-  ['grpHotel','navHabitaciones','navOcupacion','navRecepcion'].forEach(id => {
-    const el = document.getElementById(id);
-    if(el) el.style.display = mostrar;
-  });
-}
+/* aplicarTipoNegocio vive ahora en el bloque de experiencia guiada,
+   al final del archivo: la decide la tabla business_modules. */
 
 async function refreshRooms(){
   if(!currentProvider || !esHotel()) return;
@@ -2735,6 +2862,542 @@ sb.auth.onAuthStateChange((event, session) => {
     });
   }
 });
+// ============================================================
+// Calendario anual
+// Un solo componente para los tres inventarios: noches de
+// habitación, días de vehículo y salidas de experiencia. Cada
+// ámbito cambia de dónde lee y a dónde escribe; lo demás —
+// pintar, seleccionar, aplicar, deshacer — es el mismo código.
+// ============================================================
+const CA_MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const CA_DOW = ['L','M','X','J','V','S','D'];
+
+const Cal = {
+  anio: new Date().getFullYear(),
+  ambito: null,        // 'habitacion' | 'vehiculo' | 'experiencia'
+  objetoId: null,
+  objeto: null,        // la fila del producto (room_type, vehicle o listing)
+  dias: new Map(),     // 'YYYY-MM-DD' -> estado del día
+  sel: new Set(),
+  pila: [],            // para deshacer
+  arrastrando: false,
+  anclaje: null
+};
+
+function caHoy(){ const d = new Date(); d.setHours(0,0,0,0); return d; }
+function caClave(y, m, d){
+  return y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+}
+function caDesdeClave(k){ const p = k.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+
+/* El portal ya sabe qué tipo de negocio es; el calendario solo
+   pregunta qué productos tiene para ofrecer en el selector. */
+async function caLlenarObjetos(){
+  const sel = document.getElementById('caObjeto');
+  if(!currentProvider){ sel.innerHTML = ''; return; }
+  const opciones = [];
+
+  const { data: habs } = await sb.from('room_types')
+    .select('id,nombre,cantidad_total,precio_base,status')
+    .eq('provider_id', currentProvider.id).order('nombre');
+  (habs || []).forEach(h => opciones.push({
+    valor: 'habitacion:' + h.id, etiqueta: 'Habitación · ' + h.nombre, fila: h }));
+
+  const { data: vehs } = await sb.from('vehicles')
+    .select('id,title,status,is_approved')
+    .eq('owner_id', (await sb.auth.getUser()).data.user.id).order('title');
+  (vehs || []).forEach(v => opciones.push({
+    valor: 'vehiculo:' + v.id, etiqueta: 'Vehículo · ' + v.title, fila: v }));
+
+  const { data: exps } = await sb.from('listings')
+    .select('id,title,max_capacity,status')
+    .eq('provider_id', currentProvider.id).order('title');
+  (exps || []).forEach(e => opciones.push({
+    valor: 'experiencia:' + e.id, etiqueta: 'Experiencia · ' + e.title, fila: e }));
+
+  Cal._opciones = opciones;
+  sel.innerHTML = opciones.length
+    ? opciones.map(o => `<option value="${esc(o.valor)}">${esc(o.etiqueta)}</option>`).join('')
+    : '<option value="">Todavía no tienes nada que calendarizar</option>';
+}
+
+function caLlenarAnios(){
+  const sel = document.getElementById('caAnio');
+  const base = new Date().getFullYear();
+  sel.innerHTML = [base, base + 1, base + 2].map(a => `<option value="${a}">${a}</option>`).join('');
+  sel.value = Cal.anio;
+}
+
+async function caAbrir(){
+  caLlenarAnios();
+  await caLlenarObjetos();
+  const sel = document.getElementById('caObjeto');
+  if(!sel.value){ caPintarVacio(); return; }
+  await caCambiarObjeto();
+}
+
+async function caCambiarObjeto(){
+  const v = document.getElementById('caObjeto').value;
+  if(!v){ caPintarVacio(); return; }
+  const o = (Cal._opciones || []).find(x => x.valor === v);
+  Cal.ambito = v.split(':')[0];
+  Cal.objetoId = v.split(':')[1];
+  Cal.objeto = o ? o.fila : null;
+  Cal.sel.clear(); Cal.pila = [];
+  document.getElementById('caCamposHotel').style.display =
+    Cal.ambito === 'habitacion' ? 'inline-flex' : 'none';
+  await caCargar();
+}
+
+async function caCambiarAnio(){
+  Cal.anio = +document.getElementById('caAnio').value;
+  Cal.sel.clear(); Cal.pila = [];
+  await caCargar();
+}
+
+/* Cada ámbito guarda su disponibilidad en su propia tabla, y no
+   con la misma convención: en habitaciones la fila que falta
+   significa "queda todo", en experiencias "abierto", y en
+   vehículos "cerrado". El calendario traduce las tres a lo
+   mismo para que el proveedor no tenga que saberlo. */
+async function caCargar(){
+  const desde = Cal.anio + '-01-01', hasta = Cal.anio + '-12-31';
+  Cal.dias = new Map();
+
+  if(Cal.ambito === 'habitacion'){
+    const total = Number(Cal.objeto?.cantidad_total || 1);
+    const base = Number(Cal.objeto?.precio_base || 0);
+    const { data: inv } = await sb.from('room_inventory')
+      .select('fecha,disponibles,precio,bloqueado')
+      .eq('room_type_id', Cal.objetoId).gte('fecha', desde).lte('fecha', hasta);
+    (inv || []).forEach(r => Cal.dias.set(r.fecha, {
+      bloqueado: !!r.bloqueado,
+      libres: Number(r.disponibles),
+      total,
+      precio: r.precio == null ? base : Number(r.precio),
+      especial: r.precio != null && Number(r.precio) !== base
+    }));
+    Cal._porDefecto = { bloqueado: false, libres: total, total, precio: base, especial: false };
+
+  } else if(Cal.ambito === 'vehiculo'){
+    const { data: disp } = await sb.from('vehicle_availability')
+      .select('date,is_open').eq('vehicle_id', Cal.objetoId).gte('date', desde).lte('date', hasta);
+    (disp || []).forEach(r => Cal.dias.set(r.date, {
+      bloqueado: !r.is_open, libres: r.is_open ? 1 : 0, total: 1, precio: null, especial: false }));
+    const { data: res } = await sb.from('vehicle_bookings')
+      .select('start_date,end_date,status').eq('vehicle_id', Cal.objetoId)
+      .in('status', ['pendiente_aprobacion','confirmada']);
+    (res || []).forEach(b => caCadaDia(b.start_date, b.end_date, k => {
+      const e = Cal.dias.get(k) || { bloqueado:false, libres:1, total:1, precio:null, especial:false };
+      e.reservados = 1; e.libres = 0; Cal.dias.set(k, e);
+    }));
+    // En vehículos la fila que falta quiere decir cerrado.
+    Cal._porDefecto = { bloqueado: true, libres: 0, total: 1, precio: null, especial: false };
+
+  } else {
+    const cupo = Cal.objeto?.max_capacity == null ? null : Number(Cal.objeto.max_capacity);
+    const { data: disp } = await sb.from('listing_availability')
+      .select('date,is_open').eq('listing_id', Cal.objetoId).gte('date', desde).lte('date', hasta);
+    (disp || []).forEach(r => Cal.dias.set(r.date, {
+      bloqueado: !r.is_open, libres: cupo, total: cupo, precio: null, especial: false }));
+    const { data: res } = await sb.from('bookings')
+      .select('booking_date,personas,status').eq('listing_id', Cal.objetoId)
+      .in('status', ['pendiente_aprobacion','confirmada','completada'])
+      .gte('booking_date', desde).lte('booking_date', hasta);
+    (res || []).forEach(b => {
+      const e = Cal.dias.get(b.booking_date) || { bloqueado:false, libres:cupo, total:cupo, precio:null, especial:false };
+      e.reservados = (e.reservados || 0) + Number(b.personas || 0);
+      if(cupo != null) e.libres = Math.max(cupo - e.reservados, 0);
+      Cal.dias.set(b.booking_date, e);
+    });
+    Cal._porDefecto = { bloqueado: false, libres: cupo, total: cupo, precio: null, especial: false };
+  }
+
+  if(Cal.ambito === 'habitacion'){
+    const { data: res } = await sb.from('room_bookings')
+      .select('check_in,check_out,habitaciones,status').eq('room_type_id', Cal.objetoId)
+      .in('status', ['pendiente_aprobacion','confirmada']);
+    (res || []).forEach(b => caCadaDia(b.check_in, b.check_out, k => {
+      const e = Cal.dias.get(k) || Object.assign({}, Cal._porDefecto);
+      e.reservados = (e.reservados || 0) + Number(b.habitaciones || 1);
+      Cal.dias.set(k, e);
+    }, true));
+  }
+
+  caPintar();
+}
+
+/* Recorre un rango. "abierto" deja fuera el último día, que es
+   lo correcto en hoteles: la noche del check-out no se ocupa. */
+function caCadaDia(desde, hasta, fn, abierto){
+  const d = caDesdeClave(desde), fin = caDesdeClave(hasta);
+  while(abierto ? d < fin : d <= fin){
+    fn(caClave(d.getFullYear(), d.getMonth(), d.getDate()));
+    d.setDate(d.getDate() + 1);
+  }
+}
+
+function caEstado(k){
+  return Cal.dias.get(k) || Object.assign({}, Cal._porDefecto || {});
+}
+
+function caClase(k, fecha, hoy){
+  if(fecha < hoy) return 'pasado';
+  const e = caEstado(k);
+  if(e.bloqueado) return 'bloqueado';
+  if(e.reservados > 0 && (e.libres === 0)) return 'agotado';
+  if(e.reservados > 0) return 'reservado';
+  if(e.libres === 0) return 'agotado';
+  if(e.total && e.libres != null && e.libres <= Math.max(1, Math.round(e.total * 0.25))) return 'poco';
+  return 'libre';
+}
+
+function caTitulo(k){
+  const e = caEstado(k);
+  const p = [k];
+  if(e.bloqueado) p.push('cerrado');
+  else if(Cal.ambito === 'habitacion') p.push((e.libres ?? '?') + ' de ' + e.total + ' libres');
+  else if(Cal.ambito === 'experiencia') p.push(e.total == null ? 'sin cupo definido' : (e.libres ?? e.total) + ' de ' + e.total + ' cupos');
+  else p.push('disponible');
+  if(e.reservados > 0) p.push(e.reservados + ' reservado(s)');
+  if(e.precio != null) p.push('$' + e.precio);
+  return p.join(' · ');
+}
+
+function caPintarVacio(){
+  document.getElementById('caGrid').innerHTML =
+    '<div class="ca-vacio" style="grid-column:1/-1">Aún no tienes habitaciones, vehículos ni experiencias que calendarizar.<br>Créalos primero y vuelve aquí.</div>';
+  document.getElementById('caLeyenda').innerHTML = '';
+  document.getElementById('caBarra').style.display = 'none';
+}
+
+function caPintar(){
+  const hoy = caHoy();
+  let html = '';
+  for(let m = 0; m < 12; m++){
+    const primero = new Date(Cal.anio, m, 1);
+    const hueco = (primero.getDay() + 6) % 7;         // la semana arranca en lunes
+    const cuantos = new Date(Cal.anio, m + 1, 0).getDate();
+    html += `<div class="ca-mes"><div class="ca-mnombre" onclick="caSeleccionarMes(${m})">${CA_MESES[m]}</div>`;
+    html += '<div class="ca-dow">' + CA_DOW.map(d => `<span>${d}</span>`).join('') + '</div><div class="ca-dias">';
+    for(let i = 0; i < hueco; i++) html += '<div class="ca-d vacio"></div>';
+    for(let d = 1; d <= cuantos; d++){
+      const k = caClave(Cal.anio, m, d);
+      const fecha = new Date(Cal.anio, m, d);
+      const cls = caClase(k, fecha, hoy);
+      const sel = Cal.sel.has(k) ? ' sel' : '';
+      const pt = caEstado(k).especial ? '<span class="ca-pt"></span>' : '';
+      const manejo = cls === 'pasado' ? ''
+        : ` onmousedown="caBajar('${k}',event)" onmouseenter="caEntrar('${k}')" ontouchstart="caBajar('${k}',event)"`;
+      html += `<div class="ca-d ${cls}${sel}" title="${esc(caTitulo(k))}"${manejo}>${d}${pt}</div>`;
+    }
+    html += '</div></div>';
+  }
+  document.getElementById('caGrid').innerHTML = html;
+
+  const ley = Cal.ambito === 'habitacion'
+    ? [['libre','Disponible'],['poco','Poco cupo'],['agotado','Agotado'],['reservado','Con reservas'],['bloqueado','Cerrado']]
+    : Cal.ambito === 'experiencia'
+      ? [['libre','Abierto'],['poco','Poco cupo'],['agotado','Lleno'],['reservado','Con inscritos'],['bloqueado','No sale']]
+      : [['libre','Disponible'],['reservado','Alquilado'],['bloqueado','No disponible']];
+  document.getElementById('caLeyenda').innerHTML =
+    ley.map(l => `<span><i class="ca-d ${l[0]}" style="display:inline-block"></i>${l[1]}</span>`).join('')
+    + (Cal.ambito === 'habitacion' ? '<span><i style="background:var(--orange)"></i>Precio distinto al base</span>' : '');
+
+  caPintarBarra();
+}
+
+function caPintarBarra(){
+  const barra = document.getElementById('caBarra');
+  barra.style.display = Cal.sel.size ? 'flex' : 'none';
+  document.getElementById('caCuenta').textContent =
+    Cal.sel.size + (Cal.sel.size === 1 ? ' día marcado' : ' días marcados');
+  document.getElementById('caBtnDeshacer').disabled = Cal.pila.length === 0;
+}
+
+// ----- selección -----
+function caBajar(k, ev){
+  if(ev && ev.preventDefault) ev.preventDefault();
+  Cal.arrastrando = true;
+  Cal.anclaje = k;
+  Cal.modoQuitar = Cal.sel.has(k);
+  caMarcar(k);
+  caPintar();
+}
+function caEntrar(k){
+  if(!Cal.arrastrando) return;
+  caMarcar(k);
+  caPintar();
+}
+function caMarcar(k){
+  if(Cal.modoQuitar) Cal.sel.delete(k); else Cal.sel.add(k);
+}
+document.addEventListener('mouseup', () => { Cal.arrastrando = false; });
+document.addEventListener('touchend', () => { Cal.arrastrando = false; });
+
+function caDiasDelAnio(filtro){
+  const hoy = caHoy(), out = [];
+  for(let m = 0; m < 12; m++){
+    const cuantos = new Date(Cal.anio, m + 1, 0).getDate();
+    for(let d = 1; d <= cuantos; d++){
+      const fecha = new Date(Cal.anio, m, d);
+      if(fecha < hoy) continue;
+      if(filtro && !filtro(fecha, m)) continue;
+      out.push(caClave(Cal.anio, m, d));
+    }
+  }
+  return out;
+}
+function caSeleccionarAnio(){ caDiasDelAnio().forEach(k => Cal.sel.add(k)); caPintar(); }
+function caSeleccionarMes(m){ caDiasDelAnio((f, mm) => mm === m).forEach(k => Cal.sel.add(k)); caPintar(); }
+function caSeleccionarDow(dow){ caDiasDelAnio(f => f.getDay() === dow).forEach(k => Cal.sel.add(k)); caPintar(); }
+function caSeleccionarFinde(){ caDiasDelAnio(f => f.getDay() === 0 || f.getDay() === 6).forEach(k => Cal.sel.add(k)); caPintar(); }
+function caLimpiar(){ Cal.sel.clear(); caPintar(); }
+
+// ----- aplicar -----
+async function caAplicar(accion){
+  const claves = [...Cal.sel];
+  if(!claves.length) return;
+
+  let cupo = null, precio = null;
+  if(accion === 'cupo'){
+    cupo = parseInt(document.getElementById('caCupo').value, 10);
+    if(!(cupo >= 0)){ showToast('Escribe cuántas habitaciones quedan libres.'); return; }
+  }
+  if(accion === 'precio'){
+    precio = parseFloat(String(document.getElementById('caPrecio').value).replace(',', '.'));
+    if(!(precio >= 0)){ showToast('Escribe el precio de la noche.'); return; }
+  }
+
+  // Lo que había antes, para poder deshacer.
+  const antes = claves.map(k => ({ k, e: Object.assign({}, caEstado(k)) }));
+
+  const filas = claves.map(k => {
+    const e = caEstado(k);
+    if(Cal.ambito === 'habitacion'){
+      return {
+        room_type_id: Cal.objetoId, fecha: k,
+        disponibles: accion === 'cupo' ? cupo : (e.libres ?? e.total ?? 0),
+        precio: accion === 'precio' ? precio : (e.precio ?? null),
+        bloqueado: accion === 'cerrar' ? true : accion === 'abrir' ? false : !!e.bloqueado
+      };
+    }
+    const abierto = accion === 'cerrar' ? false : accion === 'abrir' ? true : !e.bloqueado;
+    return Cal.ambito === 'vehiculo'
+      ? { vehicle_id: Cal.objetoId, date: k, is_open: abierto }
+      : { listing_id: Cal.objetoId, date: k, is_open: abierto };
+  });
+
+  const tabla = Cal.ambito === 'habitacion' ? 'room_inventory'
+              : Cal.ambito === 'vehiculo'   ? 'vehicle_availability'
+              : 'listing_availability';
+  const clave = Cal.ambito === 'habitacion' ? 'room_type_id,fecha'
+              : Cal.ambito === 'vehiculo'   ? 'vehicle_id,date'
+              : 'listing_id,date';
+
+  const { error } = await sb.from(tabla).upsert(filas, { onConflict: clave });
+  if(error){ showToast('No se pudo guardar: ' + error.message); return; }
+
+  Cal.pila.push({ tabla, clave, antes });
+  if(Cal.pila.length > 20) Cal.pila.shift();
+  showToast(claves.length + (claves.length === 1 ? ' día actualizado' : ' días actualizados'));
+  Cal.sel.clear();
+  await caCargar();
+}
+
+function caCopiar(){
+  const claves = [...Cal.sel].sort();
+  if(!claves.length) return;
+  const destino = prompt('Copiar lo marcado a partir de qué fecha (AAAA-MM-DD):');
+  if(!destino || !/^\d{4}-\d{2}-\d{2}$/.test(destino)){ return; }
+  const origen = caDesdeClave(claves[0]), base = caDesdeClave(destino);
+  const nuevas = claves.map(k => {
+    const d = caDesdeClave(k);
+    const salto = Math.round((d - origen) / 86400000);
+    const n = new Date(base); n.setDate(n.getDate() + salto);
+    return caClave(n.getFullYear(), n.getMonth(), n.getDate());
+  });
+  Cal.sel = new Set(nuevas);
+  const anios = [...new Set(nuevas.map(k => k.slice(0, 4)))];
+  if(anios.length === 1 && +anios[0] !== Cal.anio){
+    document.getElementById('caAnio').value = anios[0];
+    Cal.anio = +anios[0];
+    caCargar().then(() => showToast('Marcado en ' + anios[0] + '. Ahora elige qué aplicarles.'));
+    return;
+  }
+  caPintar();
+  showToast('Marcadas las fechas de destino. Ahora elige qué aplicarles.');
+}
+
+async function caDeshacer(){
+  const paso = Cal.pila.pop();
+  if(!paso) return;
+  const filas = paso.antes.map(({ k, e }) => {
+    if(Cal.ambito === 'habitacion'){
+      return { room_type_id: Cal.objetoId, fecha: k,
+               disponibles: e.libres ?? e.total ?? 0,
+               precio: e.precio ?? null, bloqueado: !!e.bloqueado };
+    }
+    return Cal.ambito === 'vehiculo'
+      ? { vehicle_id: Cal.objetoId, date: k, is_open: !e.bloqueado }
+      : { listing_id: Cal.objetoId, date: k, is_open: !e.bloqueado };
+  });
+  const { error } = await sb.from(paso.tabla).upsert(filas, { onConflict: paso.clave });
+  if(error){ showToast('No se pudo deshacer: ' + error.message); return; }
+  showToast('Deshecho.');
+  await caCargar();
+}
+
+/* Aviso breve de que algo se guardó. Lo usa el calendario y
+   queda disponible para el resto del panel. */
+let tgToastT = null;
+function showToast(texto){
+  let el = document.getElementById('tgToast');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'tgToast';
+    el.setAttribute('role', 'status');
+    el.setAttribute('aria-live', 'polite');
+    document.body.appendChild(el);
+  }
+  el.textContent = texto;
+  el.classList.add('ver');
+  clearTimeout(tgToastT);
+  tgToastT = setTimeout(() => el.classList.remove('ver'), 2600);
+}
+
+// ============================================================
+// El panel que se adapta al negocio
+// Qué módulos ve cada proveedor ya no lo decide una pregunta en
+// JavaScript, sino la tabla business_modules. Aquí solo se lee
+// y se pinta: bloqueado desaparece, y lo que depende de un plan
+// o de una solicitud se ve, pero apagado y explicado.
+// ============================================================
+const MOD_NAV = {
+  habitaciones: 'navHabitaciones', ocupacion: 'navOcupacion', recepcion: 'navRecepcion',
+  vehiculos: 'navVehiculos', micrositio: 'navMicrositio', calendario: 'navCalendario',
+  facturacion: 'navFacturacion', experiencias: 'navListados'
+};
+const MOD_GRUPO = {
+  grpHotel: ['navHabitaciones','navOcupacion','navRecepcion'],
+  grpVehiculos: ['navVehiculos']
+};
+const MOD_AVISO = {
+  por_plan: 'Esto entra con la membresía. Escríbenos y te contamos.',
+  por_solicitud: 'Esto se activa a pedido. Escríbenos y lo habilitamos.'
+};
+
+async function aplicarTipoNegocio(){
+  if(!currentProvider) return;
+  const { data, error } = await sb.rpc('modulos_de_proveedor', { p_provider_id: currentProvider.id });
+  if(error || !data){ return; }
+
+  Object.values(MOD_NAV).forEach(id => {
+    const el = document.getElementById(id);
+    if(el){ el.style.display = 'none'; el.removeAttribute('data-mod'); }
+  });
+
+  data.forEach(m => {
+    const el = document.getElementById(MOD_NAV[m.modulo]);
+    if(!el) return;
+    if(m.estado === 'bloqueado'){ el.style.display = 'none'; return; }
+    el.style.display = '';
+    el.setAttribute('data-mod', m.estado);
+    el.querySelectorAll('.mod-chip').forEach(c => c.remove());
+    if(m.estado !== 'incluido'){
+      const chip = document.createElement('span');
+      chip.className = 'mod-chip';
+      chip.textContent = m.estado === 'por_plan' ? 'Plan' : 'A pedido';
+      chip.title = m.nota || '';
+      el.appendChild(chip);
+    }
+  });
+
+  Object.entries(MOD_GRUPO).forEach(([grupo, hijos]) => {
+    const g = document.getElementById(grupo);
+    if(!g) return;
+    const alguno = hijos.some(h => {
+      const el = document.getElementById(h);
+      return el && el.style.display !== 'none';
+    });
+    g.style.display = alguno ? '' : 'none';
+  });
+
+  pintarAvance();
+}
+
+/* Un módulo apagado se ve, pero no abre: explica por qué. */
+document.addEventListener('click', ev => {
+  const item = ev.target.closest && ev.target.closest('.nav-item[data-mod]');
+  if(!item) return;
+  const estado = item.getAttribute('data-mod');
+  if(estado === 'incluido') return;
+  ev.preventDefault();
+  ev.stopPropagation();
+  showToast(MOD_AVISO[estado] || 'Este módulo no está activo todavía.');
+}, true);
+
+/* ============================================================
+   Avance del negocio
+   Nadie termina un formulario largo porque sí. Esto dice en una
+   línea cuánto falta y lleva directo a lo que falta.
+   ============================================================ */
+async function pintarAvance(){
+  if(!currentProvider) return;
+  const caja = document.getElementById('tgAvance');
+  if(!caja) return;
+
+  const esHotelNegocio = ['hotel','alojamiento'].includes(String(currentProvider.business_type || '').toLowerCase());
+  let productos = 0;
+  if(esHotelNegocio){
+    const { count } = await sb.from('room_types').select('id', { count: 'exact', head: true })
+      .eq('provider_id', currentProvider.id).eq('status', 'published');
+    productos = count || 0;
+  } else {
+    const { count } = await sb.from('listings').select('id', { count: 'exact', head: true })
+      .eq('provider_id', currentProvider.id).eq('status', 'published');
+    productos = count || 0;
+  }
+
+  const tareas = [
+    { ok: !!currentProvider.business_type && currentProvider.business_type !== 'otro',
+      texto: 'Elegir tu tipo de negocio', ir: () => showView('account') },
+    { ok: !!currentProvider.logo_url, texto: 'Subir tu logo', ir: () => showView('microsite') },
+    { ok: !!currentProvider.cover_image_url, texto: 'Subir tu foto de portada', ir: () => showView('microsite') },
+    { ok: !!(currentProvider.about || currentProvider.que_hacemos),
+      texto: 'Contar qué ofreces', ir: () => showView('microsite') },
+    { ok: currentProvider.lat != null && currentProvider.lng != null,
+      texto: 'Marcar dónde estás en el mapa', ir: () => showView('account') },
+    { ok: !!currentProvider.whatsapp, texto: 'Dejar un WhatsApp de contacto', ir: () => showView('account') },
+    { ok: productos > 0,
+      texto: esHotelNegocio ? 'Publicar una habitación' : 'Publicar tu primer producto',
+      ir: () => showView(esHotelNegocio ? 'rooms' : 'listings') },
+    { ok: !!currentProvider.payout_method, texto: 'Registrar cómo te pagamos', ir: () => showView('billing') }
+  ];
+
+  const hechas = tareas.filter(t => t.ok).length;
+  const pct = Math.round(hechas / tareas.length * 100);
+
+  caja.style.display = pct === 100 ? 'none' : 'block';
+  document.getElementById('tgAvancePct').textContent = pct + '%';
+  document.getElementById('tgBarraLlena').style.width = pct + '%';
+  document.getElementById('tgAvanceTit').textContent = 'Tu negocio está al ' + pct + '%';
+  const faltan = tareas.filter(t => !t.ok).length;
+  document.getElementById('tgAvanceSub').textContent = faltan === 1
+    ? 'Falta una sola cosa para que tu página esté completa.'
+    : 'Faltan ' + faltan + ' cosas para que tu página esté completa.';
+
+  const cont = document.getElementById('tgTareas');
+  cont.innerHTML = '';
+  tareas.forEach((t, i) => {
+    const b = document.createElement('button');
+    b.className = 'tg-tarea' + (t.ok ? ' lista' : '');
+    b.innerHTML = '<span class="tg-tic">' + (t.ok ? '✓' : '○') + '</span>' + esc(t.texto);
+    if(!t.ok) b.onclick = t.ir;
+    cont.appendChild(b);
+  });
+}
+
 </script>
 
 
