@@ -250,8 +250,105 @@ tr:hover td{background:#FBFCFE}
    el negocio, qué falta, y qué módulos no le tocan a este tipo.
    ============================================================ */
 .mod-chip{font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 6px;border-radius:999px;margin-left:auto;background:rgba(255,255,255,.14);color:rgba(255,255,255,.82)}
+.intro{display:flex;align-items:flex-start;gap:14px;background:var(--blue-light);
+  border:1px solid #D6E3FF;border-radius:var(--radius);padding:16px 18px;margin-bottom:20px;
+  animation:entra .3s ease both}
+.intro-ico{flex-shrink:0;width:34px;height:34px;border-radius:9px;background:var(--blue);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:16px}
+.intro-txt{flex:1}
+.intro-txt b{display:block;font-size:14px;color:var(--blue-dark);margin-bottom:3px}
+.intro-txt p{margin:0;font-size:12.8px;line-height:1.65;color:var(--ink-soft)}
+.intro-txt p b{display:inline;font-size:inherit;color:var(--ink)}
+.intro-x{background:transparent;border:none;color:var(--blue);opacity:.5;font-size:14px;
+  padding:2px 4px;border-radius:6px;flex-shrink:0;transition:opacity .15s,background .15s}
+.intro-x:hover{opacity:1;background:#fff}
+
+/* ---- Que el portal responda: cada cosa que se abre, entra ---- */
+@keyframes entra{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+.view{animation:entra .26s ease both}
+.card{transition:box-shadow .18s,border-color .18s}
+.kpi-card:hover{box-shadow:var(--shadow-md);border-color:#D6E3FF}
+.btn{transition:transform .12s,background .15s,border-color .15s,box-shadow .15s}
+.btn:active{transform:scale(.97)}
+.nav-item{transition:background .15s,color .15s,border-color .15s}
+.nav-ico{transition:transform .15s}
+.nav-item:hover .nav-ico{transform:scale(1.14)}
+@media (prefers-reduced-motion:reduce){
+  .view,.intro{animation:none}
+  .btn,.card,.nav-item,.nav-ico{transition:none}
+}
 .nav-item[data-mod]{cursor:pointer}
 .nav-item[data-mod="por_plan"],.nav-item[data-mod="por_solicitud"]{opacity:.62}
+/* ---- Lo de hoy: lo primero que se ve, y lo único que pide acción ---- */
+.hoy{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 58%,#1E62D8 100%);
+  border-radius:var(--radius);padding:22px 24px 24px;margin-bottom:24px;color:#fff;position:relative;overflow:hidden;
+  box-shadow:0 10px 30px rgba(0,48,122,.18)}
+.hoy::after{content:'';position:absolute;right:-70px;top:-90px;width:300px;height:300px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,107,0,.28),transparent 68%);pointer-events:none}
+.hoy-cab{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px;position:relative}
+.hoy-fecha{font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:rgba(255,255,255,.62)}
+.hoy-tit{font-size:21px;font-weight:800;letter-spacing:-.02em;margin:3px 0 0}
+.hoy-pulso{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;
+  background:rgba(255,255,255,.14);padding:5px 11px;border-radius:999px;color:rgba(255,255,255,.9)}
+.hoy-pulso i{width:6px;height:6px;border-radius:50%;background:#5BE49B;animation:latido 2.2s ease-in-out infinite}
+@keyframes latido{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.8)}}
+.hoy-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(176px,1fr));gap:12px;position:relative}
+.hoy-item{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:var(--radius-sm);
+  padding:14px 16px;color:#fff;transition:background .18s,transform .18s,border-color .18s}
+.hoy-item:hover{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.38);transform:translateY(-2px)}
+.hoy-item:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.hoy-num{font-size:30px;font-weight:700;line-height:1.05}
+.hoy-que{font-size:12.5px;font-weight:600;color:rgba(255,255,255,.88)}
+.hoy-ir{font-size:11px;font-weight:700;color:rgba(255,255,255,.62);margin-top:6px}
+.hoy-item:hover .hoy-ir{color:#FFC89B}
+.hoy-calma{grid-column:1/-1;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);
+  border-radius:var(--radius-sm);padding:16px 18px;font-size:13.5px;line-height:1.6;color:rgba(255,255,255,.92)}
+.hoy-calma b{color:#fff}
+.hoy-sugerencias{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}
+.hoy-sugerencias button{font-size:12px;font-weight:700;color:#fff;background:rgba(255,255,255,.14);
+  border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:7px 14px;transition:background .16s,border-color .16s}
+.hoy-sugerencias button:hover{background:rgba(255,107,0,.9);border-color:transparent}
+
+/* ---- Bandeja: lo que de verdad espera por ti ---- */
+.aten{display:flex;flex-direction:column;gap:8px}
+.aten-item{display:flex;align-items:center;gap:11px;width:100%;text-align:left;
+  background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 13px;
+  font-size:13px;color:var(--ink-soft);line-height:1.45;transition:border-color .16s,background .16s,transform .16s}
+.aten-item:hover{border-color:var(--blue);background:var(--blue-light);transform:translateX(2px)}
+.aten-item b{color:var(--ink)}
+.aten-pt{width:7px;height:7px;border-radius:50%;background:var(--gray-light);flex-shrink:0}
+.aten-item.urge .aten-pt{background:var(--orange)}
+.aten-item.espera .aten-pt{background:var(--blue-mid)}
+.aten-txt{flex:1}
+.aten-ir{font-size:11.5px;font-weight:700;color:var(--gray-light);flex-shrink:0}
+.aten-item:hover .aten-ir{color:var(--blue)}
+.aten-calma{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--green);
+  background:var(--green-bg);border-radius:var(--radius-sm);padding:13px 15px;font-weight:600}
+
+/* ---- Reservas recientes como filas, no como tabla apretada ---- */
+.rr{display:flex;flex-direction:column;gap:8px}
+.rr-fila{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--border);
+  border-radius:var(--radius-sm);background:#fff;transition:border-color .16s,box-shadow .16s}
+.rr-fila:hover{border-color:var(--blue);box-shadow:var(--shadow-sm)}
+.rr-quien{flex:1;min-width:0}
+.rr-quien b{display:block;font-size:13.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rr-quien span{font-size:11.5px;color:var(--gray)}
+.rr-monto{font-size:13.5px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.rr-pilar{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+  padding:3px 8px;border-radius:5px;background:var(--bg);color:var(--gray)}
+
+/* ---- Vacíos que enseñan en vez de constatar ---- */
+.nada{text-align:center;padding:30px 18px}
+.nada-ico{font-size:26px;opacity:.5;margin-bottom:8px}
+.nada-tit{font-size:13.5px;font-weight:700;color:var(--ink-soft)}
+.nada-txt{font-size:12.5px;color:var(--gray);line-height:1.6;margin-top:4px;max-width:340px;margin-left:auto;margin-right:auto}
+.nada .btn{margin-top:14px}
+
+@media (prefers-reduced-motion:reduce){
+  .hoy-item,.aten-item,.rr-fila{transition:none}
+  .hoy-pulso i{animation:none}
+}
 .tg-avance-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:12px}
 .tg-avance-tit{font-size:15.5px;font-weight:700;color:var(--ink)}
 .tg-avance-sub{font-size:12.5px;color:var(--gray);margin-top:3px}
@@ -405,13 +502,13 @@ tr:hover td{background:#FBFCFE}
     <div class="sb-logo">TÁCHIRA <span>GOO!!!</span></div>
 
     <div class="sb-group-label">Operación</div>
-    <div class="nav-item active" onclick="showView('dashboard',this)"><span class="nav-ico">▦</span> Panel general</div>
+    <div class="nav-item active" id="navDashboard" onclick="showView('dashboard',this)"><span class="nav-ico">▦</span> Panel general</div>
     <div class="nav-item" id="navMembresia" onclick="showView('membresia',this); pintarMembresia()"><span class="nav-ico">◆</span> Mi plan</div>
     <div class="nav-item" id="navListados" onclick="showView('listings',this)"><span class="nav-ico">▤</span> Mis listados</div>
-    <div class="nav-item" onclick="showView('bookings',this)"><span class="nav-ico">▥</span> Reservas</div>
+    <div class="nav-item" id="navReservas" onclick="showView('bookings',this)"><span class="nav-ico">▥</span> Reservas</div>
     <div class="nav-item" id="navCalendario" onclick="showView('calendario',this); caAbrir()"><span class="nav-ico">▦</span> Calendario anual</div>
     <div class="nav-item" id="navSalidas" onclick="showView('salidas',this); saAbrir()"><span class="nav-ico">◷</span> Salidas</div>
-    <div class="nav-item" onclick="showView('mensajes',this); refreshConversaciones()"><span class="nav-ico">✉</span> Mensajes <span id="badgeMensajes" class="badge badge-orange" style="display:none;margin-left:6px">0</span></div>
+    <div class="nav-item" id="navMensajes" onclick="showView('mensajes',this); refreshConversaciones()"><span class="nav-ico">✉</span> Mensajes <span id="badgeMensajes" class="badge badge-orange" style="display:none;margin-left:6px">0</span></div>
 
     <div class="sb-group-label" id="grpHotel" style="display:none">Hotel</div>
     <div class="nav-item" id="navHabitaciones" style="display:none" onclick="showView('rooms',this)"><span class="nav-ico">▢</span> Habitaciones</div>
@@ -426,7 +523,7 @@ tr:hover td{background:#FBFCFE}
 
     <div class="sb-group-label">Presencia</div>
     <div class="nav-item" id="navMicrositio" onclick="showView('microsite',this)"><span class="nav-ico">◈</span> Mi microsite</div>
-    <div class="nav-item" onclick="showView('account',this)"><span class="nav-ico">⚙</span> Cuenta y seguridad</div>
+    <div class="nav-item" id="navCuenta" onclick="showView('account',this)"><span class="nav-ico">⚙</span> Cuenta y seguridad</div>
 
     <div class="sb-foot">
       <div class="provider-chip">
@@ -451,7 +548,7 @@ tr:hover td{background:#FBFCFE}
 
     <div class="view" id="v-dashboard">
       <div class="topbar">
-        <div><div class="breadcrumb">PANEL GENERAL</div><h1 class="page-title" id="greetName">Hola, Posada El Páramo</h1><div class="page-sub">Resumen de tu actividad y estado de cuenta</div></div>
+        <div><div class="breadcrumb">PANEL GENERAL</div><h1 class="page-title" id="greetName">Hola, Posada El Páramo</h1><div class="page-sub">Qué pasa hoy en tu negocio y qué está esperando por ti</div></div>
         <div style="display:flex;gap:10px;align-items:center">
           <a id="btnVerPaginaPublica" class="btn btn-outline" target="_blank" rel="noopener"
              href="#" style="display:none">Ver mi página pública ↗</a>
@@ -463,6 +560,17 @@ tr:hover td{background:#FBFCFE}
         <div class="trust-item">🔒 Datos protegidos con cifrado en tránsito</div>
         <div class="trust-item">🧾 ID de proveedor: <span class="tx-id" style="color:var(--blue-dark)" id="trustProviderId">—</span></div>
         <div class="trust-item" id="trustVerification">Verificación pendiente</div>
+      </div>
+
+      <div class="hoy" id="hoyCard">
+        <div class="hoy-cab">
+          <div>
+            <div class="hoy-fecha" id="hoyFecha">—</div>
+            <h2 class="hoy-tit">Lo de hoy</h2>
+          </div>
+          <div class="hoy-pulso" id="hoyPulso"><i></i>En vivo</div>
+        </div>
+        <div class="hoy-grid" id="hoyGrid"></div>
       </div>
 
       <div class="card tg-avance" id="tgAvance" style="display:none;margin-bottom:24px">
@@ -478,33 +586,33 @@ tr:hover td{background:#FBFCFE}
       </div>
 
       <div class="grid grid-4" style="margin-bottom:24px">
-        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--blue)"></div><div class="kpi-label">Reservas hoy</div><div class="kpi-value num" id="kpiToday">0</div><div class="kpi-trend" style="color:var(--gray)" id="kpiTodaySub">Sin reservas para hoy</div></div>
+        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--blue)"></div><div class="kpi-label">Reservas del mes</div><div class="kpi-value num" id="kpiToday">0</div><div class="kpi-trend" style="color:var(--gray)" id="kpiTodaySub">Sin reservas para hoy</div></div>
         <div class="card kpi-card"><div class="kpi-accent" style="background:var(--orange)"></div><div class="kpi-label">Saldo por liberar</div><div class="kpi-value num" id="kpiBalance">$0</div><div class="kpi-trend" style="color:var(--gray)" id="kpiBalanceSub">Sin reservas confirmadas</div></div>
         <div class="card kpi-card"><div class="kpi-accent" style="background:var(--green)"></div><div class="kpi-label">Calificación</div><div class="kpi-value num" id="kpiRating">—</div><div class="kpi-trend" style="color:var(--gray)" id="kpiRatingSub">Sin reseñas aún</div></div>
-        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--gray-light)"></div><div class="kpi-label">Listados activos</div><div class="kpi-value num" id="kpiListingsCount">0</div><div class="kpi-trend" style="color:var(--gray)" id="kpiListingsSub"></div></div>
+        <div class="card kpi-card"><div class="kpi-accent" style="background:var(--gray-light)"></div><div class="kpi-label">Productos visibles</div><div class="kpi-value num" id="kpiListingsCount">0</div><div class="kpi-trend" style="color:var(--gray)" id="kpiListingsSub"></div></div>
       </div>
 
       <div class="grid grid-2">
         <div class="card">
-          <div class="section-title">Reservas recientes <span class="section-hint">Actualizado en tiempo real</span></div>
-          <table>
-            <tbody id="recentBookingsBody"><tr><th>Ref.</th><th>Cliente</th><th>Listado</th><th>Fecha</th><th>Monto</th><th>Estado</th></tr>
-            <tr><td colspan="6" class="empty-state">Todavía no tienes reservas.</td></tr>
-          </tbody></table>
+          <div class="section-title">Reservas recientes <span class="section-hint">Se actualiza al entrar</span></div>
+          <div id="recentBookingsBody"></div>
         </div>
         <div class="card">
-          <div class="section-title">Alertas</div>
-          <div style="font-size:13px;line-height:2.1" id="alertsBody">
-            <span style="color:var(--gray)">Sin alertas por ahora.</span>
-          </div>
+          <div class="section-title">Necesita tu atención</div>
+          <div class="aten" id="alertsBody"></div>
         </div>
       </div>
     </div>
 
     <div class="view" id="v-listings" style="display:none">
       <div class="topbar">
-        <div><div class="breadcrumb">MIS LISTADOS</div><h1 class="page-title">Gestión de listados</h1><div class="page-sub">Los cambios se sincronizan automáticamente con el sitio público</div></div>
+        <div><div class="breadcrumb">MIS LISTADOS</div><h1 class="page-title">Gestión de listados</h1><div class="page-sub">Lo que el viajero puede reservarte. Lo que guardes aquí se ve en el sitio en minutos.</div></div>
         <button class="btn btn-blue" onclick="openNewListing()">+ Nuevo listado</button>
+      </div>
+      <div class="intro" data-intro="listings">
+        <span class="intro-ico">▤</span>
+        <div class="intro-txt"><b>Aquí vive lo que vendes.</b><p>Cada listado es una cosa que el viajero puede reservarte: un tour, una caminata, un paseo a caballo. Mientras esté en <b>borrador</b> no lo ve nadie; al publicarlo entra al buscador. Puedes tener todos los que quieras.</p></div>
+        <button class="intro-x" onclick="cerrarIntro(this)" aria-label="Entendido">✕</button>
       </div>
       <div class="grid grid-3" id="listingsGrid">
         <div class="new-listing-card" onclick="openNewListing()">
@@ -601,8 +709,13 @@ tr:hover td{background:#FBFCFE}
     <!-- ====== HOTEL ====== -->
     <div class="view" id="v-rooms" style="display:none">
       <div class="topbar">
-        <div><div class="breadcrumb">HABITACIONES</div><h1 class="page-title">Tipos de habitación</h1><div class="page-sub">Declara qué habitaciones tienes y cuántas de cada tipo</div></div>
+        <div><div class="breadcrumb">HABITACIONES</div><h1 class="page-title">Tipos de habitación</h1><div class="page-sub">Qué tipos de habitación tienes y cuántas de cada una</div></div>
         <button class="btn btn-blue" onclick="abrirNuevaHabitacion()">+ Nuevo tipo</button>
+      </div>
+      <div class="intro" data-intro="rooms">
+        <span class="intro-ico">▢</span>
+        <div class="intro-txt"><b>Un tipo, no una habitación suelta.</b><p>Si tienes seis matrimoniales iguales, eso es <b>un</b> tipo con cantidad seis, no seis fichas. El viajero reserva el tipo; el sistema lleva la cuenta de cuántas quedan libres cada noche.</p></div>
+        <button class="intro-x" onclick="cerrarIntro(this)" aria-label="Entendido">✕</button>
       </div>
       <div class="grid grid-3" id="roomsGrid"></div>
     </div>
@@ -635,7 +748,12 @@ tr:hover td{background:#FBFCFE}
     </div>
 
     <div class="view" id="v-occupancy" style="display:none">
-      <div class="topbar"><div><div class="breadcrumb">OCUPACIÓN</div><h1 class="page-title">Disponibilidad y tarifas</h1><div class="page-sub">Ajusta cuántas habitaciones quedan y a qué precio, por rango de fechas</div></div></div>
+      <div class="topbar"><div><div class="breadcrumb">OCUPACIÓN</div><h1 class="page-title">Disponibilidad y tarifas</h1><div class="page-sub">Cambiar precio o cupo de un rango de fechas de una sola vez</div></div></div>
+      <div class="intro" data-intro="occupancy">
+        <span class="intro-ico">▩</span>
+        <div class="intro-txt"><b>Para cambios por rango.</b><p>Subir la tarifa toda la temporada alta, o cerrar la semana que pintas el hotel. Si lo que quieres es ver el año de un vistazo y marcar días sueltos, usa el <b>Calendario anual</b>.</p></div>
+        <button class="intro-x" onclick="cerrarIntro(this)" aria-label="Entendido">✕</button>
+      </div>
       <div class="card" style="margin-bottom:20px">
         <div class="grid grid-2" style="gap:0 18px">
           <div class="field"><label>Tipo de habitación</label><select id="ocTipo" class="sel" onchange="cargarOcupacion()"></select></div>
@@ -659,6 +777,11 @@ tr:hover td{background:#FBFCFE}
 
     <div class="view" id="v-calendario" style="display:none">
       <div class="topbar"><div><div class="breadcrumb">CALENDARIO</div><h1 class="page-title">Tu año completo</h1><div class="page-sub">Todo lo que tienes por delante en una pantalla. Arrastra para marcar varios días y aplica el cambio de una vez.</div></div></div>
+      <div class="intro" data-intro="calendario">
+        <span class="intro-ico">▦</span>
+        <div class="intro-txt"><b>Todo está abierto; tú marcas lo que cierras.</b><p>No hace falta abrir el año día por día: tus habitaciones, vehículos y experiencias ya se pueden reservar todos los días. Aquí marcas las excepciones — el día que cierras, la noche que cuesta distinto, el cupo que cambia.</p></div>
+        <button class="intro-x" onclick="cerrarIntro(this)" aria-label="Entendido">✕</button>
+      </div>
 
       <div class="card" style="margin-bottom:18px">
         <div class="ca-top">
@@ -706,7 +829,12 @@ tr:hover td{background:#FBFCFE}
     </div>
 
     <div class="view" id="v-frontdesk" style="display:none">
-      <div class="topbar"><div><div class="breadcrumb">RECEPCIÓN</div><h1 class="page-title">Hoy en el hotel</h1><div class="page-sub">Entradas, salidas y ocupación del día</div></div></div>
+      <div class="topbar"><div><div class="breadcrumb">RECEPCIÓN</div><h1 class="page-title">Hoy en el hotel</h1><div class="page-sub">Quién llega, quién está alojado y quién se va — con cada acción a un clic</div></div></div>
+      <div class="intro" data-intro="frontdesk">
+        <span class="intro-ico">◱</span>
+        <div class="intro-txt"><b>El mostrador del día.</b><p>Dar entrada asigna una habitación limpia y la marca ocupada. Dar salida cierra la cuenta y la manda a limpiar. Lo que cargues como consumo se le suma a lo que paga al irse.</p></div>
+        <button class="intro-x" onclick="cerrarIntro(this)" aria-label="Entendido">✕</button>
+      </div>
       <div class="grid grid-4" style="margin-bottom:24px">
         <div class="card kpi-card"><div class="kpi-accent" style="background:var(--blue)"></div><div class="kpi-label">Entradas hoy</div><div class="kpi-value num" id="fdEntradas">0</div></div>
         <div class="card kpi-card"><div class="kpi-accent" style="background:var(--orange)"></div><div class="kpi-label">Salidas hoy</div><div class="kpi-value num" id="fdSalidas">0</div></div>
@@ -743,6 +871,11 @@ tr:hover td{background:#FBFCFE}
       <div class="topbar">
         <div><div class="breadcrumb">MIS VEHÍCULOS</div><h1 class="page-title">Alquiler de vehículos</h1><div class="page-sub">Cada vehículo necesita aprobar una revisión legal y una revisión física antes de ser visible</div></div>
         <button class="btn btn-blue" onclick="openNewVehicle()">+ Publicar vehículo</button>
+      </div>
+      <div class="intro" data-intro="vehicles">
+        <span class="intro-ico">⛟</span>
+        <div class="intro-txt"><b>Un carro tuyo, alquilado por días.</b><p>Antes de ser visible pasa dos revisiones: la <b>legal</b> (papeles al día) y la <b>física</b> (que el carro esté como dices). Abajo, cada alquiler se abre y se cierra con un acta: kilometraje, tanque, golpes y firma.</p></div>
+        <button class="intro-x" onclick="cerrarIntro(this)" aria-label="Entendido">✕</button>
       </div>
       <div class="grid grid-3" id="vehiclesGrid"></div>
 
@@ -990,6 +1123,11 @@ tr:hover td{background:#FBFCFE}
 
     <div class="view" id="v-salidas" style="display:none">
       <div class="topbar"><div><div class="breadcrumb">SALIDAS</div><h1 class="page-title">Cuándo sale cada experiencia</h1><div class="page-sub">Cada salida tiene su hora y su cupo. La de las 8 y la de las 14 son dos cosas distintas.</div></div></div>
+      <div class="intro" data-intro="salidas">
+        <span class="intro-ico">◷</span>
+        <div class="intro-txt"><b>Genera el calendario de un tirón.</b><p>Dices qué días de la semana sales, a qué horas, con cuánto cupo y cuántas personas mínimo para que valga la pena, y se crean todas las salidas del período. Después cancelas una suelta si hace falta: el dinero se devuelve solo.</p></div>
+        <button class="intro-x" onclick="cerrarIntro(this)" aria-label="Entendido">✕</button>
+      </div>
 
       <div class="card" style="margin-bottom:18px">
         <div class="field"><label>Experiencia</label><select id="saListado" class="sel" onchange="saCargar()"></select></div>
@@ -1013,7 +1151,12 @@ tr:hover td{background:#FBFCFE}
     </div>
 
     <div class="view" id="v-bookings" style="display:none">
-      <div class="topbar"><div><div class="breadcrumb">RESERVAS</div><h1 class="page-title">Reservas</h1><div class="page-sub">Solicitudes reales enviadas desde el Portal Cliente</div></div></div>
+      <div class="topbar"><div><div class="breadcrumb">RESERVAS</div><h1 class="page-title">Reservas</h1><div class="page-sub">Todo lo que te han reservado, con el comprobante de pago de cada uno</div></div></div>
+      <div class="intro" data-intro="bookings">
+        <span class="intro-ico">▥</span>
+        <div class="intro-txt"><b>Quien no paga, no reserva.</b><p>Toda reserva entra con su comprobante y la aprueba la plataforma, no tú: así nadie te bloquea fechas sin haber pagado. Tú ves el estado y los datos del viajero para contactarlo.</p></div>
+        <button class="intro-x" onclick="cerrarIntro(this)" aria-label="Entendido">✕</button>
+      </div>
       <div class="card">
         <table>
           <tbody id="bookingsTableBody"><tr><th>Ref.</th><th>Cliente</th><th>Listado</th><th>Fecha</th><th>Monto</th><th>Estado</th><th></th></tr>
@@ -1023,7 +1166,7 @@ tr:hover td{background:#FBFCFE}
     </div>
 
     <div class="view" id="v-mensajes" style="display:none">
-      <div class="topbar"><div><div class="breadcrumb">MENSAJES</div><h1 class="page-title">Mensajes</h1><div class="page-sub">Conversaciones con los viajeros que ya reservaron contigo</div></div>
+      <div class="topbar"><div><div class="breadcrumb">MENSAJES</div><h1 class="page-title">Mensajes</h1><div class="page-sub">El viajero te escribe desde su reserva y lo lees aquí. No hace falta dar tu teléfono.</div></div>
         <button class="btn btn-outline" onclick="refreshConversaciones()">Actualizar</button></div>
       <div class="grid" style="grid-template-columns:320px 1fr;gap:20px;align-items:start">
         <div class="card" style="padding:0;overflow:hidden">
@@ -1038,7 +1181,12 @@ tr:hover td{background:#FBFCFE}
     </div>
 
     <div class="view" id="v-billing" style="display:none">
-      <div class="topbar"><div><div class="breadcrumb">FACTURACIÓN</div><h1 class="page-title">Facturación</h1><div class="page-sub">Ciclo de pago: quincenal</div></div></div>
+      <div class="topbar"><div><div class="breadcrumb">FACTURACIÓN</div><h1 class="page-title">Facturación</h1><div class="page-sub">Cuánto has ganado, cuánto te falta cobrar y cómo te lo pagamos. Cada quincena.</div></div></div>
+      <div class="intro" data-intro="billing">
+        <span class="intro-ico">$</span>
+        <div class="intro-txt"><b>Lo que ves aquí es lo tuyo.</b><p>No el total que pagó el viajero: ya tiene descontada nuestra comisión. Lo que aparece es lo que te vamos a depositar. Si no has dicho a qué cuenta, regístralo abajo o no podremos pagarte.</p></div>
+        <button class="intro-x" onclick="cerrarIntro(this)" aria-label="Entendido">✕</button>
+      </div>
       <div class="grid grid-3" style="margin-bottom:24px">
         <div class="card kpi-card"><div class="kpi-accent" style="background:var(--orange)"></div><div class="kpi-label">Pendiente por liberar</div><div class="kpi-value num" id="billPending">$0</div></div>
         <div class="card kpi-card"><div class="kpi-accent" style="background:var(--green)"></div><div class="kpi-label">Liquidado hasta hoy</div><div class="kpi-value num" id="billPaid">$0</div></div>
@@ -1059,7 +1207,7 @@ tr:hover td{background:#FBFCFE}
     </div>
 
     <div class="view" id="v-microsite" style="display:none">
-      <div class="topbar"><div><div class="breadcrumb">MI MICROSITE</div><h1 class="page-title">Mi microsite</h1><div class="page-sub">Tu página pública de marca</div></div><button class="btn btn-blue" id="micrositeSaveBtn" onclick="saveMicrosite()" style="display:none">Publicar cambios</button></div>
+      <div class="topbar"><div><div class="breadcrumb">MI MICROSITE</div><h1 class="page-title">Mi microsite</h1><div class="page-sub">Tu propia página dentro de Táchira GOO, con tu logo, tus fotos y tus productos</div></div><button class="btn btn-blue" id="micrositeSaveBtn" onclick="saveMicrosite()" style="display:none">Publicar cambios</button></div>
 
       <div class="card" style="margin-bottom:20px">
         <div class="section-title">Identidad de tu negocio</div>
@@ -1162,7 +1310,7 @@ tr:hover td{background:#FBFCFE}
     </div>
 
     <div class="view" id="v-account" style="display:none">
-      <div class="topbar"><div><div class="breadcrumb">CUENTA Y SEGURIDAD</div><h1 class="page-title">Cuenta</h1><div class="page-sub">Datos, verificación y control de acceso</div></div></div>
+      <div class="topbar"><div><div class="breadcrumb">CUENTA Y SEGURIDAD</div><h1 class="page-title">Cuenta</h1><div class="page-sub">Tus datos, tu ubicación en el mapa y quién puede entrar a este panel</div></div></div>
       <div class="grid grid-2">
         <div class="card">
           <div class="field"><label>Nombre del negocio</label><input type="text" id="aBusinessName"></div>
@@ -1200,6 +1348,11 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const MUNICIPIOS = ["Andrés Bello","Antonio Rómulo Costa","Ayacucho","Bolívar","Cárdenas","Córdoba","Fernández Feo","Francisco de Miranda","García de Hevia","Guásimos","Independencia","Jáuregui","José María Vargas","Junín","Libertad","Libertador","Lobatera","Michelena","Panamericano","Pedro María Ureña","Rafael Urdaneta","Samuel Darío Maldonado","San Cristóbal","San Judas Tadeo","Seboruco","Simón Rodríguez","Sucre","Torbes","Uribante"];
 
 document.addEventListener('DOMContentLoaded', () => {
+  Object.entries(NAV_EXPLICA).forEach(([id, texto]) => {
+    const el = document.getElementById(id);
+    if(el) el.title = texto;
+  });
+  pintarIntros();
   ['signupMunicipio','fMunicipio','vMunicipio','aMunicipio','vpMunicipio'].forEach(id => {
     const sel = document.getElementById(id);
     if(!sel) return;
@@ -1444,7 +1597,11 @@ async function refreshConversaciones(){
   if(badge){ badge.textContent = sinLeer; badge.style.display = sinLeer ? 'inline-block' : 'none'; }
 
   if(!CONVERSACIONES.length){
-    lista.innerHTML = '<div class="empty-state" style="padding:24px">Todavía no hay mensajes. Aparecerán cuando un viajero te escriba desde su reserva.</div>';
+    lista.innerHTML = `<div class="nada">
+      <div class="nada-ico">✉</div>
+      <div class="nada-tit">Sin mensajes</div>
+      <div class="nada-txt">El viajero te escribe desde su reserva y lo lees aquí mismo. No hace falta que des tu teléfono ni tu correo personal.</div>
+    </div>`;
     return;
   }
 
@@ -1532,7 +1689,11 @@ async function refreshBookings(){
   }
   providerBookings = bookings || [];
   if(providerBookings.length === 0){
-    tbody.innerHTML = header + '<tr><td colspan="7" class="empty-state">Todavía no tienes solicitudes de reserva.</td></tr>';
+    tbody.innerHTML = header + `<tr><td colspan="7"><div class="nada">
+      <div class="nada-ico">📋</div>
+      <div class="nada-tit">Nadie te ha reservado todavía</div>
+      <div class="nada-txt">Cuando un viajero reserve, aparece aquí con su comprobante de pago y sus datos para que lo contactes. Hasta que la plataforma valide el pago, la reserva no te bloquea la fecha.</div>
+    </div></td></tr>`;
     return;
   }
   /* El proveedor ya no confirma el pago: eso lo revisa el administrador, que
@@ -1562,77 +1723,222 @@ async function marcarPrestado(id, estado){
 }
 
 // ============================================================
-// Panel general — todo derivado de datos reales
+// Panel general
+// Antes solo miraba las experiencias: un hotel lleno veía cuatro
+// ceros y una tabla vacía, y el panel se contradecía con la
+// recepción. Ahora lee los tres pilares y responde dos preguntas:
+// qué pasa hoy y qué está esperando por ti.
 // ============================================================
+const DIAS_SEM = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+const MESES_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+/* Un número que aparece de golpe no se lee; uno que sube, sí. */
+function contarHasta(el, fin, sufijoMoneda){
+  const destino = Number(fin) || 0;
+  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches){
+    el.textContent = sufijoMoneda ? money(destino) : String(destino);
+    return;
+  }
+  const pasos = 24; let i = 0;
+  clearInterval(el._cuenta);
+  el._cuenta = setInterval(() => {
+    i++;
+    const v = Math.round(destino * (1 - Math.pow(1 - i / pasos, 3)));
+    el.textContent = sufijoMoneda ? money(v) : String(v);
+    if(i >= pasos){ clearInterval(el._cuenta); el.textContent = sufijoMoneda ? money(destino) : String(destino); }
+  }, 22);
+}
+
 async function refreshDashboard(){
   if(!currentProvider) return;
-  const today = dateKey(new Date());
+  const hoy = dateKey(new Date());
+  const f = new Date();
+  document.getElementById('hoyFecha').textContent =
+    DIAS_SEM[f.getDay()] + ' ' + f.getDate() + ' de ' + MESES_ES[f.getMonth()];
 
-  const todayCount = providerBookings.filter(b => b.booking_date === today && !['cancelada','rechazada'].includes(b.status)).length;
-  document.getElementById('kpiToday').textContent = todayCount;
-  document.getElementById('kpiTodaySub').textContent =
-    todayCount === 0 ? 'Sin reservas para hoy' : (todayCount === 1 ? '1 reserva agendada hoy' : todayCount + ' reservas agendadas hoy');
+  const { data: { user } } = await sb.auth.getUser();
+  const uid = user?.id;
 
-  const balance = providerBookings
-    .filter(b => ['confirmada','completada'].includes(b.status))
-    .reduce((sum, b) => sum + Number(b.amount || 0), 0);
-  document.getElementById('kpiBalance').textContent = money(balance);
-  document.getElementById('kpiBalanceSub').textContent =
-    balance === 0 ? 'Sin reservas confirmadas' : 'De reservas confirmadas por completar';
+  const [habR, vehR, expR, borrR, habBorrR] = await Promise.all([
+    sb.from('room_bookings').select('*, room_types(nombre)')
+      .eq('provider_id', currentProvider.id)
+      .in('status', ['pendiente_aprobacion','confirmada']),
+    uid ? sb.from('vehicle_bookings').select('*, vehicles(title)')
+      .eq('owner_id', uid).in('status', ['pendiente_aprobacion','confirmada'])
+      : Promise.resolve({ data: [] }),
+    sb.from('bookings').select('*, listings(title)')
+      .eq('provider_id', currentProvider.id)
+      .in('status', ['pendiente_aprobacion','confirmada','completada']),
+    sb.from('listings').select('id').eq('provider_id', currentProvider.id).eq('status','draft'),
+    sb.from('room_types').select('id').eq('provider_id', currentProvider.id).eq('status','draft')
+  ]);
+  const resHab = habR.data || [], resVeh = vehR.data || [], resExp = expR.data || [];
 
-  // Calificación real
+  // ---------- Lo de hoy ----------
+  const lineas = [];
+  const suma = (lista, fn) => lista.reduce((t, b) => t + (fn ? fn(b) : 1), 0);
+  const linea = (n, uno, varios, ir, donde) => {
+    if(n > 0) lineas.push({ n, que: n === 1 ? uno : varios, ir, donde });
+  };
+  linea(resHab.filter(b => b.status === 'confirmada' && b.check_in === hoy && !b.check_in_real).length,
+        'huésped llega hoy', 'huéspedes llegan hoy', 'frontdesk', 'Recepción');
+  linea(resHab.filter(b => b.status === 'confirmada' && b.check_out === hoy).length,
+        'huésped sale hoy', 'huéspedes salen hoy', 'frontdesk', 'Recepción');
+  linea(resHab.filter(b => b.status === 'confirmada' && b.check_in_real && b.check_out > hoy).length,
+        'reserva alojada', 'reservas alojadas', 'frontdesk', 'Recepción');
+  linea(suma(resExp.filter(b => b.booking_date === hoy), b => Number(b.personas || 1)),
+        'persona sale de excursión', 'personas salen de excursión', 'salidas', 'Salidas');
+  linea(resVeh.filter(b => b.status === 'confirmada' && b.start_date === hoy).length,
+        'vehículo se entrega hoy', 'vehículos se entregan hoy', 'vehicles', 'Alquileres');
+  linea(resVeh.filter(b => b.status === 'confirmada' && b.end_date === hoy).length,
+        'vehículo vuelve hoy', 'vehículos vuelven hoy', 'vehicles', 'Alquileres');
+
+  const grid = document.getElementById('hoyGrid');
+  if(lineas.length){
+    grid.innerHTML = lineas.map(l => `
+      <button class="hoy-item" onclick="irA('${l.ir}')">
+        <span class="hoy-num num">${l.n}</span>
+        <span class="hoy-que">${esc(l.que)}</span>
+        <span class="hoy-ir">${esc(l.donde)} →</span>
+      </button>`).join('');
+  } else {
+    /* Decir "no hay nada" a secas deja al proveedor sin saber si eso
+       está bien o está mal. Se dice cuándo es lo próximo. */
+    const futuras = []
+      .concat(resHab.filter(b => b.check_in > hoy).map(b => b.check_in))
+      .concat(resExp.filter(b => b.booking_date > hoy).map(b => b.booking_date))
+      .concat(resVeh.filter(b => b.start_date > hoy).map(b => b.start_date))
+      .sort();
+    grid.innerHTML = `<div class="hoy-calma">Hoy no tienes movimientos. ` + (futuras.length
+      ? `Lo próximo es el <b>${esc(fechaLarga(futuras[0]))}</b>.`
+      : `Cuando entre una reserva, aparecerá aquí el mismo día.`) + `
+      <div class="hoy-sugerencias">
+        <button onclick="irA('calendario')">Revisar mi calendario</button>
+        <button onclick="irA('listings')">Mejorar un producto</button>
+        <button onclick="irA('microsite')">Ver mi página pública</button>
+      </div></div>`;
+  }
+
+  // ---------- Los cuatro números ----------
+  const mesIni = hoy.slice(0,8) + '01';
+  const delMes = resHab.filter(b => b.check_in >= mesIni).length
+               + resExp.filter(b => b.booking_date >= mesIni).length
+               + resVeh.filter(b => b.start_date >= mesIni).length;
+  contarHasta(document.getElementById('kpiToday'), delMes);
+  document.getElementById('kpiTodaySub').textContent = delMes === 0
+    ? 'Aún sin reservas este mes' : 'Reservas que empiezan este mes';
+
+  const neto = b => Number(b.monto_base != null ? b.monto_base : b.amount || 0);
+  const porLiberar = resHab.concat(resExp, resVeh)
+    .filter(b => b.status === 'confirmada').reduce((t,b) => t + neto(b), 0);
+  contarHasta(document.getElementById('kpiBalance'), porLiberar, true);
+  document.getElementById('kpiBalanceSub').textContent = porLiberar === 0
+    ? 'Sin reservas confirmadas' : 'Tuyo, al cerrar el ciclo de pago';
+
   const ratingEl = document.getElementById('kpiRating');
   const ratingSubEl = document.getElementById('kpiRatingSub');
   const listingIds = providerListings.map(l => l.id);
   if(listingIds.length > 0){
     const { data: reviews } = await sb.from('reviews').select('rating').in('listing_id', listingIds);
     if(reviews && reviews.length > 0){
-      const avg = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length;
+      const avg = reviews.reduce((t,r) => t + r.rating, 0) / reviews.length;
       ratingEl.textContent = avg.toFixed(1) + ' ★';
       ratingSubEl.textContent = reviews.length + (reviews.length === 1 ? ' reseña verificada' : ' reseñas verificadas');
-    } else {
-      ratingEl.textContent = '—';
-      ratingSubEl.textContent = 'Sin reseñas aún';
-    }
-  } else {
-    ratingEl.textContent = '—';
-    ratingSubEl.textContent = 'Sin reseñas aún';
-  }
+    } else { ratingEl.textContent = '—'; ratingSubEl.textContent = 'Sin reseñas aún'; }
+  } else { ratingEl.textContent = '—'; ratingSubEl.textContent = 'Sin reseñas aún'; }
 
-  // Franja de confianza
+  const [habPub, vehPub] = await Promise.all([
+    sb.from('room_types').select('id', { count:'exact', head:true })
+      .eq('provider_id', currentProvider.id).eq('status','published'),
+    uid ? sb.from('vehicles').select('id', { count:'exact', head:true })
+      .eq('owner_id', uid).eq('status','published').eq('is_approved', true)
+      : Promise.resolve({ count: 0 })
+  ]);
+  const visibles = providerListings.filter(l => l.status === 'published').length
+                 + (habPub.count || 0) + (vehPub.count || 0);
+  contarHasta(document.getElementById('kpiListingsCount'), visibles);
+  document.getElementById('kpiListingsSub').textContent = visibles === 0
+    ? 'Nada visible para el viajero' : 'Visibles en el sitio público';
+
+  // ---------- Franja de confianza ----------
   document.getElementById('trustProviderId').textContent = 'PRV-' + currentProvider.id.slice(0, 8).toUpperCase();
-  const verifEl = document.getElementById('trustVerification');
-  verifEl.textContent = currentProvider.verification_status === 'approved'
-    ? '✓ Cuenta verificada'
+  document.getElementById('trustVerification').textContent =
+    currentProvider.verification_status === 'approved' ? '✓ Cuenta verificada'
     : (currentProvider.verification_status === 'rejected' ? '✕ Verificación rechazada' : '⏳ Verificación pendiente');
 
-  // Reservas recientes
-  const recentBody = document.getElementById('recentBookingsBody');
-  const recentHeader = '<tr><th>Ref.</th><th>Cliente</th><th>Listado</th><th>Fecha</th><th>Monto</th><th>Estado</th></tr>';
-  const recent = providerBookings.slice(0, 3);
-  recentBody.innerHTML = recentHeader + (recent.length === 0
-    ? '<tr><td colspan="6" class="empty-state">Todavía no tienes reservas.</td></tr>'
-    : recent.map(b => `
-      <tr>
-        <td class="tx-id">${esc(b.ref)}</td>
-        <td>${esc(b.profiles?.full_name || 'Viajero')}</td>
-        <td>${esc(b.listings?.title || '')}</td>
-        <td>${esc(b.booking_date)}</td>
-        <td class="num">${money(b.amount)}</td>
-        <td><span class="badge ${BOOKING_STATUS_BADGE[b.status] || 'badge-gray'}">${esc(BOOKING_STATUS_LABEL[b.status] || b.status)}</span></td>
-      </tr>`).join(''));
+  // ---------- Reservas recientes, de los tres pilares ----------
+  const recientes = resHab.map(b => ({ pilar:'Alojamiento', quien:b.guest_nombre, que:b.room_types?.nombre, cuando:b.check_in, monto:neto(b), estado:b.status }))
+    .concat(resExp.map(b => ({ pilar:'Experiencia', quien:b.guest_nombre, que:b.listings?.title, cuando:b.booking_date, monto:neto(b), estado:b.status })))
+    .concat(resVeh.map(b => ({ pilar:'Vehículo', quien:b.guest_nombre, que:b.vehicles?.title, cuando:b.start_date, monto:neto(b), estado:b.status })))
+    .sort((a,b) => String(b.cuando).localeCompare(String(a.cuando))).slice(0, 5);
 
-  // Alertas derivadas
-  const alerts = [];
-  const drafts = providerListings.filter(l => l.status === 'draft').length;
-  if(drafts > 0) alerts.push('🟠 ' + drafts + (drafts === 1 ? ' listado en borrador sin publicar' : ' listados en borrador sin publicar'));
-  const pending = providerBookings.filter(b => b.status === 'pendiente_aprobacion').length;
-  if(pending > 0) alerts.push('🔵 ' + pending + (pending === 1 ? ' reserva esperando tu confirmación' : ' reservas esperando tu confirmación'));
-  if(providerListings.length === 0) alerts.push('🟠 Aún no has creado tu primer listado');
-  if(currentProvider.verification_status !== 'approved') alerts.push('⏳ Tu micrositio se habilita cuando el administrador verifique tu cuenta');
-  document.getElementById('alertsBody').innerHTML = alerts.length
-    ? alerts.map(esc).join('<br>')
-    : '<span style="color:var(--gray)">Sin alertas por ahora.</span>';
+  document.getElementById('recentBookingsBody').innerHTML = recientes.length
+    ? '<div class="rr">' + recientes.map(r => `
+        <div class="rr-fila">
+          <span class="rr-pilar">${esc(r.pilar)}</span>
+          <div class="rr-quien"><b>${esc(r.quien || 'Viajero')}</b><span>${esc(r.que || '')} · ${esc(fechaLarga(r.cuando))}</span></div>
+          <span class="rr-monto">${money(r.monto)}</span>
+          <span class="badge ${BOOKING_STATUS_BADGE[r.estado] || 'badge-gray'}">${esc(BOOKING_STATUS_LABEL[r.estado] || r.estado)}</span>
+        </div>`).join('') + '</div>'
+    : `<div class="nada"><div class="nada-ico">📭</div>
+         <div class="nada-tit">Todavía no te han reservado</div>
+         <div class="nada-txt">Aquí verás cada reserva apenas entre, con quién es y cuánto te deja. Lo que acelera la primera: fotos buenas, precio puesto y el calendario abierto.</div></div>`;
+
+  // ---------- Lo que espera por ti ----------
+  const pend = resHab.concat(resExp, resVeh).filter(b => b.status === 'pendiente_aprobacion').length;
+  const borradores = (borrR.data || []).length + (habBorrR.data || []).length;
+  const atencion = [];
+  if(pend) atencion.push({ clase:'espera',
+    txt:`<b>${pend} ${pend === 1 ? 'reserva' : 'reservas'}</b> con el comprobante en revisión. Te avisamos al validarlo.`,
+    ir:'bookings', etiqueta:'Ver' });
+  if(borradores) atencion.push({ clase:'urge',
+    txt:`<b>${borradores} ${borradores === 1 ? 'producto' : 'productos'} en borrador.</b> Nadie puede verlos ni reservarlos hasta que los publiques.`,
+    ir: (borrR.data || []).length ? 'listings' : 'rooms', etiqueta:'Publicar' });
+  if(currentProvider.verification_status !== 'approved') atencion.push({ clase:'espera',
+    txt:'Tu cuenta está en <b>verificación</b>. Mientras tanto tu micrositio público sigue apagado.',
+    ir:'account', etiqueta:'Ver' });
+  if(!currentProvider.payout_method) atencion.push({ clase:'urge',
+    txt:'No has dicho <b>cómo te pagamos</b>. Sin eso no podemos liquidarte lo que vendas.',
+    ir:'billing', etiqueta:'Registrar' });
+
+  document.getElementById('alertsBody').innerHTML = atencion.length
+    ? atencion.map(a => `<button class="aten-item ${a.clase}" onclick="irA('${a.ir}')">
+        <span class="aten-pt"></span><span class="aten-txt">${a.txt}</span>
+        <span class="aten-ir">${esc(a.etiqueta)} →</span></button>`).join('')
+    : '<div class="aten-calma">✓ Todo en orden. No hay nada esperando por ti.</div>';
+}
+
+/* La explicación de cada sección se ve hasta que el proveedor dice
+   que la entendió. Después no vuelve a estorbar. */
+function cerrarIntro(btn){
+  const caja = btn.closest('.intro');
+  if(!caja) return;
+  try { localStorage.setItem('tg-intro-' + caja.dataset.intro, '1'); } catch(e){}
+  caja.style.display = 'none';
+}
+
+function pintarIntros(){
+  document.querySelectorAll('.intro').forEach(c => {
+    let visto = false;
+    try { visto = localStorage.getItem('tg-intro-' + c.dataset.intro) === '1'; } catch(e){}
+    c.style.display = visto ? 'none' : 'flex';
+  });
+}
+
+/* Ir a una sección desde cualquier parte, dejando el menú marcado. */
+function irA(vista){
+  const nav = { frontdesk:'navRecepcion', salidas:'navSalidas', vehicles:'navVehiculos',
+                listings:'navListados', rooms:'navHabitaciones', bookings:'navReservas',
+                billing:'navFacturacion', account:'navCuenta', microsite:'navMicrositio',
+                calendario:'navCalendario', ocupacion:'navOcupacion' }[vista];
+  showView(vista, nav ? document.getElementById(nav) : null);
+}
+
+function fechaLarga(iso){
+  if(!iso) return '';
+  const p = String(iso).split('-');
+  if(p.length !== 3) return iso;
+  return Number(p[2]) + ' de ' + MESES_ES[Number(p[1]) - 1];
 }
 
 async function refreshBilling(){
@@ -2215,6 +2521,7 @@ function showView(id, el){
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     el.classList.add('active');
   }
+  pintarIntros();
   const recargar = RECARGAR_VISTA[id];
   if(recargar && currentProvider) Promise.resolve(recargar()).catch(e => console.error(e));
 }
@@ -2794,7 +3101,11 @@ async function handleVehiclePhoto(event){
 function renderVehicleDocs(){
   const el = document.getElementById('vehicleDocsList');
   if(vehicleDocs.length === 0){
-    el.innerHTML = '<div class="empty-state">Aún no has subido documentos. La revisión legal no puede avanzar sin ellos.</div>';
+    el.innerHTML = `<div class="nada">
+      <div class="nada-ico">📄</div>
+      <div class="nada-tit">Faltan los papeles del vehículo</div>
+      <div class="nada-txt">Título de propiedad, seguro vigente y certificado de revisión. Sin ellos la revisión legal no puede avanzar y el vehículo no se publica.</div>
+    </div>`;
     return;
   }
   el.innerHTML = vehicleDocs.map((d,i) => `
@@ -3246,7 +3557,11 @@ function caTitulo(k){
 
 function caPintarVacio(){
   document.getElementById('caGrid').innerHTML =
-    '<div class="ca-vacio" style="grid-column:1/-1">Aún no tienes habitaciones, vehículos ni experiencias que calendarizar.<br>Créalos primero y vuelve aquí.</div>';
+    `<div class="nada" style="grid-column:1/-1">
+      <div class="nada-ico">▦</div>
+      <div class="nada-tit">Nada que calendarizar todavía</div>
+      <div class="nada-txt">El calendario trabaja sobre lo que publicas: una habitación, un vehículo o una experiencia. Crea el primero y vuelve: aquí marcas los días que cierras y las tarifas distintas.</div>
+    </div>`;
   document.getElementById('caLeyenda').innerHTML = '';
   document.getElementById('caBarra').style.display = 'none';
 }
@@ -3483,6 +3798,25 @@ function showToast(texto){
 // y se pinta: bloqueado desaparece, y lo que depende de un plan
 // o de una solicitud se ve, pero apagado y explicado.
 // ============================================================
+/* Trece sustantivos sueltos no explican nada. El título del menú
+   dice en una línea para qué sirve cada sección. */
+const NAV_EXPLICA = {
+  navDashboard: 'Lo que pasa hoy y lo que espera por ti',
+  navReservas: 'Todo lo que te han reservado, con su comprobante',
+  navMensajes: 'Lo que te escriben los viajeros desde su reserva',
+  navMembresia: 'Qué trae tu cuenta, qué comisión te cobramos y qué planes hay',
+  navListados: 'Las experiencias que vendes: tours, caminatas, paseos',
+  navCalendario: 'El año completo: cierra días, cambia precios y cupos',
+  navSalidas: 'A qué hora sale cada experiencia y con cuánto cupo',
+  navHabitaciones: 'Los tipos de habitación de tu alojamiento',
+  navOcupacion: 'Cambiar precio o disponibilidad de un rango de fechas',
+  navRecepcion: 'El día de hoy: quién llega, quién está y quién sale',
+  navVehiculos: 'Tus vehículos en alquiler y el acta de cada entrega',
+  navFacturacion: 'Lo que has ganado y cómo te lo pagamos',
+  navMicrositio: 'Tu página pública dentro de Táchira GOO',
+  navCuenta: 'Tus datos, tu ubicación y quién entra a este panel'
+};
+
 const MOD_NAV = {
   habitaciones: 'navHabitaciones', ocupacion: 'navOcupacion', recepcion: 'navRecepcion',
   vehiculos: 'navVehiculos', micrositio: 'navMicrositio', calendario: 'navCalendario',
