@@ -1223,7 +1223,7 @@ tr:hover td{background:#FBFCFE}
     </div>
 
     <div class="view" id="v-microsite" style="display:none">
-      <div class="topbar"><div><div class="breadcrumb">MI MICROSITE</div><h1 class="page-title">Mi microsite</h1><div class="page-sub">Tu propia página dentro de Táchira GOO, con tu logo, tus fotos y tus productos</div></div><button class="btn btn-blue" id="micrositeSaveBtn" onclick="saveMicrosite()" style="display:none">Publicar cambios</button></div>
+      <div class="topbar"><div><div class="breadcrumb">MI MICROSITE</div><h1 class="page-title">Mi microsite</h1><div class="page-sub">Tu propia página dentro de Táchira GOO, con tu logo, tus fotos y tus productos</div></div><button class="btn btn-blue" id="micrositeSaveBtn" onclick="saveMicrosite()" style="display:none">Guardar cambios</button></div>
 
       <div class="card" style="margin-bottom:20px">
         <div class="section-title">Identidad de tu negocio</div>
@@ -1300,17 +1300,45 @@ tr:hover td{background:#FBFCFE}
         </div>
       </div>
 
-      <div class="card" id="temaCard" style="display:none;margin-bottom:20px">
-        <div class="section-title">El estilo de tu página</div>
-        <p class="hint" style="margin-bottom:16px">Cada estilo cambia los colores, la tipografía y la forma de tu página. Elige el que se parezca a tu negocio.</p>
-        <div id="temaOpciones" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px"></div>
+      <!-- El personalizador. Las tres elecciones son sueltas a propósito:
+           el verde de montaña no tiene por qué traer serifa de propina. -->
+      <div class="grid" id="temaCard" style="display:none;margin-bottom:20px;grid-template-columns:minmax(0,1fr) minmax(300px,380px);gap:20px;align-items:start">
+        <div style="display:flex;flex-direction:column;gap:20px">
+
+          <div class="card">
+            <div class="section-title">Los colores</div>
+            <p class="hint" style="margin-bottom:14px">Mandan en toda tu página: botones, títulos, fondos.</p>
+            <div id="pzPaletas" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px"></div>
+          </div>
+
+          <div class="card">
+            <div class="section-title">La letra</div>
+            <p class="hint" style="margin-bottom:14px">Cada una se ve aquí tal como saldrá en tu página.</p>
+            <div id="pzLetras" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:10px"></div>
+          </div>
+
+          <div class="card">
+            <div class="section-title">Cómo entra tu portada</div>
+            <p class="hint" style="margin-bottom:14px">No cambia lo que dice; cambia cómo se ve al abrir.</p>
+            <div id="pzPortadas" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:10px"></div>
+          </div>
+
+          <div class="card">
+            <div class="section-title">Tus secciones, en tu orden</div>
+            <p class="hint" style="margin-bottom:14px">Tu portada y lo que vendes van siempre primero. Lo de abajo lo ordenas tú, y lo que no quieras enseñar lo ocultas.</p>
+            <div id="seccionesLista"></div>
+          </div>
+
+        </div>
+
+        <div class="card" id="pzPreviaCaja" style="position:sticky;top:20px">
+          <div class="section-title">Vista previa en vivo</div>
+          <p class="hint" style="margin-bottom:12px">Así se ve tu página mientras eliges. Nada de esto sale al aire hasta que guardes.</p>
+          <div id="pzPrevia" style="border:1px solid var(--border);border-radius:12px;overflow:hidden"></div>
+        </div>
       </div>
 
-      <div class="card" id="seccionesCard" style="display:none;margin-bottom:20px">
-        <div class="section-title">Qué secciones muestras</div>
-        <p class="hint" style="margin-bottom:14px">Tu portada y lo que vendes siempre se muestran. Lo demás decides tú si aparece o no.</p>
-        <div id="seccionesLista"></div>
-      </div>
+      <div id="seccionesCard" style="display:none"></div>
 
       <div class="grid grid-2" id="micrositeEditor" style="display:none">
         <div class="card">
@@ -2305,17 +2333,24 @@ async function refreshMicrosite(){
     document.getElementById('mAnio').value = currentProvider.anio_fundacion || '';
     document.getElementById('mDireccion').value = currentProvider.direccion || '';
     document.getElementById('mWhatsapp').value = currentProvider.whatsapp || '';
-    document.getElementById('temaCard').style.display = 'block';
-    document.getElementById('seccionesCard').style.display = 'block';
+    document.getElementById('temaCard').style.display = 'grid';
     temaElegido = currentProvider.tema || 'clasico';
     seccionesOcultas = (currentProvider.secciones_ocultas || []).slice();
-    pintarTemas();
-    pintarSecciones();
+    paletaElegida = currentProvider.paleta || null;
+    letraElegida = currentProvider.tipografia || null;
+    portadaElegida = currentProvider.portada || null;
+    /* El orden guardado manda; lo que no esté nombrado va detrás, para que
+       una lista vieja nunca pierda una sección que se agregue después. */
+    const guardado = (currentProvider.secciones_orden || []).filter(
+      id => SECCIONES_MICROSITIO.some(x => x.id === id));
+    seccionesOrden = guardado.concat(
+      SECCIONES_MICROSITIO.map(x => x.id).filter(id => !guardado.includes(id)));
+    await cargarEstilos();
+    pintarPersonalizador();
     pintarMarca();
     renderMicrositePreview();
   } else {
     document.getElementById('temaCard').style.display = 'none';
-    document.getElementById('seccionesCard').style.display = 'none';
   }
 }
 
@@ -2341,30 +2376,155 @@ const SECCIONES_MICROSITIO = [
 
 let temaElegido = 'clasico';
 let seccionesOcultas = [];
+let paletaElegida = null, letraElegida = null, portadaElegida = null;
+let seccionesOrden = SECCIONES_MICROSITIO.map(x => x.id);
 
-function pintarTemas(){
-  document.getElementById('temaOpciones').innerHTML = TEMAS_MICROSITIO.map(t => `
-    <button onclick="elegirTema('${t.id}')" style="text-align:left;cursor:pointer;padding:14px;
-      border:2px solid ${t.id===temaElegido ? 'var(--blue)' : 'var(--border)'};
-      background:${t.id===temaElegido ? 'var(--blue-soft)' : '#fff'};border-radius:11px">
-      <div style="display:flex;gap:5px;margin-bottom:9px">
-        ${t.muestra.map(c => `<span style="width:20px;height:20px;border-radius:5px;background:${c};border:1px solid rgba(0,0,0,.08)"></span>`).join('')}
-      </div>
-      <div style="font-weight:700;font-size:13.5px">${esc(t.nombre)}</div>
-      <div style="font-size:11.5px;color:var(--gray);margin-top:2px;line-height:1.45">${esc(t.resumen)}</div>
-    </button>`).join('');
+/* El catálogo de estilos vive en la base: el mismo que lee la página
+   pública. Así lo que se ve aquí es lo que se ve allá, sin dos listas
+   que se van separando con el tiempo. */
+const PZ = { paleta: [], tipografia: [], portada: [] };
+
+/* La vista del micrositio se refresca por dos caminos —al entrar al panel y
+   al abrir la sección—, y los dos llamaban aquí a la vez: con solo mirar si
+   la lista ya tiene algo, las dos cargas pasaban el filtro y el catálogo
+   salía duplicado. Se guarda la promesa, no el resultado. */
+let ESTILOS_PIDIENDO = null;
+function cargarEstilos(){
+  if(ESTILOS_PIDIENDO) return ESTILOS_PIDIENDO;
+  ESTILOS_PIDIENDO = sb.from('ms_estilos')
+    .select('tipo,id,nombre,resumen,valores,orden').order('tipo').order('orden')
+    .then(({ data, error }) => {
+      if(error){
+        console.error('No llegó el catálogo de estilos:', error.message);
+        ESTILOS_PIDIENDO = null;
+        return;
+      }
+      (data || []).forEach(f => {
+        if(PZ[f.tipo]) PZ[f.tipo].push(Object.assign({ id: f.id, nombre: f.nombre, resumen: f.resumen }, f.valores || {}));
+      });
+      pedirLetrasWeb();
+    });
+  return ESTILOS_PIDIENDO;
 }
 
-function elegirTema(id){
-  temaElegido = id;
-  pintarTemas();
+function pedirLetrasWeb(){
+  const fam = [];
+  PZ.tipografia.forEach(t => (t.web || []).forEach(w => { if(!fam.includes(w)) fam.push(w); }));
+  if(!fam.length || document.getElementById('pzLetrasWeb')) return;
+  const l = document.createElement('link');
+  l.id = 'pzLetrasWeb'; l.rel = 'stylesheet';
+  l.href = 'https://fonts.googleapis.com/css2?' + fam.map(f => 'family=' + f).join('&') + '&display=swap';
+  document.head.appendChild(l);
+}
+
+/* Lo elegido, con el tema de siempre como punto de partida: quien nunca
+   entró aquí sigue viendo su página exactamente igual. */
+function pzActual(){
+  const base = TEMAS_MICROSITIO.find(t => t.id === temaElegido) || TEMAS_MICROSITIO[0];
+  const pal = PZ.paleta.find(x => x.id === paletaElegida)
+    || PZ.paleta.find(x => x.id === base.id) || PZ.paleta[0] || {};
+  const let_ = PZ.tipografia.find(x => x.id === letraElegida) || PZ.tipografia[0] || {};
+  const por = PZ.portada.find(x => x.id === portadaElegida) || PZ.portada[0] || {};
+  return { pal, letra: let_, por };
+}
+
+function tarjetaPz(elegida, id, dentro){
+  return `<button type="button" onclick="elegirPz('${id.split(':')[0]}','${id.split(':')[1]}')"
+    style="text-align:left;cursor:pointer;padding:12px;border-radius:11px;background:#fff;
+    border:2px solid ${elegida ? 'var(--blue)' : 'var(--border)'};
+    ${elegida ? 'box-shadow:0 0 0 3px rgba(0,82,204,.1)' : ''}">${dentro}</button>`;
+}
+
+function pintarPersonalizador(){
+  const { pal, letra, por } = pzActual();
+
+  document.getElementById('pzPaletas').innerHTML = PZ.paleta.map(p => tarjetaPz(
+    p.id === pal.id, 'paleta:' + p.id,
+    `<div style="display:flex;gap:4px;margin-bottom:8px">
+       ${[p.acento, p.acento2, p.suave, p.fondo].map(c =>
+         `<span style="width:22px;height:22px;border-radius:6px;background:${c};border:1px solid rgba(0,0,0,.1)"></span>`).join('')}
+     </div>
+     <div style="font-weight:700;font-size:13px">${esc(p.nombre)}</div>
+     <div style="font-size:11.5px;color:var(--gray);line-height:1.4;margin-top:2px">${esc(p.resumen || '')}</div>`)).join('');
+
+  document.getElementById('pzLetras').innerHTML = PZ.tipografia.map(t => tarjetaPz(
+    t.id === letra.id, 'tipografia:' + t.id,
+    `<div style="font-family:${t.titulo};font-weight:${t.peso};letter-spacing:${t.espaciado};
+       font-size:21px;line-height:1.1;margin-bottom:5px">Aa</div>
+     <div style="font-weight:700;font-size:13px">${esc(t.nombre)}</div>
+     <div style="font-family:${t.cuerpo};font-size:11.5px;color:var(--gray);line-height:1.4;margin-top:2px">${esc(t.resumen || '')}</div>`)).join('');
+
+  document.getElementById('pzPortadas').innerHTML = PZ.portada.map(x => tarjetaPz(
+    x.id === por.id, 'portada:' + x.id, miniPortada(x, pal) +
+    `<div style="font-weight:700;font-size:13px;margin-top:8px">${esc(x.nombre)}</div>
+     <div style="font-size:11.5px;color:var(--gray);line-height:1.4;margin-top:2px">${esc(x.resumen || '')}</div>`)).join('');
+
+  pintarSecciones();
+  pintarPrevia();
+}
+
+/* El esquemita de cada plantilla: dos barras y un bloque bastan para
+   entender dónde queda el texto. */
+function miniPortada(x, pal){
+  const barra = (ancho, alto, color, extra) =>
+    `<span style="display:block;width:${ancho};height:${alto}px;border-radius:2px;background:${color};${extra||''}"></span>`;
+  const centro = x.alineacion === 'centro';
+  const cuerpo = `<span style="display:flex;flex-direction:column;gap:4px;${centro?'align-items:center':''}">
+      ${barra(centro?'58%':'64%', 7, '#fff')}${barra(centro?'38%':'44%', 4, 'rgba(255,255,255,.65)')}</span>`;
+  if(x.forma === 'partida'){
+    return `<span style="display:grid;grid-template-columns:1fr 1fr;height:62px;border-radius:7px;overflow:hidden;border:1px solid var(--border)">
+      <span style="background:${pal.fondo||'#fff'};display:flex;align-items:center;padding:0 7px">
+        <span style="display:flex;flex-direction:column;gap:4px;width:100%">
+          ${barra('74%',7,pal.texto||'#111')}${barra('50%',4,pal.tenue||'#888')}</span></span>
+      <span style="background:linear-gradient(135deg,${pal.acento||'#345'},${pal.acento2||'#789'})"></span></span>`;
+  }
+  if(x.forma === 'sobria'){
+    return `<span style="display:flex;align-items:center;justify-content:center;height:62px;border-radius:7px;
+      background:${pal.suave||'#eee'};border:1px solid var(--border)">
+      <span style="display:flex;flex-direction:column;gap:4px;align-items:center;width:100%">
+        ${barra('52%',7,pal.texto||'#111')}${barra('34%',4,pal.tenue||'#888')}</span></span>`;
+  }
+  if(x.forma === 'tarjeta'){
+    return `<span style="position:relative;display:block;height:62px;border-radius:7px;overflow:hidden;
+      background:linear-gradient(135deg,${pal.acento||'#345'},${pal.acento2||'#789'})">
+      <span style="position:absolute;left:7px;bottom:7px;right:34%;background:${pal.fondo||'#fff'};
+        border-radius:4px;padding:6px;display:flex;flex-direction:column;gap:4px">
+        ${barra('80%',6,pal.texto||'#111')}${barra('52%',4,pal.tenue||'#888')}</span></span>`;
+  }
+  const abajo = x.alineacion !== 'centro';
+  return `<span style="position:relative;display:flex;height:${x.alto==='48vh'?'46':'62'}px;border-radius:7px;overflow:hidden;
+    align-items:${abajo?'flex-end':'center'};justify-content:${abajo?'flex-start':'center'};padding:7px;
+    background:linear-gradient(to top,rgba(0,0,0,.6),rgba(0,0,0,.15)),linear-gradient(135deg,${pal.acento||'#345'},${pal.acento2||'#789'})">
+    <span style="width:100%">${cuerpo}</span></span>`;
+}
+
+function elegirPz(tipo, id){
+  if(tipo === 'paleta') paletaElegida = id;
+  if(tipo === 'tipografia') letraElegida = id;
+  if(tipo === 'portada') portadaElegida = id;
+  pintarPersonalizador();
 }
 
 function pintarSecciones(){
-  document.getElementById('seccionesLista').innerHTML = SECCIONES_MICROSITIO.map(x => {
+  const caja = document.getElementById('seccionesLista');
+  if(!caja) return;
+  caja.innerHTML = seccionesOrden.map((id, i) => {
+    const x = SECCIONES_MICROSITIO.find(s => s.id === id);
+    if(!x) return '';
     const visible = !seccionesOcultas.includes(x.id);
-    return `<div class="disp-row">
-      <div><strong>${esc(x.label)}</strong><div class="cell-sub" style="font-size:12px;color:var(--gray)">${esc(x.nota)}</div></div>
+    return `<div class="disp-row" style="${visible ? '' : 'opacity:.55'}">
+      <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
+        <span style="display:flex;flex-direction:column;gap:2px">
+          <button class="btn btn-sm btn-outline" style="padding:1px 7px;line-height:1.3"
+            onclick="moverSeccion(${i},-1)" ${i === 0 ? 'disabled' : ''} title="Subir">↑</button>
+          <button class="btn btn-sm btn-outline" style="padding:1px 7px;line-height:1.3"
+            onclick="moverSeccion(${i},1)" ${i === seccionesOrden.length - 1 ? 'disabled' : ''} title="Bajar">↓</button>
+        </span>
+        <span style="min-width:0">
+          <strong>${esc(x.label)}</strong>
+          <div class="cell-sub" style="font-size:12px;color:var(--gray)">${esc(x.nota)}</div>
+        </span>
+      </div>
       <button class="btn btn-sm ${visible ? 'btn-outline' : 'btn-blue'}" onclick="alternarSeccion('${x.id}')">
         ${visible ? 'Ocultar' : 'Mostrar'}
       </button>
@@ -2372,24 +2532,103 @@ function pintarSecciones(){
   }).join('');
 }
 
+function moverSeccion(i, paso){
+  const j = i + paso;
+  if(j < 0 || j >= seccionesOrden.length) return;
+  const t = seccionesOrden[i];
+  seccionesOrden[i] = seccionesOrden[j];
+  seccionesOrden[j] = t;
+  pintarSecciones();
+  pintarPrevia();
+}
+
 function alternarSeccion(id){
   const i = seccionesOcultas.indexOf(id);
   if(i >= 0) seccionesOcultas.splice(i, 1); else seccionesOcultas.push(id);
   pintarSecciones();
+  pintarPrevia();
 }
 
-function renderMicrositePreview(){
-  const title = document.getElementById('mTitle').value.trim();
-  const tagline = document.getElementById('mTagline').value.trim();
-  const about = document.getElementById('mAbout').value.trim();
-  const wa = document.getElementById('mWhatsapp').value.trim();
-  document.getElementById('pvHero').textContent = title || (currentProvider?.business_name || 'Mi negocio');
-  document.getElementById('pvBody').innerHTML = [
-    tagline ? esc(tagline) : '',
-    about ? esc(about) : '',
-    wa ? '📞 ' + esc(wa) : ''
-  ].filter(Boolean).join('<br><br>') || '<span style="color:var(--gray-light)">Completa los campos para ver tu vista previa.</span>';
+/* La vista previa. No es una pantalla aparte que haya que mantener al día
+   a mano: se arma con los mismos valores que la página pública lee de
+   ms_estilos, así que mover una paleta allá la mueve aquí. */
+function pintarPrevia(){
+  const caja = document.getElementById('pzPrevia');
+  if(!caja || !currentProvider) return;
+  const { pal, letra, por } = pzActual();
+  const v = x => (document.getElementById(x) || {}).value || '';
+  const nombre = v('mTitle').trim() || currentProvider.business_name || 'Mi negocio';
+  const lema = v('mLema').trim() || v('mTagline').trim() || '';
+  const foto = currentProvider.cover_image_url;
+  const logo = currentProvider.logo_url;
+  const conFoto = por.forma !== 'sobria' && !!foto;
+  const centrado = por.alineacion === 'centro';
+  const velo = por.velo == null ? 0.45 : por.velo;
+  const sobreFoto = conFoto && por.forma !== 'partida' && velo > 0.15;
+  const colorTit = sobreFoto ? '#fff' : (pal.texto || '#111');
+  const colorTxt = sobreFoto ? 'rgba(255,255,255,.9)' : (pal.tenue || '#777');
+  const alto = por.alto === '48vh' ? 128 : (por.alto === '40vh' ? 112 : 168);
+
+  /* La marca se pinta con los colores que le toquen: sobre foto con velo va
+     en blanco, y dentro de la tarjeta vuelve al color del negocio. */
+  const marcaCon = (ct, cx, sombra) => `
+    ${logo ? `<img src="${esc(logo)}" alt="" style="width:34px;height:34px;object-fit:cover;border-radius:8px;
+      border:2px solid #fff;background:#fff;display:block;margin-bottom:8px;${centrado?'margin-left:auto;margin-right:auto':''}">` : ''}
+    <div style="font-family:${letra.titulo};font-weight:${letra.peso};letter-spacing:${letra.espaciado};
+      color:${ct};font-size:21px;line-height:1.1;${sombra?'text-shadow:0 2px 12px rgba(0,0,0,.45)':''}">${esc(nombre)}</div>
+    ${lema ? `<div style="font-family:${letra.cuerpo};color:${cx};font-size:11.5px;margin-top:6px;line-height:1.45">${esc(lema)}</div>` : ''}
+    <div style="display:inline-block;margin-top:11px;background:${pal.acento};color:#fff;font-family:${letra.cuerpo};
+      font-size:10.5px;font-weight:700;padding:6px 13px;border-radius:8px">Ver disponibilidad</div>`;
+  const marca = marcaCon(colorTit, colorTxt, sobreFoto);
+
+  const fondoFoto = conFoto
+    ? `background-image:${velo>0?`linear-gradient(to top,rgba(0,0,0,${(velo+.37).toFixed(2)}),rgba(0,0,0,${(velo*.27).toFixed(2)})),`:''}url('${esc(foto)}');background-size:cover;background-position:center`
+    : `background:${pal.suave}`;
+
+  let portada;
+  if(por.forma === 'partida'){
+    portada = `<div style="display:grid;grid-template-columns:${conFoto?'1fr 1fr':'1fr'};min-height:${alto}px;background:${pal.fondo}">
+      <div style="display:flex;align-items:center;padding:16px"><div style="width:100%">${marcaCon(pal.texto || '#111', pal.tenue || '#777', false)}</div></div>
+      ${conFoto ? `<div style="background-image:url('${esc(foto)}');background-size:cover;background-position:center"></div>` : ''}
+    </div>`;
+  } else if(por.forma === 'tarjeta'){
+    portada = `<div style="position:relative;min-height:${alto}px;${fondoFoto};display:flex;align-items:flex-end;padding:14px">
+      <div style="background:${pal.fondo};border-radius:12px;padding:14px 16px;max-width:78%;box-shadow:0 10px 26px rgba(0,0,0,.26)">
+        ${marcaCon(pal.texto || '#111', pal.tenue || '#777', false)}
+      </div></div>`;
+  } else {
+    portada = `<div style="position:relative;min-height:${alto}px;${fondoFoto};display:flex;
+      align-items:${centrado?'center':'flex-end'};justify-content:${centrado?'center':'flex-start'};
+      padding:16px;text-align:${centrado?'center':'left'}">
+      <div style="width:100%">${marca}</div></div>`;
+  }
+
+  const bandas = seccionesOrden.filter(id => !seccionesOcultas.includes(id)).map((id, i) => {
+    const x = SECCIONES_MICROSITIO.find(s => s.id === id);
+    if(!x) return '';
+    return `<div style="padding:11px 14px;border-top:1px solid ${pal.borde};background:${i % 2 ? pal.suave : pal.fondo}">
+      <div style="font-family:${letra.cuerpo};font-size:9px;font-weight:800;letter-spacing:.11em;
+        text-transform:uppercase;color:${pal.acento2}">Sección ${i + 2}</div>
+      <div style="font-family:${letra.titulo};font-weight:${letra.peso};letter-spacing:${letra.espaciado};
+        color:${pal.texto};font-size:14px;margin-top:3px">${esc(x.label)}</div>
+    </div>`;
+  }).join('');
+
+  caja.innerHTML = `<div style="background:${pal.fondo}">
+    ${portada}
+    <div style="padding:11px 14px;background:${pal.fondo}">
+      <div style="font-family:${letra.cuerpo};font-size:9px;font-weight:800;letter-spacing:.11em;
+        text-transform:uppercase;color:${pal.acento2}">Sección 1</div>
+      <div style="font-family:${letra.titulo};font-weight:${letra.peso};letter-spacing:${letra.espaciado};
+        color:${pal.texto};font-size:14px;margin-top:3px">Lo que vendes</div>
+      <div style="font-family:${letra.cuerpo};font-size:11px;color:${pal.tenue};margin-top:3px;line-height:1.5">Siempre va primero: es a lo que viene el viajero.</div>
+    </div>
+    ${bandas}
+  </div>`;
 }
+
+/* El nombre viejo lo llaman los campos de texto del editor. */
+function renderMicrositePreview(){ pintarPrevia(); }
 
 async function saveMicrosite(){
   if(!currentProvider) return;
@@ -2407,18 +2646,28 @@ async function saveMicrosite(){
     whatsapp: document.getElementById('mWhatsapp').value.trim() || null,
     business_type: document.getElementById('mBusinessType').value,
     tema: temaElegido,
-    secciones_ocultas: seccionesOcultas
+    paleta: pzActual().pal.id || null,
+    tipografia: pzActual().letra.id || null,
+    portada: pzActual().por.id || null,
+    secciones_ocultas: seccionesOcultas,
+    secciones_orden: seccionesOrden
   }).eq('id', currentProvider.id).select().single();
   if(error){
-    msg.textContent = 'Error al publicar: ' + error.message;
+    msg.textContent = 'Error al guardar: ' + error.message;
     msg.style.color = 'var(--red)'; msg.style.display = 'block';
     return;
   }
   currentProvider = data;
   aplicarTipoNegocio();
   refreshRooms();
-  msg.textContent = 'Micrositio publicado.';
+  /* Guardar no es publicar: desde la Fase 8 son dos actos distintos, y
+     decirle "publicado" a quien todavía no ha pulsado el botón de publicar
+     sería mentirle. */
+  msg.textContent = currentProvider.microsite_published_at
+    ? 'Cambios guardados. Ya se ven en tu página.'
+    : 'Cambios guardados. Tu página sigue sin publicar.';
   msg.style.color = 'var(--green)'; msg.style.display = 'block';
+  pintarPrevia();
 }
 
 // ============================================================
