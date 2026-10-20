@@ -1277,6 +1277,19 @@ tr:hover td{background:#FBFCFE}
         </div>
       </div>
 
+      <!-- Salir al aire es una decisión, no una consecuencia. Antes, con el
+           módulo activo y una dirección elegida, la página se publicaba sola:
+           sin logo, sin portada y sin una línea escrita. -->
+      <div class="card" id="micrositePubCard" style="display:none;margin-bottom:20px">
+        <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
+          <div style="flex:1;min-width:240px">
+            <div class="section-title" style="margin-bottom:6px" id="micrositePubTit">Tu página todavía no está al aire</div>
+            <div style="font-size:12.5px;color:var(--gray);line-height:1.6" id="micrositePubTxt"></div>
+          </div>
+          <button class="btn btn-blue" id="btnPublicarMicrosite" onclick="alternarPublicacion()">Publicar mi página</button>
+        </div>
+      </div>
+
       <div class="card" id="micrositeLinkCard" style="display:none;margin-bottom:20px">
         <div class="section-title">La dirección de tu página</div>
         <div style="font-size:12.5px;color:var(--gray);margin-bottom:12px">Compártela en tus redes: quien entre verá tu negocio, tu catálogo y podrá reservar ahí mismo.</div>
@@ -2171,6 +2184,28 @@ function pintarRequisitos(){
      <span class="badge ${ok ? 'badge-green' : 'badge-gray'}">${ok ? 'Listo' : 'Falta'}</span></div>`).join('');
 }
 
+async function alternarPublicacion(){
+  if(!currentProvider) return;
+  const btn = document.getElementById('btnPublicarMicrosite');
+  const alAire = !!currentProvider.microsite_published_at;
+  if(alAire && !confirm('Tu página dejará de responder y saldrá del sitemap. Tus productos siguen en el buscador. ¿La quitas del aire?')) return;
+  btn.disabled = true;
+  const antes = btn.textContent;
+  btn.textContent = alAire ? 'Quitando...' : 'Publicando...';
+  const { data, error } = await sb.from('providers')
+    .update({ microsite_published_at: alAire ? null : new Date().toISOString() })
+    .eq('id', currentProvider.id).select().single();
+  btn.disabled = false;
+  if(error){
+    btn.textContent = antes;
+    showToast('No se pudo guardar: ' + error.message);
+    return;
+  }
+  currentProvider = data;
+  await refreshMicrosite();
+  showToast(alAire ? 'Tu página salió del aire.' : '¡Tu página está publicada!');
+}
+
 async function refreshMicrosite(){
   if(!currentProvider) return;
   const approved = currentProvider.verification_status === 'approved';
@@ -2227,8 +2262,31 @@ async function refreshMicrosite(){
      la aplicación contesta «página no encontrada» en esa misma dirección, y
      prometerla sería mandar al proveedor —y a quien él le pase el enlace— a
      una puerta cerrada. Si la consulta falló y no sabemos, tampoco se promete. */
+  /* Publicar y despublicar. Mientras no esté al aire, la dirección existe
+     pero no responde: enseñarla sería prometer algo que no está. */
+  const pubCard = document.getElementById('micrositePubCard');
+  const puedePublicar = approved && pagado === true && !!currentProvider.slug;
+  const alAire = !!currentProvider.microsite_published_at;
+  pubCard.style.display = puedePublicar ? 'block' : 'none';
+  if(puedePublicar){
+    const falta = [];
+    if(!currentProvider.logo_url) falta.push('tu logo');
+    if(!currentProvider.cover_image_url) falta.push('tu foto de portada');
+    if(!(currentProvider.about || currentProvider.que_hacemos)) falta.push('contar qué ofreces');
+    document.getElementById('micrositePubTit').textContent =
+      alAire ? 'Tu página está al aire' : 'Tu página todavía no está al aire';
+    document.getElementById('micrositePubTxt').textContent = alAire
+      ? 'Cualquiera que entre a tu dirección la ve, y los buscadores la pueden indexar. Puedes quitarla cuando quieras: tus productos siguen apareciendo en el buscador de Táchira GOO.'
+      : (falta.length
+          ? 'Puedes publicarla ya, pero aún falta ' + falta.join(', ') + '. Una página a medias es peor que ninguna.'
+          : 'Está lista. Al publicarla, tu dirección empieza a responder y entra al mapa del sitio.');
+    const btn = document.getElementById('btnPublicarMicrosite');
+    btn.textContent = alAire ? 'Quitar del aire' : 'Publicar mi página';
+    btn.className = alAire ? 'btn btn-outline' : 'btn btn-blue';
+  }
+
   const tarjeta = document.getElementById('micrositeLinkCard');
-  if(approved && pagado === true && currentProvider.slug){
+  if(puedePublicar && alAire){
     const url = SITIO_PUBLICO + '/' + currentProvider.slug;
     document.getElementById('micrositeUrl').textContent = url;
     document.getElementById('btnVerMicrosite').href = url;
