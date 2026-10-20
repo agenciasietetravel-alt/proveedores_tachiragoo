@@ -2,7 +2,7 @@
 <html lang="es"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portal de Proveedores — Táchira GOO!!!</title>
+<title>Portal de Proveedores — Andes GOO!</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap');
@@ -468,7 +468,7 @@ tr:hover td{background:#FBFCFE}
 
 <div id="login">
   <div class="login-card">
-    <div class="logo">TÁCHIRA <span>GOO!!!</span></div>
+    <div class="logo">ANDES <span>GOO!</span></div>
     <div class="login-badge">Conexión cifrada · Portal de Proveedores</div>
 
     <div id="loginForm">
@@ -515,7 +515,7 @@ tr:hover td{background:#FBFCFE}
 <div id="app">
 <div class="shell">
   <div class="sidebar">
-    <div class="sb-logo">TÁCHIRA <span>GOO!!!</span></div>
+    <div class="sb-logo">ANDES <span>GOO!</span></div>
 
     <div class="sb-group-label">Operación</div>
     <div class="nav-item active" id="navDashboard" onclick="showView('dashboard',this)"><span class="nav-ico">▦</span> Panel general</div>
@@ -568,7 +568,7 @@ tr:hover td{background:#FBFCFE}
         <div style="display:flex;gap:10px;align-items:center">
           <a id="btnVerPaginaPublica" class="btn btn-outline" target="_blank" rel="noopener"
              href="#" style="display:none">Ver mi página pública ↗</a>
-          <button class="btn btn-blue" onclick="openNewListing()">+ Nuevo listado</button>
+          <button class="btn btn-blue" id="btnNuevoDashboard" onclick="openNewListing()">+ Nuevo listado</button>
         </div>
       </div>
 
@@ -1003,7 +1003,7 @@ tr:hover td{background:#FBFCFE}
       <div class="tabcontent" id="vt-documentos" style="display:none">
         <div class="card">
           <div class="section-title">Documentos para la revisión legal</div>
-          <div class="info-note">🔒 Estos documentos y la placa son privados: solo los ve el equipo de verificación de Táchira GOO!!!. Nunca se muestran al viajero.</div>
+          <div class="info-note">🔒 Estos documentos y la placa son privados: solo los ve el equipo de verificación de Andes GOO! Nunca se muestran al viajero.</div>
           <div class="field" style="margin-top:16px"><label>Placa</label><input type="text" id="vPlate" placeholder="Ej. AB123CD"></div>
           <input type="file" id="vDocInput" accept="image/*,application/pdf" style="display:none" onchange="handleVehicleDoc(event)">
           <div id="vehicleDocsList"></div>
@@ -1121,7 +1121,7 @@ tr:hover td{background:#FBFCFE}
       </div>
 
       <div class="card" style="margin-bottom:22px">
-        <div class="section-title">Lo que cobra Táchira GOO</div>
+        <div class="section-title">Lo que cobra Andes GOO</div>
         <div class="mb-com" id="mbComision"></div>
         <div class="info-note" id="mbComisionNota" style="margin-top:14px"></div>
       </div>
@@ -1223,7 +1223,7 @@ tr:hover td{background:#FBFCFE}
     </div>
 
     <div class="view" id="v-microsite" style="display:none">
-      <div class="topbar"><div><div class="breadcrumb">MI MICROSITE</div><h1 class="page-title">Mi microsite</h1><div class="page-sub">Tu propia página dentro de Táchira GOO, con tu logo, tus fotos y tus productos</div></div><button class="btn btn-blue" id="micrositeSaveBtn" onclick="saveMicrosite()" style="display:none">Guardar cambios</button></div>
+      <div class="topbar"><div><div class="breadcrumb">MI MICROSITE</div><h1 class="page-title">Mi microsite</h1><div class="page-sub">Tu propia página dentro de Andes GOO, con tu logo, tus fotos y tus productos</div></div><button class="btn btn-blue" id="micrositeSaveBtn" onclick="saveMicrosite()" style="display:none">Guardar cambios</button></div>
 
       <div class="card" style="margin-bottom:20px">
         <div class="section-title">Identidad de tu negocio</div>
@@ -1376,7 +1376,7 @@ tr:hover td{background:#FBFCFE}
           <div class="field"><label>Correo</label><input type="text" id="aEmail" disabled style="background:var(--bg);color:var(--gray)"></div>
           <div id="accountMsg" style="display:none;font-size:12.5px;margin:8px 0"></div>
           <button class="btn btn-blue" onclick="saveAccount()">Guardar cambios</button>
-          <div class="info-note">🔒 Tu información fiscal está cifrada y solo es visible para ti y el equipo de verificación de Táchira GOO!!!</div>
+          <div class="info-note">🔒 Tu información fiscal está cifrada y solo es visible para ti y el equipo de verificación de Andes GOO!</div>
         </div>
         <div class="card">
           <div class="section-title">Estado de verificación</div>
@@ -1692,7 +1692,7 @@ async function abrirHilo(id){
       <div style="max-width:78%;padding:9px 13px;border-radius:14px;font-size:13px;line-height:1.5;
                   background:${m.autor==='proveedor'?'var(--blue)':m.autor==='admin'?'#FEF3C7':'#F1F5F9'};
                   color:${m.autor==='proveedor'?'#fff':'#334155'}">
-        ${m.autor!=='proveedor' ? `<div style="font-size:10px;font-weight:700;opacity:.7;margin-bottom:2px">${m.autor==='admin'?'Táchira GOO!!!':esc(m.autor_nombre||'Viajero')}</div>` : ''}
+        ${m.autor!=='proveedor' ? `<div style="font-size:10px;font-weight:700;opacity:.7;margin-bottom:2px">${m.autor==='admin'?'Andes GOO!':esc(m.autor_nombre||'Viajero')}</div>` : ''}
         <div style="white-space:pre-wrap">${esc(m.cuerpo)}</div>
         <div style="font-size:10px;opacity:.65;margin-top:4px">${new Date(m.created_at).toLocaleString('es-VE',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
       </div>
@@ -2247,7 +2247,10 @@ async function refreshMicrosite(){
 
   document.getElementById('micrositeLocked').style.display = abierto ? 'none' : 'block';
   document.getElementById('micrositeEditor').style.display = abierto ? 'grid' : 'none';
-  document.getElementById('micrositeSaveBtn').style.display = abierto ? 'inline-flex' : 'none';
+  /* El personalizador está siempre: elegir colores, letra y orden se puede
+     hacer desde el primer día, igual que subir el logo. Lo que se abre con
+     la verificación y la membresía es publicar, no vestir. */
+  document.getElementById('micrositeSaveBtn').style.display = 'inline-flex';
 
   const tit = document.getElementById('micrositeLockTit');
   const txt = document.getElementById('micrositeLockTxt');
@@ -2255,11 +2258,13 @@ async function refreshMicrosite(){
     tit.textContent = 'Tu página propia va con la membresía';
     txt.innerHTML = 'Tu negocio ya está verificado y tus productos se ven en el buscador. '
       + 'La página propia —tu dirección, tu marca, tu catálogo completo— entra con el plan. '
+      + 'Puedes dejarla vestida desde ya aquí abajo; lo que falta es ponerla al aire. '
       + '<a href="#" onclick="irA(\'membresia\');return false" style="color:var(--blue);font-weight:700">Mira qué incluye</a>.';
   } else {
     tit.textContent = 'Micrositio bloqueado';
     txt.textContent = 'Tu página pública se habilita cuando el administrador revise tu negocio. '
-      + 'Completa lo que falta aquí abajo y avísanos: mientras tanto tus productos ya son visibles para los viajeros.';
+      + 'Mientras tanto tus productos ya son visibles para los viajeros, y aquí abajo puedes dejarla '
+      + 'vestida —colores, letra, portada y el orden de tus secciones— para que salga lista el día que se apruebe.';
   }
   document.getElementById('requisitosLista').style.display = approved && !conModulo ? 'none' : '';
   document.getElementById('micrositeStatusBadge').parentElement.style.display =
@@ -2304,7 +2309,7 @@ async function refreshMicrosite(){
     document.getElementById('micrositePubTit').textContent =
       alAire ? 'Tu página está al aire' : 'Tu página todavía no está al aire';
     document.getElementById('micrositePubTxt').textContent = alAire
-      ? 'Cualquiera que entre a tu dirección la ve, y los buscadores la pueden indexar. Puedes quitarla cuando quieras: tus productos siguen apareciendo en el buscador de Táchira GOO.'
+      ? 'Cualquiera que entre a tu dirección la ve, y los buscadores la pueden indexar. Puedes quitarla cuando quieras: tus productos siguen apareciendo en el buscador de Andes GOO.'
       : (falta.length
           ? 'Puedes publicarla ya, pero aún falta ' + falta.join(', ') + '. Una página a medias es peor que ninguna.'
           : 'Está lista. Al publicarla, tu dirección empieza a responder y entra al mapa del sitio.');
@@ -2323,7 +2328,7 @@ async function refreshMicrosite(){
     tarjeta.style.display = 'none';
   }
 
-  if(approved){
+  {
     document.getElementById('mTitle').value = currentProvider.cover_title || currentProvider.business_name || '';
     document.getElementById('mLema').value = currentProvider.lema || '';
     document.getElementById('mTagline').value = currentProvider.cover_tagline || '';
@@ -2349,8 +2354,6 @@ async function refreshMicrosite(){
     pintarPersonalizador();
     pintarMarca();
     renderMicrositePreview();
-  } else {
-    document.getElementById('temaCard').style.display = 'none';
   }
 }
 
@@ -2359,7 +2362,7 @@ async function refreshMicrosite(){
    cambia allá, hay que cambiarla aquí.
    ------------------------------------------------------------------ */
 const TEMAS_MICROSITIO = [
-  { id:'clasico',   nombre:'Clásico',   resumen:'El azul y naranja de Táchira GOO.',        muestra:['#0052CC','#FF6B00','#F8FAFC'] },
+  { id:'clasico',   nombre:'Clásico',   resumen:'El azul y naranja de Andes GOO.',        muestra:['#0052CC','#FF6B00','#F8FAFC'] },
   { id:'andino',    nombre:'Andino',    resumen:'Verdes y piedra, con serifa. Montaña.',    muestra:['#2F5D50','#C4703A','#F4F1EA'] },
   { id:'costa',     nombre:'Costa',     resumen:'Turquesa y arena, formas redondeadas.',    muestra:['#0E8F9E','#F2A65A','#FFF8EF'] },
   { id:'editorial', nombre:'Editorial', resumen:'Blanco, negro y mucho aire. Boutique.',    muestra:['#111111','#8A7A5C','#FAFAFA'] },
@@ -4166,7 +4169,7 @@ const NAV_EXPLICA = {
   navRecepcion: 'El día de hoy: quién llega, quién está y quién sale',
   navVehiculos: 'Tus vehículos en alquiler y el acta de cada entrega',
   navFacturacion: 'Lo que has ganado y cómo te lo pagamos',
-  navMicrositio: 'Tu página pública dentro de Táchira GOO',
+  navMicrositio: 'Tu página pública dentro de Andes GOO',
   navCuenta: 'Tus datos, tu ubicación y quién entra a este panel'
 };
 
@@ -4198,7 +4201,19 @@ async function aplicarTipoNegocio(){
   data.forEach(m => {
     const el = document.getElementById(MOD_NAV[m.modulo]);
     if(!el) return;
-    if(m.estado === 'bloqueado'){ el.style.display = 'none'; return; }
+    /* Fuera del menú lo que no es de este modelo de negocio. 'bloqueado' no
+       le toca nunca; 'por_solicitud' tampoco es suyo —es algo que se abre si
+       lo pide—, y verlo apagado todos los días solo es ruido. Ninguno se
+       pierde: los dos siguen listados en «Mi plan», que es donde se va a
+       mirar qué más hay. Y si ya tiene cosas publicadas ahí, la función de
+       la base lo devuelve como 'incluido' y se ve igual. */
+    if(m.estado === 'bloqueado' || m.estado === 'por_solicitud'){
+      el.style.display = 'none';
+      return;
+    }
+    /* Su página propia se prepara desde el primer día. La puerta que cobra
+       es publicarla, y eso lo explica la vista misma, no un aviso al tocar. */
+    if(m.modulo === 'micrositio'){ el.style.display = ''; return; }
     el.style.display = '';
     el.setAttribute('data-mod', m.estado);
     el.querySelectorAll('.mod-chip').forEach(c => c.remove());
@@ -4221,7 +4236,27 @@ async function aplicarTipoNegocio(){
     g.style.display = alguno ? '' : 'none';
   });
 
+  /* El botón grande del panel llama a lo que este negocio vende de verdad.
+     Un hotel no publica «listados»: publica habitaciones. */
+  const b = document.getElementById('btnNuevoDashboard');
+  if(b){
+    const t = tipoNormalizado();
+    if(t === 'alojamiento'){ b.textContent = '+ Nueva habitación'; b.setAttribute('onclick', "irA('rooms')"); }
+    else if(t === 'vehiculos'){ b.textContent = '+ Nuevo vehículo'; b.setAttribute('onclick', "irA('vehicles')"); }
+    else { b.textContent = '+ Nuevo listado'; b.setAttribute('onclick', 'openNewListing()'); }
+  }
+
   pintarAvance();
+}
+
+/* El rubro se guarda con nombres viejos ('hotel', 'operadora'...) y nuevos.
+   La base los normaliza con tipo_de_negocio(); aquí hace falta lo mismo. */
+function tipoNormalizado(){
+  const t = String((currentProvider && currentProvider.business_type) || '').toLowerCase();
+  if(t === 'hotel' || t === 'alojamiento') return 'alojamiento';
+  if(t === 'operadora' || t === 'actividades' || t === 'experiencias') return 'experiencias';
+  if(t === 'vehiculos') return 'vehiculos';
+  return 'otro';
 }
 
 /* Un módulo apagado se ve, pero no abre: explica por qué. */
