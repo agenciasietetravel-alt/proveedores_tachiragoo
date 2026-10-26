@@ -1309,6 +1309,7 @@ tr:hover td{background:#FBFCFE}
             <div class="section-title">Los colores</div>
             <p class="hint" style="margin-bottom:14px">Mandan en toda tu página: botones, títulos, fondos.</p>
             <div id="pzPaletas" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px"></div>
+            <div id="pzColoresPropios" style="display:none"></div>
           </div>
 
           <div class="card">
@@ -1321,6 +1322,18 @@ tr:hover td{background:#FBFCFE}
             <div class="section-title">Cómo entra tu portada</div>
             <p class="hint" style="margin-bottom:14px">No cambia lo que dice; cambia cómo se ve al abrir.</p>
             <div id="pzPortadas" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:10px"></div>
+          </div>
+
+          <div class="card">
+            <div class="section-title">Tus fotos</div>
+            <p class="hint" style="margin-bottom:14px">Las que quieras enseñar, en el orden que quieras. Si no subes ninguna, tu galería se arma sola con las portadas de lo que vendes.</p>
+            <input type="file" id="galeriaInput" accept="image/*" multiple style="display:none" onchange="subirFotosGaleria(event)">
+            <div id="galeriaLista"></div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px">
+              <button class="btn btn-ghost" id="btnSubirGaleria" onclick="document.getElementById('galeriaInput').click()">Subir fotos</button>
+              <span class="hint" id="galeriaCuenta"></span>
+            </div>
+            <div id="galeriaError" style="display:none;color:var(--red);font-size:12.5px;margin-top:8px"></div>
           </div>
 
           <div class="card">
@@ -2135,6 +2148,96 @@ async function subirMarca(event, cual){
   pintarMarca();
 }
 
+/* La galería del negocio: sube, ordena y quita. El tope de 24 lo exige
+   también la base; decirlo aquí evita un guardado que falla sin explicación. */
+const GALERIA_TOPE = 24;
+
+async function subirFotosGaleria(event){
+  const files = Array.from(event.target.files || []);
+  const err = document.getElementById('galeriaError');
+  const btn = document.getElementById('btnSubirGaleria');
+  event.target.value = '';
+  err.style.display = 'none';
+  if(!files.length || !currentProvider) return;
+
+  const sitio = GALERIA_TOPE - galeriaPropia.length;
+  if(sitio <= 0){
+    err.textContent = 'Ya tienes ' + GALERIA_TOPE + ' fotos. Quita alguna para subir otra.';
+    err.style.display = 'block'; return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Subiendo…';
+  const fallos = [];
+  for(const file of files.slice(0, sitio)){
+    if(file.size > 3 * 1024 * 1024){ fallos.push(file.name + ': supera 3MB'); continue; }
+    const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const path = currentProvider.id + '/galeria-' + Date.now() + '-' + safe;
+    const { error } = await sb.storage.from('provider-brand').upload(path, file);
+    if(error){ fallos.push(file.name + ': ' + error.message); continue; }
+    const { data: pub } = sb.storage.from('provider-brand').getPublicUrl(path);
+    galeriaPropia.push({ url: pub.publicUrl, pie: '' });
+  }
+  btn.disabled = false;
+  btn.textContent = 'Subir fotos';
+  if(files.length > sitio) fallos.push('Solo caben ' + GALERIA_TOPE + ' fotos en total.');
+  if(fallos.length){ err.textContent = fallos.join(' · '); err.style.display = 'block'; }
+  pintarGaleria();
+  pintarPrevia();
+}
+
+function moverFoto(i, paso){
+  const j = i + paso;
+  if(j < 0 || j >= galeriaPropia.length) return;
+  const t = galeriaPropia[i];
+  galeriaPropia[i] = galeriaPropia[j];
+  galeriaPropia[j] = t;
+  pintarGaleria();
+  pintarPrevia();
+}
+
+/* Quitar la saca de la galería; el archivo se queda en el almacén. Borrarlo
+   de verdad rompería cualquier sitio donde esa URL ya esté puesta. */
+function quitarFoto(i){
+  galeriaPropia.splice(i, 1);
+  pintarGaleria();
+  pintarPrevia();
+}
+
+function ponerPie(i, v){
+  if(!galeriaPropia[i]) return;
+  galeriaPropia[i].pie = String(v || '').slice(0, 140);
+}
+
+function pintarGaleria(){
+  const caja = document.getElementById('galeriaLista');
+  if(!caja) return;
+  const cuenta = document.getElementById('galeriaCuenta');
+  if(cuenta) cuenta.textContent = galeriaPropia.length
+    ? galeriaPropia.length + (galeriaPropia.length === 1 ? ' foto · máximo ' : ' fotos · máximo ') + GALERIA_TOPE
+    : 'Todavía no has subido ninguna.';
+  if(!galeriaPropia.length){ caja.innerHTML = ''; return; }
+  caja.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">'
+    + galeriaPropia.map((f, i) => `
+      <div style="border:1px solid var(--border);border-radius:11px;overflow:hidden;background:#fff">
+        <div style="aspect-ratio:4/3;background:var(--bg)">
+          <img src="${esc(f.url)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block">
+        </div>
+        <div style="padding:8px">
+          <input type="text" value="${esc(f.pie || '')}" placeholder="Pie de foto (opcional)"
+            maxlength="140" oninput="ponerPie(${i}, this.value)"
+            style="width:100%;font-size:11.5px;padding:6px 8px;border:1px solid var(--border);border-radius:7px">
+          <div style="display:flex;gap:5px;margin-top:7px">
+            <button class="btn btn-sm btn-outline" style="padding:2px 8px" onclick="moverFoto(${i},-1)"
+              ${i === 0 ? 'disabled' : ''} title="Mover antes">←</button>
+            <button class="btn btn-sm btn-outline" style="padding:2px 8px" onclick="moverFoto(${i},1)"
+              ${i === galeriaPropia.length - 1 ? 'disabled' : ''} title="Mover después">→</button>
+            <button class="btn btn-sm btn-ghost" style="padding:2px 8px;margin-left:auto;color:var(--red)"
+              onclick="quitarFoto(${i})" title="Quitar de la galería">Quitar</button>
+          </div>
+        </div>
+      </div>`).join('') + '</div>';
+}
+
 function pintarMarca(){
   const logo = document.getElementById('logoPreview');
   const cover = document.getElementById('coverPreview');
@@ -2342,6 +2445,8 @@ async function refreshMicrosite(){
     temaElegido = currentProvider.tema || 'clasico';
     seccionesOcultas = (currentProvider.secciones_ocultas || []).slice();
     paletaElegida = currentProvider.paleta || null;
+    coloresPropios = currentProvider.paleta_propia || null;
+    galeriaPropia = Array.isArray(currentProvider.galeria) ? currentProvider.galeria.slice() : [];
     letraElegida = currentProvider.tipografia || null;
     portadaElegida = currentProvider.portada || null;
     /* El orden guardado manda; lo que no esté nombrado va detrás, para que
@@ -2371,7 +2476,7 @@ const TEMAS_MICROSITIO = [
 
 const SECCIONES_MICROSITIO = [
   { id:'nosotros',  label:'Quiénes somos',      nota:'Tu historia y qué hacen' },
-  { id:'galeria',   label:'Galería de fotos',   nota:'Se arma con las fotos de lo que publicas' },
+  { id:'galeria',   label:'Galería de fotos',   nota:'Las tuyas, o las de lo que publicas' },
   { id:'catalogo',  label:'Resto del catálogo', nota:'Lo que vendes además de tu rubro principal' },
   { id:'resenas',   label:'Reseñas',            nota:'Solo de viajeros que completaron una reserva' },
   { id:'ubicacion', label:'Cómo llegar',        nota:'Tu dirección y el enlace al mapa' }
@@ -2380,6 +2485,21 @@ const SECCIONES_MICROSITIO = [
 let temaElegido = 'clasico';
 let seccionesOcultas = [];
 let paletaElegida = null, letraElegida = null, portadaElegida = null;
+/* Los colores escritos por el propio negocio. Si están, mandan sobre las
+   nueve paletas de catálogo: una marca con su azul no cabe en ninguna. */
+let coloresPropios = null;
+/* Las fotos que el negocio elige y ordena. Mientras esté vacía, la galería
+   se sigue armando sola con las portadas de lo que vende. */
+let galeriaPropia = [];
+const CAMPOS_COLOR = [
+  { k:'acento',  n:'Principal',   d:'Botones y enlaces.' },
+  { k:'acento2', n:'Secundario',  d:'Detalles y acentos.' },
+  { k:'fondo',   n:'Fondo',       d:'El papel de la página.' },
+  { k:'suave',   n:'Fondo suave', d:'Bandas y tarjetas.' },
+  { k:'texto',   n:'Texto',       d:'Títulos y párrafos.' },
+  { k:'tenue',   n:'Texto tenue', d:'Pies y notas.' },
+  { k:'borde',   n:'Bordes',      d:'Líneas y separaciones.' }
+];
 let seccionesOrden = SECCIONES_MICROSITIO.map(x => x.id);
 
 /* El catálogo de estilos vive en la base: el mismo que lee la página
@@ -2424,8 +2544,12 @@ function pedirLetrasWeb(){
    entró aquí sigue viendo su página exactamente igual. */
 function pzActual(){
   const base = TEMAS_MICROSITIO.find(t => t.id === temaElegido) || TEMAS_MICROSITIO[0];
-  const pal = PZ.paleta.find(x => x.id === paletaElegida)
+  let pal = PZ.paleta.find(x => x.id === paletaElegida)
     || PZ.paleta.find(x => x.id === base.id) || PZ.paleta[0] || {};
+  /* Los colores propios se montan encima de la paleta elegida: quien solo
+     cambia el principal conserva el resto de una combinación que funciona. */
+  if(coloresPropios) pal = Object.assign({}, pal, coloresPropios,
+    { id:'propia', nombre:'Mis colores', resumen:'Los colores de tu marca.' });
   const let_ = PZ.tipografia.find(x => x.id === letraElegida) || PZ.tipografia[0] || {};
   const por = PZ.portada.find(x => x.id === portadaElegida) || PZ.portada[0] || {};
   return { pal, letra: let_, por };
@@ -2441,14 +2565,50 @@ function tarjetaPz(elegida, id, dentro){
 function pintarPersonalizador(){
   const { pal, letra, por } = pzActual();
 
+  const propios = !!coloresPropios;
   document.getElementById('pzPaletas').innerHTML = PZ.paleta.map(p => tarjetaPz(
-    p.id === pal.id, 'paleta:' + p.id,
+    !propios && p.id === pal.id, 'paleta:' + p.id,
     `<div style="display:flex;gap:4px;margin-bottom:8px">
        ${[p.acento, p.acento2, p.suave, p.fondo].map(c =>
          `<span style="width:22px;height:22px;border-radius:6px;background:${c};border:1px solid rgba(0,0,0,.1)"></span>`).join('')}
      </div>
      <div style="font-weight:700;font-size:13px">${esc(p.nombre)}</div>
-     <div style="font-size:11.5px;color:var(--gray);line-height:1.4;margin-top:2px">${esc(p.resumen || '')}</div>`)).join('');
+     <div style="font-size:11.5px;color:var(--gray);line-height:1.4;margin-top:2px">${esc(p.resumen || '')}</div>`)).join('')
+    + tarjetaPz(propios, 'paleta:propia',
+    `<div style="display:flex;gap:4px;margin-bottom:8px">
+       <span id="pzMuestraPropia" style="width:22px;height:22px;border-radius:6px;
+         background:${propios ? esc(coloresPropios.acento) : 'linear-gradient(135deg,#0052CC,#FF6B00,#2EC496)'};
+         border:1px solid rgba(0,0,0,.1)"></span>
+       <span style="width:22px;height:22px;border-radius:6px;border:1.5px dashed var(--border);
+         display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--gray)">+</span>
+     </div>
+     <div style="font-weight:700;font-size:13px">Mis colores</div>
+     <div style="font-size:11.5px;color:var(--gray);line-height:1.4;margin-top:2px">Los de tu marca, escritos por ti.</div>`);
+
+  /* Los siete campos solo aparecen cuando el negocio eligió poner los suyos:
+     de otro modo la pantalla se llena de controles que casi nadie usa. */
+  const caja = document.getElementById('pzColoresPropios');
+  if(caja){
+    caja.style.display = propios ? 'block' : 'none';
+    if(propios) caja.innerHTML =
+      `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:10px;margin-top:14px">
+         ${CAMPOS_COLOR.map(c => {
+           const v = esc(normalizaHex(coloresPropios[c.k]) || '#000000');
+           return `<label style="display:flex;gap:10px;align-items:center;padding:9px 11px;
+             border:1px solid var(--border);border-radius:10px;background:#fff;cursor:pointer">
+             <input type="color" value="${v}" aria-label="${esc(c.n)}"
+               oninput="cambiarColorPropio('${c.k}', this.value)"
+               style="width:34px;height:34px;padding:0;border:none;background:none;cursor:pointer;flex:none">
+             <span style="min-width:0">
+               <span style="display:block;font-weight:700;font-size:12.5px">${esc(c.n)}</span>
+               <span style="display:block;font-size:11px;color:var(--gray);line-height:1.35">${esc(c.d)}</span>
+             </span>
+           </label>`;
+         }).join('')}
+       </div>
+       <button class="btn btn-ghost btn-sm" style="margin-top:12px" onclick="quitarColoresPropios()">
+         Volver a una paleta de la lista</button>`;
+  }
 
   document.getElementById('pzLetras').innerHTML = PZ.tipografia.map(t => tarjetaPz(
     t.id === letra.id, 'tipografia:' + t.id,
@@ -2463,6 +2623,7 @@ function pintarPersonalizador(){
      <div style="font-size:11.5px;color:var(--gray);line-height:1.4;margin-top:2px">${esc(x.resumen || '')}</div>`)).join('');
 
   pintarSecciones();
+  pintarGaleria();
   pintarPrevia();
 }
 
@@ -2502,9 +2663,45 @@ function miniPortada(x, pal){
 }
 
 function elegirPz(tipo, id){
-  if(tipo === 'paleta') paletaElegida = id;
+  if(tipo === 'paleta'){
+    if(id === 'propia'){
+      /* Al entrar a "mis colores" se parte de la paleta que ya tenía puesta,
+         no de un blanco: así el primer cambio es un retoque, no un salto. */
+      if(!coloresPropios){
+        const base = pzActual().pal;
+        coloresPropios = {};
+        CAMPOS_COLOR.forEach(c => { coloresPropios[c.k] = normalizaHex(base[c.k]) || '#0052CC'; });
+      }
+    } else {
+      coloresPropios = null;
+      paletaElegida = id;
+    }
+  }
   if(tipo === 'tipografia') letraElegida = id;
   if(tipo === 'portada') portadaElegida = id;
+  pintarPersonalizador();
+}
+
+/* Un color solo entra si es un hexadecimal de seis cifras. La base lo exige
+   también, pero decírselo aquí evita un guardado que falla sin explicación. */
+function normalizaHex(v){
+  const t = String(v || '').trim();
+  if(/^#[0-9a-fA-F]{6}$/.test(t)) return t.toLowerCase();
+  if(/^#[0-9a-fA-F]{3}$/.test(t)) return ('#' + t[1]+t[1]+t[2]+t[2]+t[3]+t[3]).toLowerCase();
+  return null;
+}
+
+function cambiarColorPropio(k, v){
+  const hex = normalizaHex(v);
+  if(!hex || !coloresPropios) return;
+  coloresPropios[k] = hex;
+  pintarPrevia();
+  const m = document.getElementById('pzMuestraPropia');
+  if(m) m.style.background = coloresPropios.acento;
+}
+
+function quitarColoresPropios(){
+  coloresPropios = null;
   pintarPersonalizador();
 }
 
@@ -2653,7 +2850,9 @@ async function saveMicrosite(){
     tipografia: pzActual().letra.id || null,
     portada: pzActual().por.id || null,
     secciones_ocultas: seccionesOcultas,
-    secciones_orden: seccionesOrden
+    secciones_orden: seccionesOrden,
+    paleta_propia: coloresPropios,
+    galeria: galeriaPropia.length ? galeriaPropia : null
   }).eq('id', currentProvider.id).select().single();
   if(error){
     msg.textContent = 'Error al guardar: ' + error.message;
