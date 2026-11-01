@@ -2474,12 +2474,16 @@ const TEMAS_MICROSITIO = [
   { id:'aventura',  nombre:'Aventura',  resumen:'Naranja y grafito, bordes rectos.',        muestra:['#E2561B','#1C1C1E','#F3F3F1'] }
 ];
 
+/* Este es el orden de salida, el que ve quien no toca nada. "Quiénes
+   somos" va al final: el viajero entra a mirar si hay sitio y cuánto
+   cuesta, y lee la historia del negocio después de decidir. Quien quiera
+   otro orden lo arrastra. */
 const SECCIONES_MICROSITIO = [
-  { id:'nosotros',  label:'Quiénes somos',      nota:'Tu historia y qué hacen' },
   { id:'galeria',   label:'Galería de fotos',   nota:'Las tuyas, o las de lo que publicas' },
   { id:'catalogo',  label:'Resto del catálogo', nota:'Lo que vendes además de tu rubro principal' },
   { id:'resenas',   label:'Reseñas',            nota:'Solo de viajeros que completaron una reserva' },
-  { id:'ubicacion', label:'Cómo llegar',        nota:'Tu dirección y el enlace al mapa' }
+  { id:'ubicacion', label:'Cómo llegar',        nota:'Tu dirección y el enlace al mapa' },
+  { id:'nosotros',  label:'Quiénes somos',      nota:'Tu historia y qué hacen' }
 ];
 
 let temaElegido = 'clasico';
